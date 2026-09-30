@@ -38,8 +38,9 @@ $commands = [
         'note'  => 'Fixes "dubious ownership" error on shared hosting. Run this first.',
     ],
     'git_pull' => [
-        'label' => '② git pull',
-        'cmd'   => 'git -C ' . $base . ' pull origin main 2>&1',
+        'label' => '② git pull (SSH only)',
+        'cmd'   => 'echo "git pull must be run via SSH — the web process cannot write to .git/\nSSH command: cd ' . BASE_DIR . ' && git pull origin main"',
+        'note'  => 'Run <code>git pull origin main</code> via SSH, then come back here for the remaining steps.',
     ],
     'composer' => [
         'label' => '③ composer install',
@@ -119,9 +120,9 @@ echo "Done — now run migrate to apply only the new migrations.\n";
 ];
 
 // "Run All (update)" — skips migrate:fresh
-$update_steps = ['safe_dir','git_pull','composer','fix_db_state','migrate','seed','cache','storage'];
+$update_steps = ['safe_dir','composer','fix_db_state','migrate','seed','cache','storage'];
 // "First Deploy" — uses fresh
-$fresh_steps  = ['safe_dir','git_pull','composer','migrate_fresh','cache','storage'];
+$fresh_steps  = ['safe_dir','composer','migrate_fresh','cache','storage'];
 
 if (isset($_POST['run_all_update'])) {
     $_POST['run'] = $update_steps;
