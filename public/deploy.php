@@ -9,7 +9,10 @@
 
 define('DEPLOY_TOKEN', 'krmkndi-deploy-2026');   // ← change this
 define('BASE_DIR', dirname(__DIR__));              // project root (one level above public/)
-define('PHP_BIN', PHP_BINARY);                    // current PHP executable path
+
+// ── CLI PHP path (hardcoded for this server's PHP 8.3 install) ──────────────
+// PHP_BINARY returns php-fpm on shared hosting — we need the CLI binary.
+define('PHP_BIN', '/usr/local/apps/php83/bin/php');
 
 // ── Auth ────────────────────────────────────────────────────────────────────
 $token = $_GET['token'] ?? '';
@@ -40,8 +43,10 @@ $commands = [
     ],
     'composer' => [
         'label' => '③ composer install',
-        'cmd'   => 'composer install --optimize-autoloader --working-dir=' . $base . ' 2>&1',
-        'note'  => '--no-dev omitted: shared hosting blocks deletion of existing vendor files.',
+        'cmd'   => file_exists(BASE_DIR . '/vendor/autoload.php')
+            ? 'echo "vendor/autoload.php already exists — skipping composer install (run via SSH if packages changed)"'
+            : 'composer install --optimize-autoloader --working-dir=' . $base . ' 2>&1',
+        'note'  => 'Skipped automatically when vendor/ is already present (shared hosting file permission limitation). Run via SSH to update packages.',
     ],
     'fix_db_state' => [
         'label' => '④-A Fix DB state (existing server)',
@@ -220,7 +225,8 @@ pre::-webkit-scrollbar{width:5px}pre::-webkit-scrollbar-track{background:#111}pr
     <h1>🚀 KRMKNDI Deploy</h1>
     <p class="sub">Server: <code><?= htmlspecialchars(gethostname()) ?></code> &nbsp;·&nbsp;
        Dir: <code><?= htmlspecialchars(BASE_DIR) ?></code> &nbsp;·&nbsp;
-       PHP: <code><?= PHP_VERSION ?></code> (<?= htmlspecialchars(PHP_BIN) ?>)</p>
+       Web PHP: <code><?= PHP_VERSION ?></code> &nbsp;·&nbsp;
+       CLI PHP: <code><?= htmlspecialchars(PHP_BIN) ?></code></p>
 
     <div class="warn">
         <strong>⚠ Security:</strong> This file gives shell access to anyone with the token.
