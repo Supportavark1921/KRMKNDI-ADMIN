@@ -43,10 +43,51 @@ $commands = [
         'cmd'   => 'composer install --optimize-autoloader --working-dir=' . $base . ' 2>&1',
         'note'  => '--no-dev omitted: shared hosting blocks deletion of existing vendor files.',
     ],
+    'fix_db_state' => [
+        'label' => '④-A Fix DB state (existing server)',
+        'cmd'   => $php . ' -r ' . escapeshellarg('
+// Bootstrap Laravel
+require "' . BASE_DIR . '/vendor/autoload.php";
+$app = require "' . BASE_DIR . '/bootstrap/app.php";
+$app->make(Illuminate\Contracts\Http\Kernel::class)->bootstrap();
+
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
+
+// Create migrations table if it does not exist
+$app->make("migrator")->getRepository()->createRepository();
+echo "migrations table ready\n";
+
+// Migrations whose tables already exist on the server — mark batch 0 so Laravel skips them
+$alreadyRan = [
+    "0001_01_01_000000_create_users_table",
+    "0001_01_01_000001_create_cache_table",
+    "0001_01_01_000002_create_jobs_table",
+    "2026_08_31_000003_add_role_to_users_table",
+    "2026_09_01_000004_create_appointments_table",
+    "2026_09_01_000005_create_availability_slots_table",
+    "2026_09_01_000006_create_notifications_table",
+    "2026_09_01_000007_create_services_table",
+    "2026_09_01_000008_create_client_profiles_table",
+];
+$done = DB::table("migrations")->pluck("migration")->toArray();
+$batch = DB::table("migrations")->max("batch") ?: 0;
+foreach ($alreadyRan as $m) {
+    if (!in_array($m, $done)) {
+        DB::table("migrations")->insert(["migration" => $m, "batch" => $batch]);
+        echo "marked: $m\n";
+    } else {
+        echo "already recorded: $m\n";
+    }
+}
+echo "Done — now run migrate to apply only the new migrations.\n";
+') . ' 2>&1',
+        'note'  => 'Run this ONCE on a server that already had tables before migrations. It marks old migrations as done so migrate only runs the new ones.',
+    ],
     'migrate' => [
-        'label' => '④ migrate (update — skips existing)',
+        'label' => '④-B migrate (runs only new ones)',
         'cmd'   => $php . ' ' . $artisan . ' migrate --force 2>&1',
-        'note'  => 'Runs only new migrations. Safe for existing databases.',
+        'note'  => 'Run after ④-A on an existing server, or on its own for normal updates.',
     ],
     'migrate_fresh' => [
         'label' => '④-FRESH migrate:fresh + seed',
@@ -73,7 +114,7 @@ $commands = [
 ];
 
 // "Run All (update)" — skips migrate:fresh
-$update_steps = ['safe_dir','git_pull','composer','migrate','seed','cache','storage'];
+$update_steps = ['safe_dir','git_pull','composer','fix_db_state','migrate','seed','cache','storage'];
 // "First Deploy" — uses fresh
 $fresh_steps  = ['safe_dir','git_pull','composer','migrate_fresh','cache','storage'];
 
