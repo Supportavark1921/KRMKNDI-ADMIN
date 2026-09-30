@@ -43,6 +43,12 @@
                         <a class="{{ request()->routeIs('appointments.create') ? 'active' : '' }}" href="{{ route('appointments.create') }}"><span>＋</span> Book a session</a>
                     @else
                         <a class="{{ request()->routeIs('availability.*') ? 'active' : '' }}" href="{{ route('availability.index') }}"><span>▦</span> Availability</a>
+                        <a class="{{ request()->routeIs('services.*') ? 'active' : '' }}" href="{{ route('services.index') }}"><span>✦</span> Services</a>
+                        <a class="{{ request()->routeIs('gurus.*') ? 'active' : '' }}" href="{{ route('gurus.index') }}"><span>🕉</span> Gurujis</a>
+                        <a class="{{ request()->routeIs('donation-categories.*') ? 'active' : '' }}" href="{{ route('donation-categories.index') }}"><span>❧</span> Don. Categories</a>
+                        <a class="{{ request()->routeIs('donations.*') ? 'active' : '' }}" href="{{ route('donations.index') }}"><span>₹</span> Donations</a>
+                        <a class="{{ request()->routeIs('donation-fees.*') ? 'active' : '' }}" href="{{ route('donation-fees.index') }}"><span>⚙</span> Fee Settings</a>
+                        <a class="{{ request()->routeIs('api.docs') ? 'active' : '' }}" href="{{ route('api.docs') }}"><span>⎇</span> API Docs</a>
                     @endif
                 </nav>
                 <div class="sidebar-coming"><span>More coming soon</span><p>Future services, reports and spiritual tools will appear here.</p></div>

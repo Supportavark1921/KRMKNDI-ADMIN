@@ -1,5 +1,10 @@
 <?php
 
+use App\Http\Controllers\ApiDocsController;
+use App\Http\Controllers\DonationCategoryController;
+use App\Http\Controllers\DonationController;
+use App\Http\Controllers\DonationFeeController;
+use App\Http\Controllers\GuruController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\AvailabilityController;
@@ -32,10 +37,29 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ClientProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ClientProfileController::class, 'update'])->name('profile.update');
     Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
+    Route::get('/services/create', [ServiceController::class, 'create'])->name('services.create');
     Route::post('/services', [ServiceController::class, 'store'])->name('services.store');
+    Route::get('/services/{service}', [ServiceController::class, 'show'])->name('services.show');
+    Route::get('/services/{service}/edit', [ServiceController::class, 'edit'])->name('services.edit');
     Route::put('/services/{service}', [ServiceController::class, 'update'])->name('services.update');
+    Route::delete('/services/{service}', [ServiceController::class, 'destroy'])->name('services.destroy');
     Route::get('/clients', [ClientProfileController::class, 'clients'])->name('clients.index');
     Route::get('/clients/{user}', [ClientProfileController::class, 'show'])->name('clients.show');
     Route::put('/clients/{user}/notes', [ClientProfileController::class, 'notes'])->name('clients.notes');
+    Route::get('/api-docs', [ApiDocsController::class, 'index'])->name('api.docs');
+
+    // Guruji management
+    Route::resource('gurus', GuruController::class);
+
+    // Donation categories
+    Route::resource('donation-categories', DonationCategoryController::class)->except(['show']);
+
+    // Donation listing & detail (admin read-only)
+    Route::get('/donations', [DonationController::class, 'index'])->name('donations.index');
+    Route::get('/donations/{donation}', [DonationController::class, 'show'])->name('donations.show');
+
+    // Donation fee settings
+    Route::get('/donation-fees', [DonationFeeController::class, 'index'])->name('donation-fees.index');
+    Route::put('/donation-fees', [DonationFeeController::class, 'update'])->name('donation-fees.update');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
