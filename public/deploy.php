@@ -60,9 +60,14 @@ $app->make(Illuminate\Contracts\Http\Kernel::class)->bootstrap();
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-// Create migrations table if it does not exist
-$app->make("migrator")->getRepository()->createRepository();
-echo "migrations table ready\n";
+// Create migrations table only if it does not already exist
+$repo = $app->make("migrator")->getRepository();
+if (!$repo->repositoryExists()) {
+    $repo->createRepository();
+    echo "migrations table created\n";
+} else {
+    echo "migrations table already exists — skipped\n";
+}
 
 // Migrations whose tables already exist on the server — mark batch 0 so Laravel skips them
 $alreadyRan = [
@@ -75,6 +80,7 @@ $alreadyRan = [
     "2026_09_01_000006_create_notifications_table",
     "2026_09_01_000007_create_services_table",
     "2026_09_01_000008_create_client_profiles_table",
+    "2026_09_30_000001_rebuild_services_for_multilingual",
 ];
 $done = DB::table("migrations")->pluck("migration")->toArray();
 $batch = DB::table("migrations")->max("batch") ?: 0;
