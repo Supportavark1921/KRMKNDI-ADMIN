@@ -24,5 +24,15 @@ class DatabaseSeeder extends Seeder
             ['email' => 'test@example.com'],
             ['name' => 'Test User', 'role' => 'user', 'password' => bcrypt('password')]
         );
+
+        // Services
+        $this->call(ServicesSeeder::class);
+
+        // Location master data — safe to re-run (all use firstOrCreate)
+        $this->call([
+            IndiaLocationSeeder::class,           // Country + 36 States/UTs
+            IndiaSampleDistrictCitySeeder::class, // ~58 districts, ~200 cities across 11 states
+            IndiaPincodeSeeder::class,            // ~208 real India Post PIN codes
+        ]);
     }
 }

@@ -27,9 +27,10 @@ class AppointmentController extends Controller
     public function create(): View
     {
         AvailabilitySlot::ensureWeek();
-        Service::ensureDefaults();
 
-        return view('appointments.create', ['services' => Service::where('is_active', true)->orderBy('name')->get()]);
+        $services = Service::active()->get();
+
+        return view('appointments.create', compact('services'));
     }
 
     public function store(Request $request): RedirectResponse

@@ -34,6 +34,7 @@ class OpenApiController extends Controller
                 ['name' => 'Gurujis',   'description' => 'Guruji profiles, donation categories, and per-Guruji stats'],
                 ['name' => 'Donations', 'description' => 'App handling fee configuration and donation transactions'],
                 ['name' => 'Services',  'description' => 'Multilingual booking services'],
+                ['name' => 'Location',  'description' => 'Cascading location master — countries, states, districts, cities, PIN codes'],
             ],
 
             // ── Paths ────────────────────────────────────────────────────────
@@ -277,6 +278,200 @@ class OpenApiController extends Controller
                         'responses' => [
                             '200'  => ['description' => 'Success',       'content' => ['application/json' => ['schema' => ['$ref' => '#/components/schemas/ServiceSingleResponse']]]],
                             '404'  => ['$ref' => '#/components/responses/NotFound'],
+                        ],
+                    ],
+                ],
+                // ── LOCATION ─────────────────────────────────────────────────
+
+                '/api/locations/countries' => [
+                    'get' => [
+                        'tags'        => ['Location'],
+                        'summary'     => 'List all active countries',
+                        'operationId' => 'listCountries',
+                        'responses'   => [
+                            '200' => [
+                                'description' => 'Success',
+                                'content'     => [
+                                    'application/json' => [
+                                        'example' => [
+                                            ['id' => 1, 'name' => 'India', 'iso_code' => 'IN', 'phone_code' => '+91', 'currency_code' => 'INR'],
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+
+                '/api/locations/countries/{country_id}/states' => [
+                    'get' => [
+                        'tags'        => ['Location'],
+                        'summary'     => 'List states / UTs for a country',
+                        'operationId' => 'listStatesByCountryId',
+                        'parameters'  => [
+                            ['name' => 'country_id', 'in' => 'path', 'required' => true, 'schema' => ['type' => 'integer'], 'example' => 1],
+                        ],
+                        'responses'   => [
+                            '200' => [
+                                'description' => 'Success',
+                                'content'     => [
+                                    'application/json' => [
+                                        'example' => [
+                                            ['id' => 13, 'name' => 'Madhya Pradesh', 'code' => 'MP', 'type' => 'STATE'],
+                                            ['id' => 32, 'name' => 'Delhi',           'code' => 'DL', 'type' => 'UNION_TERRITORY'],
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+
+                '/api/locations/countries/iso/{iso}/states' => [
+                    'get' => [
+                        'tags'        => ['Location'],
+                        'summary'     => 'List states / UTs by country ISO code',
+                        'operationId' => 'listStatesByIso',
+                        'parameters'  => [
+                            ['name' => 'iso', 'in' => 'path', 'required' => true, 'schema' => ['type' => 'string', 'maxLength' => 2], 'example' => 'IN'],
+                        ],
+                        'responses'   => ['200' => ['description' => 'Success']],
+                    ],
+                ],
+
+                '/api/locations/states/{state_id}/districts' => [
+                    'get' => [
+                        'tags'        => ['Location'],
+                        'summary'     => 'List districts for a state',
+                        'operationId' => 'listDistricts',
+                        'parameters'  => [
+                            ['name' => 'state_id', 'in' => 'path', 'required' => true, 'schema' => ['type' => 'integer'], 'example' => 13],
+                        ],
+                        'responses'   => [
+                            '200' => [
+                                'description' => 'Success',
+                                'content'     => [
+                                    'application/json' => [
+                                        'example' => [
+                                            ['id' => 1, 'state_id' => 13, 'name' => 'Indore', 'code' => null],
+                                            ['id' => 2, 'state_id' => 13, 'name' => 'Bhopal', 'code' => null],
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+
+                '/api/locations/districts/{district_id}/cities' => [
+                    'get' => [
+                        'tags'        => ['Location'],
+                        'summary'     => 'List cities for a district',
+                        'operationId' => 'listCities',
+                        'parameters'  => [
+                            ['name' => 'district_id', 'in' => 'path', 'required' => true, 'schema' => ['type' => 'integer'], 'example' => 1],
+                        ],
+                        'responses'   => [
+                            '200' => [
+                                'description' => 'Success',
+                                'content'     => [
+                                    'application/json' => [
+                                        'example' => [
+                                            ['id' => 1, 'district_id' => 1, 'state_id' => 13, 'name' => 'Indore'],
+                                            ['id' => 2, 'district_id' => 1, 'state_id' => 13, 'name' => 'Rau'],
+                                            ['id' => 3, 'district_id' => 1, 'state_id' => 13, 'name' => 'Mhow'],
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+
+                '/api/locations/cities/{city_id}/pincodes' => [
+                    'get' => [
+                        'tags'        => ['Location'],
+                        'summary'     => 'List PIN codes (post offices) for a city',
+                        'description' => 'One city can have multiple post offices and multiple PIN codes. Returns all active entries.',
+                        'operationId' => 'listPincodes',
+                        'parameters'  => [
+                            ['name' => 'city_id', 'in' => 'path', 'required' => true, 'schema' => ['type' => 'integer'], 'example' => 1],
+                        ],
+                        'responses'   => [
+                            '200' => [
+                                'description' => 'Success',
+                                'content'     => [
+                                    'application/json' => [
+                                        'example' => [
+                                            ['id' => 1,  'pincode' => '452001', 'post_office_name' => 'Indore H.O',           'office_type' => 'HEAD POST OFFICE',  'delivery_status' => 'Delivery'],
+                                            ['id' => 2,  'pincode' => '452002', 'post_office_name' => 'Indore Cloth Market S.O','office_type' => 'SUB POST OFFICE', 'delivery_status' => 'Delivery'],
+                                            ['id' => 3,  'pincode' => '452003', 'post_office_name' => 'Palasia S.O',            'office_type' => 'SUB POST OFFICE', 'delivery_status' => 'Delivery'],
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+
+                '/api/locations/pincodes/{pincode}' => [
+                    'get' => [
+                        'tags'        => ['Location'],
+                        'summary'     => 'Reverse PIN code lookup',
+                        'description' => 'Returns all post offices matching the 6-digit PIN, each with its state, district and city. Use this to auto-fill an address form when the user enters a PIN.',
+                        'operationId' => 'lookupPincode',
+                        'parameters'  => [
+                            ['name' => 'pincode', 'in' => 'path', 'required' => true, 'schema' => ['type' => 'string', 'pattern' => '^\d{6}$'], 'example' => '452001'],
+                        ],
+                        'responses'   => [
+                            '200' => [
+                                'description' => 'One or more post offices matching this PIN',
+                                'content'     => [
+                                    'application/json' => [
+                                        'example' => [
+                                            [
+                                                'id' => 1, 'pincode' => '452001', 'post_office_name' => 'Indore H.O', 'office_type' => 'HEAD POST OFFICE',
+                                                'state'    => ['id' => 13, 'name' => 'Madhya Pradesh', 'code' => 'MP'],
+                                                'district' => ['id' => 1,  'name' => 'Indore'],
+                                                'city'     => ['id' => 1,  'name' => 'Indore'],
+                                            ],
+                                        ],
+                                    ],
+                                ],
+                            ],
+                            '404' => ['$ref' => '#/components/responses/NotFound'],
+                        ],
+                    ],
+                ],
+
+                '/api/locations/search' => [
+                    'get' => [
+                        'tags'        => ['Location'],
+                        'summary'     => 'Search cities, districts or PIN codes',
+                        'description' => 'Type-aware search: a digit string searches PIN codes; text searches cities and districts. Minimum 2 characters.',
+                        'operationId' => 'searchLocations',
+                        'parameters'  => [
+                            [
+                                'name'        => 'q',
+                                'in'          => 'query',
+                                'required'    => true,
+                                'description' => 'Search query — text for city/district, digits for PIN prefix',
+                                'schema'      => ['type' => 'string', 'minLength' => 2],
+                                'example'     => 'indore',
+                            ],
+                        ],
+                        'responses'   => [
+                            '200' => [
+                                'description' => 'Array of matched results (type = city | district | pincode)',
+                                'content'     => [
+                                    'application/json' => [
+                                        'example' => [
+                                            ['type' => 'city', 'id' => 1, 'label' => 'Indore, Indore, Madhya Pradesh', 'city' => 'Indore', 'district' => 'Indore', 'state' => 'Madhya Pradesh', 'state_code' => 'MP'],
+                                            ['type' => 'district', 'id' => 1, 'label' => 'Indore, Madhya Pradesh', 'district' => 'Indore', 'state' => 'Madhya Pradesh', 'state_code' => 'MP'],
+                                        ],
+                                    ],
+                                ],
+                            ],
                         ],
                     ],
                 ],
