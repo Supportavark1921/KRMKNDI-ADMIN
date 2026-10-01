@@ -46,7 +46,10 @@
                         <a class="{{ request()->routeIs('clients.*') ? 'active' : '' }}" href="{{ route('clients.index') }}"><span>◉</span> Clients</a>
                     @endif
                 </nav>
-                @if(auth()->user()->role === 'admin')
+                @php $role = auth()->user()->role; @endphp
+
+                {{-- Admin-only section --}}
+                @if($role === 'admin')
                 <span class="sidebar-label" style="margin-top:18px">Admin</span>
                 <nav class="sidebar-nav">
                     <a class="{{ request()->routeIs('availability.*') ? 'active' : '' }}" href="{{ route('availability.index') }}"><span>▦</span> Availability</a>
@@ -61,8 +64,38 @@
                     <a class="{{ request()->routeIs('api.docs') ? 'active' : '' }}" href="{{ route('api.docs') }}"><span>⎇</span> API Docs</a>
                 </nav>
                 @endif
-                <div class="sidebar-coming"><span>More coming soon</span><p>Future services, reports and spiritual tools will appear here.</p></div>
-                <div class="sidebar-user"><div class="avatar">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</div><div><b>{{ auth()->user()->name }}</b><small>{{ auth()->user()->role === 'admin' ? 'Pandit Ji' : 'Member' }}</small></div></div>
+
+                {{-- Vastra Store: admin + active vendor --}}
+                @if($role === 'admin' || ($role === 'vendor' && auth()->user()->vendor?->isActive()))
+                <span class="sidebar-label" style="margin-top:18px">🛍 Vastra Store</span>
+                <nav class="sidebar-nav">
+                    @if($role === 'admin')
+                    <a class="{{ request()->routeIs('admin.store.matajis.*') ? 'active' : '' }}" href="{{ route('admin.store.matajis.index') }}"><span>🕉</span> Matajis</a>
+                    <a class="{{ request()->routeIs('admin.store.categories.*') ? 'active' : '' }}" href="{{ route('admin.store.categories.index') }}"><span>📦</span> Categories</a>
+                    <a class="{{ request()->routeIs('admin.store.vendors.*') ? 'active' : '' }}" href="{{ route('admin.store.vendors.index') }}"><span>🏪</span> Vendors</a>
+                    @endif
+                    <a class="{{ request()->routeIs('admin.store.products.*') ? 'active' : '' }}" href="{{ route('admin.store.products.index') }}"><span>🛒</span> Products</a>
+                    <a class="{{ request()->routeIs('admin.store.inventory.*') ? 'active' : '' }}" href="{{ route('admin.store.inventory.index') }}"><span>📊</span> Inventory</a>
+                </nav>
+                @endif
+
+                {{-- Guruji section --}}
+                @if($role === 'guruji' || $role === 'admin')
+                <span class="sidebar-label" style="margin-top:18px">Guruji</span>
+                <nav class="sidebar-nav">
+                    <a class="{{ request()->routeIs('gurus.*') && $role === 'guruji' ? 'active' : '' }}" href="{{ route('donations.index') }}"><span>₹</span> My Donations</a>
+                </nav>
+                @endif
+
+                @php
+                    $roleLabel = match($role) {
+                        'admin'  => 'Administrator',
+                        'guruji' => 'Guruji',
+                        'vendor' => 'Vendor',
+                        default  => 'Member',
+                    };
+                @endphp
+                <div class="sidebar-user"><div class="avatar">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</div><div><b>{{ auth()->user()->name }}</b><small>{{ $roleLabel }}</small></div></div>
             </aside>
             <div class="app-main">@yield('content')</div>
         </div>

@@ -7,7 +7,15 @@ use App\Http\Controllers\Admin\Location\LocationSyncController;
 use App\Http\Controllers\Admin\Location\PincodeAdminController;
 use App\Http\Controllers\Admin\Location\StateAdminController;
 use App\Http\Controllers\Admin\PanchangMonitorController;
+use App\Http\Controllers\Admin\Store\CategoriesController as StoreCategoriesController;
+use App\Http\Controllers\Admin\Store\InventoryController as StoreInventoryController;
+use App\Http\Controllers\Admin\Store\MatajisController as StoreMatajisController;
+use App\Http\Controllers\Admin\Store\ProductsController as StoreProductsController;
+use App\Http\Controllers\Admin\Store\VendorsController as StoreVendorsController;
 use App\Http\Controllers\Api\PanchangController;
+use App\Http\Controllers\Api\Store\CategoriesApiController;
+use App\Http\Controllers\Api\Store\MatajisApiController;
+use App\Http\Controllers\Api\Store\ProductsApiController;
 use App\Http\Controllers\ApiDocsController;
 use App\Http\Controllers\DonationCategoryController;
 use App\Http\Controllers\DonationController;
@@ -115,11 +123,66 @@ Route::middleware('auth')->group(function () {
     // Panchang API usage monitor + live test
     Route::get('/admin/panchang',      [PanchangMonitorController::class, 'index'])->name('admin.panchang.monitor');
     Route::get('/admin/panchang/test', fn () => view('panchang.test'))->name('admin.panchang.test');
+
+    // ── Mataji Vastra Store — Admin ───────────────────────────────────────────
+    Route::prefix('admin/store')->name('admin.store.')->group(function () {
+        // Matajis
+        Route::get('matajis',                [StoreMatajisController::class, 'index'])->name('matajis.index');
+        Route::get('matajis/create',         [StoreMatajisController::class, 'create'])->name('matajis.create');
+        Route::post('matajis',               [StoreMatajisController::class, 'store'])->name('matajis.store');
+        Route::get('matajis/{mataji}/edit',  [StoreMatajisController::class, 'edit'])->name('matajis.edit');
+        Route::put('matajis/{mataji}',       [StoreMatajisController::class, 'update'])->name('matajis.update');
+        Route::delete('matajis/{mataji}',    [StoreMatajisController::class, 'destroy'])->name('matajis.destroy');
+
+        // Categories
+        Route::get('categories',                  [StoreCategoriesController::class, 'index'])->name('categories.index');
+        Route::get('categories/create',           [StoreCategoriesController::class, 'create'])->name('categories.create');
+        Route::post('categories',                 [StoreCategoriesController::class, 'store'])->name('categories.store');
+        Route::get('categories/{category}/edit',  [StoreCategoriesController::class, 'edit'])->name('categories.edit');
+        Route::put('categories/{category}',       [StoreCategoriesController::class, 'update'])->name('categories.update');
+        Route::delete('categories/{category}',    [StoreCategoriesController::class, 'destroy'])->name('categories.destroy');
+
+        // Products
+        Route::get('products',                        [StoreProductsController::class, 'index'])->name('products.index');
+        Route::get('products/create',                 [StoreProductsController::class, 'create'])->name('products.create');
+        Route::post('products',                       [StoreProductsController::class, 'store'])->name('products.store');
+        Route::get('products/{product}',              [StoreProductsController::class, 'show'])->name('products.show');
+        Route::get('products/{product}/edit',         [StoreProductsController::class, 'edit'])->name('products.edit');
+        Route::put('products/{product}',              [StoreProductsController::class, 'update'])->name('products.update');
+        Route::delete('products/{product}',           [StoreProductsController::class, 'destroy'])->name('products.destroy');
+        Route::post('products/{id}/restore',          [StoreProductsController::class, 'restore'])->name('products.restore');
+        Route::delete('product-images/{image}',       [StoreProductsController::class, 'deleteImage'])->name('products.images.delete');
+        Route::post('product-images/{image}/primary', [StoreProductsController::class, 'setPrimaryImage'])->name('products.images.primary');
+
+        // Inventory
+        Route::get('inventory',                        [StoreInventoryController::class, 'index'])->name('inventory.index');
+        Route::post('inventory/{product}/add',         [StoreInventoryController::class, 'addStock'])->name('inventory.add');
+        Route::post('inventory/{product}/adjust',      [StoreInventoryController::class, 'adjust'])->name('inventory.adjust');
+        Route::get('inventory/{product}/history',      [StoreInventoryController::class, 'history'])->name('inventory.history');
+
+        // Vendors
+        Route::get('vendors',                          [StoreVendorsController::class, 'index'])->name('vendors.index');
+        Route::get('vendors/create',                   [StoreVendorsController::class, 'create'])->name('vendors.create');
+        Route::post('vendors',                         [StoreVendorsController::class, 'store'])->name('vendors.store');
+        Route::get('vendors/{vendor}',                 [StoreVendorsController::class, 'show'])->name('vendors.show');
+        Route::get('vendors/{vendor}/edit',            [StoreVendorsController::class, 'edit'])->name('vendors.edit');
+        Route::put('vendors/{vendor}',                 [StoreVendorsController::class, 'update'])->name('vendors.update');
+        Route::post('vendors/{vendor}/approve',        [StoreVendorsController::class, 'approve'])->name('vendors.approve');
+        Route::post('vendors/{vendor}/suspend',        [StoreVendorsController::class, 'suspend'])->name('vendors.suspend');
+    });
 });
 
-// Panchang public API — no auth (APK calls this)
+// Public API — no auth (APK calls these)
 Route::prefix('api/v1')->name('api.v1.')->group(function () {
     Route::get('panchang', [PanchangController::class, 'show'])->name('panchang');
+
+    // Store catalog
+    Route::get('products',             [ProductsApiController::class, 'index'])->name('store.products.index');
+    Route::get('products/{id}',        [ProductsApiController::class, 'show'])->name('store.products.show');
+    Route::get('resale-products',      [ProductsApiController::class, 'resale'])->name('store.products.resale');
+    Route::get('categories',           [CategoriesApiController::class, 'index'])->name('store.categories.index');
+    Route::get('matajis',              [MatajisApiController::class, 'index'])->name('store.matajis.index');
+    Route::get('matajis/{mataji}',     [MatajisApiController::class, 'show'])->name('store.matajis.show');
 });
 
 // Location API (cascading dropdowns) — auth required
