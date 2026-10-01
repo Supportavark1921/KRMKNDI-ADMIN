@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('panchang_cache')) {
+            return;
+        }
+
         Schema::create('panchang_cache', function (Blueprint $table) {
             $table->id();
             $table->string('cache_key', 120)->unique();

@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('navamsha_api_logs')) {
+            return;
+        }
+
         Schema::create('navamsha_api_logs', function (Blueprint $table) {
             $table->id();
             $table->string('endpoint', 120);
