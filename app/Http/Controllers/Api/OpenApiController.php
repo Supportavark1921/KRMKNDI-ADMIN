@@ -23,7 +23,8 @@ class OpenApiController extends Controller
                     . "**Modules:**\n"
                     . "- 🕉 **Gurujis** — list and fetch Guruji profiles with donation categories\n"
                     . "- ₹ **Donations** — fee config and create donation transactions\n"
-                    . "- ✦ **Services** — multilingual service catalogue",
+                    . "- ✦ **Services** — multilingual service catalogue\n"
+                    . "- 🌙 **Panchang** — daily Vedic Panchang data (Tithi, Nakshatra, Yoga, Karana, Choghadiya, Hora, Rahu Kaal, Abhijit) via Navamsha API with location-aware caching",
                 'version' => '1.0.0',
                 'contact' => ['name' => 'ARK Jyotish Admin', 'url' => $base],
             ],
@@ -35,6 +36,7 @@ class OpenApiController extends Controller
                 ['name' => 'Donations', 'description' => 'App handling fee configuration and donation transactions'],
                 ['name' => 'Services',  'description' => 'Multilingual booking services'],
                 ['name' => 'Location',  'description' => 'Cascading location master — countries, states, districts, cities, PIN codes'],
+                ['name' => 'Panchang',  'description' => 'Daily Vedic Panchang data — Tithi, Nakshatra, Yoga, Karana, Choghadiya, Hora, Rahu Kaal, Abhijit. Served from cache; Navamsha API key is server-side only.'],
             ],
 
             // ── Paths ────────────────────────────────────────────────────────
@@ -475,6 +477,121 @@ class OpenApiController extends Controller
                         ],
                     ],
                 ],
+                // ── PANCHANG ─────────────────────────────────────────────────
+
+                '/api/v1/panchang' => [
+                    'get' => [
+                        'tags'        => ['Panchang'],
+                        'summary'     => 'Get daily Vedic Panchang for a location and date',
+                        'description' => "Returns full or feature-specific Panchang data for a given location and date.\n\n"
+                            . "**Caching:** coordinates are rounded to 2 decimal places (~1 km grid). "
+                            . "The first request for a new location+date hits the Navamsha API; subsequent requests are served from the database cache. "
+                            . "Cache expires at the end of the local calendar day (historical records are kept permanently).\n\n"
+                            . "**No auth required** — this endpoint is called directly from the mobile APK. "
+                            . "The Navamsha API key is **never** exposed; it is used only on the server.",
+                        'operationId' => 'getPanchang',
+                        'parameters'  => [
+                            [
+                                'name'        => 'latitude',
+                                'in'          => 'query',
+                                'required'    => true,
+                                'description' => 'Latitude of the birth/query location (decimal degrees)',
+                                'schema'      => ['type' => 'number', 'format' => 'float', 'minimum' => -90, 'maximum' => 90],
+                                'example'     => 22.7196,
+                            ],
+                            [
+                                'name'        => 'longitude',
+                                'in'          => 'query',
+                                'required'    => true,
+                                'description' => 'Longitude of the birth/query location (decimal degrees)',
+                                'schema'      => ['type' => 'number', 'format' => 'float', 'minimum' => -180, 'maximum' => 180],
+                                'example'     => 75.8577,
+                            ],
+                            [
+                                'name'        => 'timezone',
+                                'in'          => 'query',
+                                'required'    => true,
+                                'description' => 'UTC offset in decimal hours (e.g. 5.5 for IST, -5.0 for EST)',
+                                'schema'      => ['type' => 'number', 'format' => 'float', 'minimum' => -14, 'maximum' => 14],
+                                'example'     => 5.5,
+                            ],
+                            [
+                                'name'        => 'date',
+                                'in'          => 'query',
+                                'required'    => false,
+                                'description' => 'Calendar date in YYYY-MM-DD format. Defaults to today in the server\'s local timezone.',
+                                'schema'      => ['type' => 'string', 'format' => 'date'],
+                                'example'     => '2026-10-01',
+                            ],
+                            [
+                                'name'        => 'feature',
+                                'in'          => 'query',
+                                'required'    => false,
+                                'description' => 'Which subset of Panchang data to return. Defaults to `panchang_full`.',
+                                'schema'      => [
+                                    'type'    => 'string',
+                                    'enum'    => ['panchang_full', 'choghadiya', 'hora', 'rahu_kaal', 'sun_times', 'abhijit'],
+                                    'default' => 'panchang_full',
+                                ],
+                                'example' => 'panchang_full',
+                            ],
+                            [
+                                'name'        => 'location',
+                                'in'          => 'query',
+                                'required'    => false,
+                                'description' => 'Human-readable location name stored in the cache record (informational only).',
+                                'schema'      => ['type' => 'string', 'maxLength' => 255],
+                                'example'     => 'Indore, Madhya Pradesh',
+                            ],
+                        ],
+                        'responses' => [
+                            '200' => [
+                                'description' => 'Panchang data (live from Navamsha API or served from cache)',
+                                'content'     => [
+                                    'application/json' => [
+                                        'schema'  => ['$ref' => '#/components/schemas/PanchangResponse'],
+                                        'example' => [
+                                            'success' => true,
+                                            'cached'  => false,
+                                            'date'    => '2026-10-01',
+                                            'location' => [
+                                                'name'      => 'Indore, Madhya Pradesh',
+                                                'latitude'  => 22.72,
+                                                'longitude' => 75.86,
+                                                'timezone'  => 5.5,
+                                            ],
+                                            'data' => [
+                                                'tithi'    => ['name' => 'Tritiya', 'number' => 3, 'paksha' => 'Shukla', 'end_time' => '14:32:00'],
+                                                'nakshatra'=> ['name' => 'Rohini', 'number' => 4, 'end_time' => '18:45:00'],
+                                                'yoga'     => ['name' => 'Shobhana', 'number' => 6, 'end_time' => '11:15:00'],
+                                                'karana'   => ['name' => 'Bava', 'number' => 1, 'end_time' => '14:32:00'],
+                                                'weekday'  => ['name' => 'Thursday', 'number' => 4],
+                                                'sun_rise' => '06:17:42',
+                                                'sun_set'  => '18:08:33',
+                                                'rahu_kaal'=> ['start' => '13:45:00', 'end' => '15:15:00'],
+                                                'abhijit'  => ['start' => '11:52:00', 'end' => '12:38:00'],
+                                            ],
+                                        ],
+                                    ],
+                                ],
+                            ],
+                            '422' => ['$ref' => '#/components/responses/ValidationError'],
+                            '503' => [
+                                'description' => 'Navamsha API unavailable or returned an error',
+                                'content'     => [
+                                    'application/json' => [
+                                        'schema'  => ['$ref' => '#/components/schemas/PanchangError'],
+                                        'example' => [
+                                            'success' => false,
+                                            'error'   => ['code' => 'API_ERROR', 'message' => 'Navamsha API returned HTTP 500'],
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+
             ],
 
             // ── Components ───────────────────────────────────────────────────
@@ -663,6 +780,40 @@ class OpenApiController extends Controller
                     ],
                     'ServiceListResponse'   => ['type' => 'object', 'properties' => ['data' => ['type' => 'array', 'items' => ['$ref' => '#/components/schemas/Service']]]],
                     'ServiceSingleResponse' => ['type' => 'object', 'properties' => ['data' => ['$ref' => '#/components/schemas/Service']]],
+
+                    // ── Panchang ─────────────────────────────────────────────
+                    'PanchangLocation' => [
+                        'type'       => 'object',
+                        'properties' => [
+                            'name'      => ['type' => 'string',  'nullable' => true, 'example' => 'Indore, Madhya Pradesh'],
+                            'latitude'  => ['type' => 'number',  'format' => 'float', 'example' => 22.72, 'description' => 'Normalized to 2 decimal places'],
+                            'longitude' => ['type' => 'number',  'format' => 'float', 'example' => 75.86],
+                            'timezone'  => ['type' => 'number',  'format' => 'float', 'example' => 5.5],
+                        ],
+                    ],
+                    'PanchangResponse' => [
+                        'type'       => 'object',
+                        'properties' => [
+                            'success'  => ['type' => 'boolean', 'example' => true],
+                            'cached'   => ['type' => 'boolean', 'example' => false, 'description' => 'true when served from the database cache, false when freshly fetched from Navamsha API'],
+                            'date'     => ['type' => 'string',  'format' => 'date', 'example' => '2026-10-01'],
+                            'location' => ['$ref' => '#/components/schemas/PanchangLocation'],
+                            'data'     => ['type' => 'object', 'description' => 'Panchang payload from Navamsha API. Shape varies by `feature`; `panchang_full` includes tithi, nakshatra, yoga, karana, weekday, sun_rise, sun_set, rahu_kaal, abhijit.', 'additionalProperties' => true],
+                        ],
+                    ],
+                    'PanchangError' => [
+                        'type'       => 'object',
+                        'properties' => [
+                            'success' => ['type' => 'boolean', 'example' => false],
+                            'error'   => [
+                                'type'       => 'object',
+                                'properties' => [
+                                    'code'    => ['type' => 'string', 'example' => 'API_ERROR'],
+                                    'message' => ['type' => 'string', 'example' => 'Navamsha API returned HTTP 500'],
+                                ],
+                            ],
+                        ],
+                    ],
 
                     // ── Errors ───────────────────────────────────────────────
                     'ErrorMessage' => [

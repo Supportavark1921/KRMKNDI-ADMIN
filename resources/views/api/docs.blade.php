@@ -144,6 +144,7 @@
             ['GET',  '/api/locations/countries/iso/IN/states'],
             ['GET',  '/api/locations/pincodes/452001'],
             ['GET',  '/api/locations/search?q=indore'],
+            ['GET',  '/api/v1/panchang?latitude=22.7196&longitude=75.8577&timezone=5.5&date='.date('Y-m-d')],
         ] as [$m, $p])
         <a href="{{ config('app.url') }}{{ $p }}" target="_blank" class="ql">
             <span class="qm qm-{{ strtolower($m) }}">{{ $m }}</span>
@@ -166,6 +167,7 @@
                     ['₹',   'donations', 'Donations', '#group-donations'],
                     ['✦',   'services',  'Services',  '#group-services'],
                     ['📍',  'location',  'Location',  '#group-location'],
+                    ['🌙',  'panchang',  'Panchang',  '#group-panchang'],
                 ] as [$icon, $id, $label, $href])
                 <a href="{{ $href }}" onclick="scrollTo('{{ $id }}')">
                     <span>{{ $icon }}</span> {{ $label }}
@@ -306,6 +308,26 @@
                         'desc' => 'Type-aware: a digit string (e.g. "452") searches PIN prefixes; text (e.g. "indore") searches cities and districts. Minimum 2 characters.',
                         'params' => [['q','query','string','required','Search term — text or digit prefix','indore']],
                         'response' => '[{ "type": "city", "label": "Indore, Indore, Madhya Pradesh", "city": "Indore", "district": "Indore", "state": "Madhya Pradesh", "state_code": "MP" }]',
+                    ],
+                ],
+            ],
+            'panchang' => [
+                'icon'  => '🌙',
+                'title' => 'Panchang',
+                'sub'   => 'Daily Vedic Panchang — Tithi, Nakshatra, Yoga, Karana, Rahu Kaal, Abhijit',
+                'color' => 'background:#1a1a0a;color:#f3e07a',
+                'endpoints' => [
+                    ['GET', '/api/v1/panchang', 'Get Vedic Panchang for a location and date',
+                        'desc' => 'Returns full or feature-specific Panchang data. Coordinates are rounded to 2 decimal places (~1 km grid) for cache efficiency. The first call for a new location+date fetches from Navamsha API; subsequent calls within the same calendar day are served from cache. No authentication required — called directly from the mobile APK.',
+                        'params' => [
+                            ['latitude',  'query', 'float',  'required', 'Decimal latitude (-90 to 90)',                    '22.7196'],
+                            ['longitude', 'query', 'float',  'required', 'Decimal longitude (-180 to 180)',                 '75.8577'],
+                            ['timezone',  'query', 'float',  'required', 'UTC offset in decimal hours (e.g. 5.5 for IST)',  '5.5'],
+                            ['date',      'query', 'string', 'optional', 'Date in YYYY-MM-DD (defaults to today)',          date('Y-m-d')],
+                            ['feature',   'query', 'string', 'optional', 'panchang_full | choghadiya | hora | rahu_kaal | sun_times | abhijit', 'panchang_full'],
+                            ['location',  'query', 'string', 'optional', 'Human-readable location name (stored in cache)', 'Indore, Madhya Pradesh'],
+                        ],
+                        'response' => '{ "success": true, "cached": false, "date": "'.date('Y-m-d').'", "location": { "name": "Indore, Madhya Pradesh", "latitude": 22.72, "longitude": 75.86, "timezone": 5.5 }, "data": { "tithi": { "name": "Tritiya", "number": 3, "paksha": "Shukla" }, "nakshatra": { "name": "Rohini", "number": 4 }, "yoga": { "name": "Shobhana" }, "karana": { "name": "Bava" }, "weekday": { "name": "Thursday" }, "sun_rise": "06:17:42", "sun_set": "18:08:33", "rahu_kaal": { "start": "13:45:00", "end": "15:15:00" } } }',
                     ],
                 ],
             ],
