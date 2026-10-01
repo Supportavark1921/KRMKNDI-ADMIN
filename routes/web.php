@@ -6,6 +6,8 @@ use App\Http\Controllers\Admin\Location\DistrictAdminController;
 use App\Http\Controllers\Admin\Location\LocationSyncController;
 use App\Http\Controllers\Admin\Location\PincodeAdminController;
 use App\Http\Controllers\Admin\Location\StateAdminController;
+use App\Http\Controllers\Admin\PanchangMonitorController;
+use App\Http\Controllers\Api\PanchangController;
 use App\Http\Controllers\ApiDocsController;
 use App\Http\Controllers\DonationCategoryController;
 use App\Http\Controllers\DonationController;
@@ -109,6 +111,14 @@ Route::middleware('auth')->group(function () {
         Route::get('sync',  [LocationSyncController::class, 'show'])->name('sync');
         Route::post('sync', [LocationSyncController::class, 'sync'])->name('sync.run');
     });
+
+    // Panchang API usage monitor
+    Route::get('/admin/panchang', [PanchangMonitorController::class, 'index'])->name('admin.panchang.monitor');
+});
+
+// Panchang public API — no auth (APK calls this)
+Route::prefix('api/v1')->name('api.v1.')->group(function () {
+    Route::get('panchang', [PanchangController::class, 'show'])->name('panchang');
 });
 
 // Location API (cascading dropdowns) — auth required
