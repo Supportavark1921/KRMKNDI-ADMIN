@@ -110,11 +110,21 @@ echo "Done — now run ④-B migrate.\n";
         'cmd'   => $php . ' ' . $artisan . ' db:seed --force 2>&1',
         'note'  => 'Uses firstOrCreate — safe to re-run; will not duplicate admin/test users.',
     ],
+    'cache_clear' => [
+        'label' => '⑥-A Clear all cache',
+        'cmd'   => $php . ' ' . $artisan . ' config:clear 2>&1 && '
+                 . $php . ' ' . $artisan . ' route:clear  2>&1 && '
+                 . $php . ' ' . $artisan . ' view:clear   2>&1 && '
+                 . $php . ' ' . $artisan . ' cache:clear  2>&1 && '
+                 . $php . ' ' . $artisan . ' event:clear  2>&1',
+        'note'  => 'Wipes config, route, view, application and event cache. Run this when new menus or routes are not showing.',
+    ],
     'cache' => [
-        'label' => '⑥ config + route + view cache',
+        'label' => '⑥-B Rebuild cache',
         'cmd'   => $php . ' ' . $artisan . ' config:cache 2>&1 && '
                  . $php . ' ' . $artisan . ' route:cache  2>&1 && '
                  . $php . ' ' . $artisan . ' view:cache   2>&1',
+        'note'  => 'Rebuilds config, route and view cache for production performance.',
     ],
     'storage' => [
         'label' => '⑦ storage:link',
@@ -124,9 +134,9 @@ echo "Done — now run ④-B migrate.\n";
 ];
 
 // "Run All (update)" — skips migrate:fresh
-$update_steps = ['safe_dir','composer','fix_db_state','migrate','seed','cache','storage'];
+$update_steps = ['safe_dir','composer','fix_db_state','migrate','seed','cache_clear','cache','storage'];
 // "First Deploy" — uses fresh
-$fresh_steps  = ['safe_dir','composer','migrate_fresh','cache','storage'];
+$fresh_steps  = ['safe_dir','composer','migrate_fresh','cache_clear','cache','storage'];
 
 if (isset($_POST['run_all_update'])) {
     $_POST['run'] = $update_steps;
