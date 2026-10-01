@@ -56,7 +56,8 @@
                     <a class="{{ request()->routeIs('donations.*') ? 'active' : '' }}" href="{{ route('donations.index') }}"><span>₹</span> Donations</a>
                     <a class="{{ request()->routeIs('donation-fees.*') ? 'active' : '' }}" href="{{ route('donation-fees.index') }}"><span>⚙</span> Fee Settings</a>
                     <a class="{{ request()->routeIs('admin.location.*') ? 'active' : '' }}" href="{{ route('admin.location.sync') }}"><span>📍</span> Location Data</a>
-                    <a class="{{ request()->routeIs('admin.panchang.*') ? 'active' : '' }}" href="{{ route('admin.panchang.monitor') }}"><span>🌙</span> Panchang API</a>
+                    <a class="{{ request()->routeIs('admin.panchang.monitor') ? 'active' : '' }}" href="{{ route('admin.panchang.monitor') }}"><span>🌙</span> Panchang Monitor</a>
+                    <a class="{{ request()->routeIs('admin.panchang.test') ? 'active' : '' }}" href="{{ route('admin.panchang.test') }}"><span>🧪</span> Panchang Test</a>
                     <a class="{{ request()->routeIs('api.docs') ? 'active' : '' }}" href="{{ route('api.docs') }}"><span>⎇</span> API Docs</a>
                 </nav>
                 @endif

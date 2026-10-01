@@ -112,8 +112,9 @@ Route::middleware('auth')->group(function () {
         Route::post('sync', [LocationSyncController::class, 'sync'])->name('sync.run');
     });
 
-    // Panchang API usage monitor
-    Route::get('/admin/panchang', [PanchangMonitorController::class, 'index'])->name('admin.panchang.monitor');
+    // Panchang API usage monitor + live test
+    Route::get('/admin/panchang',      [PanchangMonitorController::class, 'index'])->name('admin.panchang.monitor');
+    Route::get('/admin/panchang/test', fn () => view('panchang.test'))->name('admin.panchang.test');
 });
 
 // Panchang public API — no auth (APK calls this)

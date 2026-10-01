@@ -299,16 +299,17 @@ class NavamshaPanchangService
     private function formatResponse(PanchangCache $record, bool $cached): array
     {
         return [
-            'success'  => true,
-            'cached'   => $cached,
-            'date'     => $record->date->format('Y-m-d'),
-            'location' => [
+            'success'      => true,
+            'cached'       => $cached,
+            'date'         => $record->date->format('Y-m-d'),
+            'location'     => [
                 'name'      => $record->location_name,
                 'latitude'  => $record->latitude,
                 'longitude' => $record->longitude,
                 'timezone'  => $record->timezone,
             ],
-            'data'     => $record->panchang_data,
+            'data'         => $record->panchang_data,
+            'raw_response' => $record->api_response,
         ];
     }
 
