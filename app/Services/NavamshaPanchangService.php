@@ -146,13 +146,18 @@ class NavamshaPanchangService
 
         $parsed = Carbon::createFromFormat('Y-m-d', $date);
 
+        // Use current local time for today; midnight for historical/future dates
+        $offsetMinutes = (int) ($timezone * 60);
+        $localNow      = now()->addMinutes($offsetMinutes);
+        $isToday       = $parsed->toDateString() === $localNow->toDateString();
+
         $payload = [
             'year'      => (int) $parsed->format('Y'),
             'month'     => (int) $parsed->format('m'),
             'date'      => (int) $parsed->format('d'),
-            'hours'     => 6,
-            'minutes'   => 0,
-            'seconds'   => 0,
+            'hours'     => $isToday ? (int) $localNow->format('H') : 0,
+            'minutes'   => $isToday ? (int) $localNow->format('i') : 0,
+            'seconds'   => $isToday ? (int) $localNow->format('s') : 0,
             'latitude'  => $latitude,
             'longitude' => $longitude,
             'timezone'  => (string) $timezone,
