@@ -29,7 +29,8 @@ return [
     ],
 
     'navamsha' => [
-        'key' => env('NAVAMSHA_API_KEY'),
+        'key'        => env('NAVAMSHA_API_KEY'),
+        'verify_ssl' => env('NAVAMSHA_VERIFY_SSL', true),
     ],
 
     'slack' => [

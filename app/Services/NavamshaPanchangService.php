@@ -166,6 +166,7 @@ class NavamshaPanchangService
         try {
             $response = Http::withHeaders(['X-API-Key' => $apiKey])
                 ->timeout(15)
+                ->withOptions(['verify' => config('services.navamsha.verify_ssl', true)])
                 ->post($endpoint, $payload);
 
             $httpStatus = $response->status();
