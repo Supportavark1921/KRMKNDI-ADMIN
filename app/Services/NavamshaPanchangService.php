@@ -150,11 +150,12 @@ class NavamshaPanchangService
             'year'      => (int) $parsed->format('Y'),
             'month'     => (int) $parsed->format('m'),
             'date'      => (int) $parsed->format('d'),
-            'hours'     => 6,
-            'minutes'   => 0,
+            'hour'      => 6,
+            'minute'    => 0,
+            'second'    => 0,
             'latitude'  => $latitude,
             'longitude' => $longitude,
-            'timezone'  => $timezone,
+            'timezone'  => (string) $timezone,
         ];
 
         $start = microtime(true);
@@ -322,7 +323,8 @@ class NavamshaPanchangService
         $month = today()->format('Y-m');
 
         $callsToday = NavamshaApiLog::where('request_date', $today)->count();
-        $callsMonth = NavamshaApiLog::whereRaw("DATE_FORMAT(request_date, '%Y-%m') = ?", [$month])->count();
+        $callsMonth = NavamshaApiLog::whereYear('request_date', today()->year)
+            ->whereMonth('request_date', today()->month)->count();
         $totalCache = PanchangCache::count();
         $missesToday= NavamshaApiLog::where('request_date', $today)->count(); // each log = a miss
         $hitsToday  = max(0, $callsToday === 0 ? 0 : 0); // placeholder — track separately if needed
