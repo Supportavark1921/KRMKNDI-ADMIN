@@ -58,18 +58,16 @@ $app = require "' . BASE_DIR . '/bootstrap/app.php";
 $app->make(Illuminate\Contracts\Http\Kernel::class)->bootstrap();
 
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 
-// Create migrations table only if it does not already exist
-$repo = $app->make("migrator")->getRepository();
-if (!$repo->repositoryExists()) {
-    $repo->createRepository();
-    echo "migrations table created\n";
-} else {
-    echo "migrations table already exists — skipped\n";
-}
+// Use raw SQL so we never crash — works whether migrations table exists or not
+DB::unprepared("CREATE TABLE IF NOT EXISTS `migrations` (
+    `id` int unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `migration` varchar(255) NOT NULL,
+    `batch` int NOT NULL
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+echo "migrations table ready\n";
 
-// Migrations whose tables already exist on the server — mark batch 0 so Laravel skips them
+// Migrations whose tables already exist on the server — mark as done so Laravel skips them
 $alreadyRan = [
     "0001_01_01_000000_create_users_table",
     "0001_01_01_000001_create_cache_table",
@@ -82,7 +80,7 @@ $alreadyRan = [
     "2026_09_01_000008_create_client_profiles_table",
     "2026_09_30_000001_rebuild_services_for_multilingual",
 ];
-$done = DB::table("migrations")->pluck("migration")->toArray();
+$done  = DB::table("migrations")->pluck("migration")->toArray();
 $batch = DB::table("migrations")->max("batch") ?: 0;
 foreach ($alreadyRan as $m) {
     if (!in_array($m, $done)) {
@@ -92,9 +90,9 @@ foreach ($alreadyRan as $m) {
         echo "already recorded: $m\n";
     }
 }
-echo "Done — now run migrate to apply only the new migrations.\n";
+echo "Done — now run ④-B migrate.\n";
 ') . ' 2>&1',
-        'note'  => 'Run this ONCE on a server that already had tables before migrations. It marks old migrations as done so migrate only runs the new ones.',
+        'note'  => 'Run this ONCE on a server that already had tables before migrations. Uses CREATE TABLE IF NOT EXISTS — safe to run multiple times.',
     ],
     'migrate' => [
         'label' => '④-B migrate (runs only new ones)',
