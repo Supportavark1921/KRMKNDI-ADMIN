@@ -11,7 +11,7 @@ class OpenApiController extends Controller
     /** GET /api/openapi.json */
     public function spec(Request $request): JsonResponse
     {
-        $base = rtrim(config('app.url'), '/');
+        $base = rtrim(request()->getSchemeAndHttpHost(), '/');
 
         $spec = [
             'openapi' => '3.0.3',
