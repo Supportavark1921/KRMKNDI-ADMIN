@@ -26,6 +26,11 @@ class ApiAbusePrevention
 
     public function handle(Request $request, Closure $next): Response
     {
+        // Laravel admin panel — skip rate limiting for session-authenticated requests.
+        if ($request->hasSession() && $request->user('web')) {
+            return $next($request);
+        }
+
         [$max, $decay] = $this->limitsFor($request->path());
 
         // Layer 1: per-IP

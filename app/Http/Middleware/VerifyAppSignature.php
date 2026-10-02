@@ -17,6 +17,11 @@ class VerifyAppSignature
 
     public function handle(Request $request, Closure $next): Response
     {
+        // Laravel admin panel — already authenticated via session; skip APK signature check.
+        if ($request->hasSession() && $request->user('web')) {
+            return $next($request);
+        }
+
         $appId = $request->header('X-App-Id');
         $timestamp = $request->header('X-Timestamp');
         $nonce = $request->header('X-Nonce');
