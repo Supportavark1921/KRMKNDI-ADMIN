@@ -103,10 +103,9 @@
                 </nav>
                 @php $role = auth()->user()->role; @endphp
 
-                {{-- Admin-only section --}}
-                {{-- Admin section --}}
-                @if($role === 'admin')
-                <span class="sidebar-label" style="margin-top:18px">Admin</span>
+                {{-- People & Access (admin-level permissions) --}}
+                @canany(['users.view','roles.view','audit-log.view'])
+                <span class="sidebar-label" style="margin-top:18px">People</span>
                 <nav class="sidebar-nav">
                     @can('users.view')
                     <a class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}" href="{{ route('admin.users.index') }}"><span>👤</span> Users</a>
@@ -114,6 +113,16 @@
                     @can('roles.view')
                     <a class="{{ request()->routeIs('admin.roles.*') ? 'active' : '' }}" href="{{ route('admin.roles.index') }}"><span>🔑</span> Roles &amp; Permissions</a>
                     @endcan
+                    @can('audit-log.view')
+                    <a class="{{ request()->routeIs('admin.audit.*') ? 'active' : '' }}" href="{{ route('admin.audit.index') }}"><span>📋</span> Audit Log</a>
+                    @endcan
+                </nav>
+                @endcanany
+
+                {{-- Operations --}}
+                @canany(['availability.view','services.view','gurus.view','donation-categories.view','donations.view','locations.view','panchang.view','api-docs.view'])
+                <span class="sidebar-label" style="margin-top:18px">Operations</span>
+                <nav class="sidebar-nav">
                     @can('availability.view')
                     <a class="{{ request()->routeIs('availability.*') ? 'active' : '' }}" href="{{ route('availability.index') }}"><span>▦</span> Availability</a>
                     @endcan
@@ -139,33 +148,29 @@
                     @can('api-docs.view')
                     <a class="{{ request()->routeIs('api.docs') ? 'active' : '' }}" href="{{ route('api.docs') }}"><span>⎇</span> API Docs</a>
                     @endcan
-                    @can('promotions.view')
-                    <a class="{{ request()->routeIs('admin.promotions.*') ? 'active' : '' }}" href="{{ route('admin.promotions.index') }}"><span>📣</span> App Content</a>
-                    @endcan
-                    @can('audit-log.view')
-                    <a class="{{ request()->routeIs('admin.audit.*') ? 'active' : '' }}" href="{{ route('admin.audit.index') }}"><span>📋</span> Audit Log</a>
-                    @endcan
                 </nav>
-                @endif
+                @endcanany
 
-                {{-- Vastra Store: anyone with products.view --}}
+                {{-- App Content --}}
+                @can('promotions.view')
+                <span class="sidebar-label" style="margin-top:18px">App Content</span>
+                <nav class="sidebar-nav">
+                    <a class="{{ request()->routeIs('admin.promotions.*') ? 'active' : '' }}" href="{{ route('admin.promotions.index') }}"><span>📣</span> Promotions</a>
+                </nav>
+                @endcan
+
+                {{-- Vastra Store --}}
                 @can('products.view')
                 <span class="sidebar-label" style="margin-top:18px">🛍 Vastra Store</span>
                 <nav class="sidebar-nav">
                     @can('matajis.view')
-                    @if($role === 'admin' || $role === 'manager' || $role === 'support')
                     <a class="{{ request()->routeIs('admin.store.matajis.*') ? 'active' : '' }}" href="{{ route('admin.store.matajis.index') }}"><span>🕉</span> Matajis</a>
-                    @endif
                     @endcan
                     @can('categories.view')
-                    @if(in_array($role, ['admin','manager']))
                     <a class="{{ request()->routeIs('admin.store.categories.*') ? 'active' : '' }}" href="{{ route('admin.store.categories.index') }}"><span>📦</span> Categories</a>
-                    @endif
                     @endcan
                     @can('vendors.view')
-                    @if(in_array($role, ['admin','manager']))
                     <a class="{{ request()->routeIs('admin.store.vendors.*') ? 'active' : '' }}" href="{{ route('admin.store.vendors.index') }}"><span>🏪</span> Vendors</a>
-                    @endif
                     @endcan
                     <a class="{{ request()->routeIs('admin.store.products.*') ? 'active' : '' }}" href="{{ route('admin.store.products.index') }}"><span>🛒</span> Products</a>
                     @can('inventory.view')
