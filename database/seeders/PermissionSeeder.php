@@ -90,6 +90,8 @@ class PermissionSeeder extends Seeder
             'audit-log.view',
             // Panchang
             'panchang.view', 'api-docs.view',
+            // App Content
+            'promotions.view', 'promotions.create', 'promotions.update', 'promotions.delete', 'promotions.restore',
             // Locations
             'locations.view', 'locations.create', 'locations.update',
             // Mataji orders

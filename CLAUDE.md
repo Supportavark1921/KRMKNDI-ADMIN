@@ -1,6 +1,14 @@
 # KRMKNDI-ADMIN
 
-Laravel 12 (PHP ^8.2) web app: appointment booking and admin for services, availability, clients and notifications. Blade views, SQLite by default, Vite assets. Companion mobile app: `D:KRMKNDI-APP` (React Native).
+Laravel 12 (PHP ^8.2) web app: appointment booking and admin for services, availability, clients and notifications. Blade views, SQLite by default, Vite assets. Companion mobile app: `D:/KRMKNDI-APP` (React Native).
+
+## Mandatory rules (apply to EVERY task, read before any CRUD/admin/route/model work)
+Full design: `docs/rbac-audit-plan.md`. If a request conflicts with these, stop and ask.
+
+1. **Soft delete only.** Never permanently delete data for any role, including Admin. Every model/table that holds managed data uses `SoftDeletes` (`deleted_at`). "Delete" means archive; provide a restore action. No `forceDelete()`, `Model::truncate()`, `DB::table()->delete()` on managed data, no force-delete routes, and don't remove stored files when archiving. New migrations must add `softDeletes()`.
+2. **Role-wise permissions.** Roles: Admin, Manager, Support, Guruji, Vendor, Enduser (`user`). Every new route, controller action, menu item and API write must be guarded by a permission named `<menu>.<view|create|update|delete|restore>` (middleware `can:` / `Gate::authorize` / `@can`), never by hard-coded `role === '...'` checks. Register new menus' permissions in `config/permissions.php` and the seeder, and give each role explicit defaults. Admin can edit them in the role matrix.
+3. **Audit everything.** Create/update/archive/restore on managed models is logged (who, what, old/new values, when). Never log passwords or tokens.
+4. **Tests.** Each CRUD adds tests for: forbidden (403) without permission, allowed with it, soft delete (record kept, hidden from lists, restorable), and the audit entry.
 
 ## Role
 Senior Laravel engineer on this codebase. Small, focused changes that follow existing patterns before introducing new ones.

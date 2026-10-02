@@ -7,7 +7,9 @@ use App\Http\Controllers\Admin\Location\DistrictAdminController;
 use App\Http\Controllers\Admin\Location\LocationSyncController;
 use App\Http\Controllers\Admin\Location\PincodeAdminController;
 use App\Http\Controllers\Admin\Location\StateAdminController;
+use App\Http\Controllers\Admin\MatajOrderController as AdminMatajOrderController;
 use App\Http\Controllers\Admin\PanchangMonitorController;
+use App\Http\Controllers\Admin\PromotionController as AdminPromotionController;
 use App\Http\Controllers\Admin\RoleController as AdminRoleController;
 use App\Http\Controllers\Admin\Store\CategoriesController as StoreCategoriesController;
 use App\Http\Controllers\Admin\Store\InventoryController as StoreInventoryController;
@@ -16,6 +18,7 @@ use App\Http\Controllers\Admin\Store\ProductsController as StoreProductsControll
 use App\Http\Controllers\Admin\Store\VendorsController as StoreVendorsController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Api\PanchangController;
+use App\Http\Controllers\Api\PromotionsApiController;
 use App\Http\Controllers\Api\Store\CategoriesApiController;
 use App\Http\Controllers\Api\Store\MatajisApiController;
 use App\Http\Controllers\Api\Store\ProductsApiController;
@@ -141,6 +144,33 @@ Route::middleware('auth')->group(function () {
         Route::post('/{user}/activate', [AdminUserController::class, 'activate'])->name('activate');
     });
 
+    // ── App Content / Promotions ─────────────────────────────────────────────
+    Route::prefix('admin/promotions')->name('admin.promotions.')->group(function () {
+        Route::get('/', [AdminPromotionController::class, 'index'])->name('index');
+        Route::get('/create', [AdminPromotionController::class, 'create'])->name('create');
+        Route::post('/', [AdminPromotionController::class, 'store'])->name('store');
+        Route::get('/{promotion}/edit', [AdminPromotionController::class, 'edit'])->name('edit');
+        Route::put('/{promotion}', [AdminPromotionController::class, 'update'])->name('update');
+        Route::delete('/{promotion}', [AdminPromotionController::class, 'destroy'])->name('destroy');
+        Route::post('/{id}/restore', [AdminPromotionController::class, 'restore'])->name('restore');
+        Route::post('/{promotion}/activate', [AdminPromotionController::class, 'activate'])->name('activate');
+        Route::post('/{promotion}/deactivate', [AdminPromotionController::class, 'deactivate'])->name('deactivate');
+    });
+
+    // ── Mataji orders ────────────────────────────────────────────────────────
+    Route::prefix('admin/mataji-orders')->name('admin.mataji-orders.')->group(function () {
+        Route::get('/', [AdminMatajOrderController::class, 'index'])->name('index');
+        Route::get('/create', [AdminMatajOrderController::class, 'create'])->name('create');
+        Route::post('/', [AdminMatajOrderController::class, 'store'])->name('store');
+        Route::get('/{matajOrder}', [AdminMatajOrderController::class, 'show'])->name('show');
+        Route::get('/{matajOrder}/edit', [AdminMatajOrderController::class, 'edit'])->name('edit');
+        Route::put('/{matajOrder}', [AdminMatajOrderController::class, 'update'])->name('update');
+        Route::delete('/{matajOrder}', [AdminMatajOrderController::class, 'destroy'])->name('destroy');
+        Route::post('/{id}/restore', [AdminMatajOrderController::class, 'restore'])->name('restore');
+        Route::post('/{matajOrder}/confirm', [AdminMatajOrderController::class, 'confirm'])->name('confirm');
+        Route::post('/{matajOrder}/cancel', [AdminMatajOrderController::class, 'cancel'])->name('cancel');
+    });
+
     // ── Audit log ────────────────────────────────────────────────────────────
     Route::prefix('admin/audit')->name('admin.audit.')->group(function () {
         Route::get('/', [AdminAuditLogController::class, 'index'])->name('index');
@@ -216,6 +246,7 @@ Route::prefix('api/v1')->name('api.v1.')->group(function () {
     Route::get('categories', [CategoriesApiController::class, 'index'])->name('store.categories.index');
     Route::get('matajis', [MatajisApiController::class, 'index'])->name('store.matajis.index');
     Route::get('matajis/{mataji}', [MatajisApiController::class, 'show'])->name('store.matajis.show');
+    Route::get('promotions', [PromotionsApiController::class, 'index'])->name('promotions.index');
 });
 
 // Location API (cascading dropdowns) — auth required

@@ -84,6 +84,9 @@
                     @can('api-docs.view')
                     <a class="{{ request()->routeIs('api.docs') ? 'active' : '' }}" href="{{ route('api.docs') }}"><span>⎇</span> API Docs</a>
                     @endcan
+                    @can('promotions.view')
+                    <a class="{{ request()->routeIs('admin.promotions.*') ? 'active' : '' }}" href="{{ route('admin.promotions.index') }}"><span>📣</span> App Content</a>
+                    @endcan
                     @can('audit-log.view')
                     <a class="{{ request()->routeIs('admin.audit.*') ? 'active' : '' }}" href="{{ route('admin.audit.index') }}"><span>📋</span> Audit Log</a>
                     @endcan
@@ -122,6 +125,7 @@
                 <span class="sidebar-label" style="margin-top:18px">Guruji</span>
                 <nav class="sidebar-nav">
                     <a class="{{ request()->routeIs('donations.*') ? 'active' : '' }}" href="{{ route('donations.index') }}"><span>₹</span> My Donations</a>
+                    <a class="{{ request()->routeIs('admin.mataji-orders.*') ? 'active' : '' }}" href="{{ route('admin.mataji-orders.index') }}"><span>🧵</span> Mataji Orders</a>
                 </nav>
                 @endif
                 @endcan

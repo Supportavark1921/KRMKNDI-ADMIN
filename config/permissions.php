@@ -46,4 +46,7 @@ return [
     // ── Panchang / API ───────────────────────────────────────────────────────
     'panchang' => ['view'],
     'api-docs' => ['view'],
+
+    // ── App Content / Promotions ─────────────────────────────────────────────
+    'promotions' => ['view', 'create', 'update', 'delete', 'restore'],
 ];
