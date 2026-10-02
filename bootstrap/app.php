@@ -12,6 +12,12 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Start the web session on API routes so admin-panel requests
+        // (authenticated via session cookie) can bypass APK-only checks.
+        $middleware->prependToGroup('api', [
+            \Illuminate\Cookie\Middleware\EncryptCookies::class,
+            \Illuminate\Session\Middleware\StartSession::class,
+        ]);
         $middleware->appendToGroup('api', [
             \App\Http\Middleware\ApiAbusePrevention::class,
             \App\Http\Middleware\VerifyAppSignature::class,
