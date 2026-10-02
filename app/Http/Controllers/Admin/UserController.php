@@ -44,18 +44,22 @@ class UserController extends Controller
     {
         Gate::authorize('users.create');
 
-        return view('admin.users.create', ['roles' => User::ROLES]);
+        $roles = auth()->user()->isAdmin() ? User::ROLES : array_values(array_diff(User::ROLES, ['admin']));
+
+        return view('admin.users.create', compact('roles'));
     }
 
     public function store(Request $request): RedirectResponse
     {
         Gate::authorize('users.create');
 
+        $allowedRoles = auth()->user()->isAdmin() ? User::ROLES : array_diff(User::ROLES, ['admin']);
+
         $data = $request->validate([
             'name' => ['required', 'string', 'max:150'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'role' => ['required', 'in:'.implode(',', User::ROLES)],
+            'role' => ['required', 'in:'.implode(',', $allowedRoles)],
             'status' => ['required', 'in:active,suspended'],
         ]);
 
@@ -93,9 +97,11 @@ class UserController extends Controller
         Gate::authorize('users.update');
         $user->load('roles', 'permissions', 'vendor');
 
+        $roles = auth()->user()->isAdmin() ? User::ROLES : array_values(array_diff(User::ROLES, ['admin']));
+
         return view('admin.users.edit', [
             'user' => $user,
-            'roles' => User::ROLES,
+            'roles' => $roles,
         ]);
     }
 
@@ -104,10 +110,12 @@ class UserController extends Controller
         Gate::authorize('users.update');
         $this->preventSelfRoleChange($user);
 
+        $allowedRoles = auth()->user()->isAdmin() ? User::ROLES : array_diff(User::ROLES, ['admin']);
+
         $rules = [
             'name' => ['required', 'string', 'max:150'],
             'email' => ['required', 'email', 'max:255', "unique:users,email,{$user->id}"],
-            'role' => ['required', 'in:'.implode(',', User::ROLES)],
+            'role' => ['required', 'in:'.implode(',', $allowedRoles)],
             'status' => ['required', 'in:active,suspended'],
         ];
         if ($request->filled('password')) {

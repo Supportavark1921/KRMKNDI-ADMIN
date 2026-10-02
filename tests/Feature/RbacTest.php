@@ -118,6 +118,48 @@ class RbacTest extends TestCase
         $this->assertDatabaseHas('users', ['email' => 'public@example.com', 'role' => 'user']);
     }
 
+    // ── Admin role can only be assigned by admin ──────────────────────────────
+
+    public function test_non_admin_cannot_create_admin_user(): void
+    {
+        // Give manager users.create so the gate passes — only the role validation should block.
+        $manager = User::factory()->create(['role' => 'manager', 'status' => 'active']);
+        $manager->syncRoles(['manager']);
+        $manager->givePermissionTo('users.create');
+
+        $this->actingAs($manager)
+            ->post(route('admin.users.store'), [
+                'name' => 'Fake Admin',
+                'email' => 'fakeadmin@example.com',
+                'password' => 'secret123',
+                'password_confirmation' => 'secret123',
+                'role' => 'admin',
+                'status' => 'active',
+            ])
+            ->assertSessionHasErrors('role');
+
+        $this->assertDatabaseMissing('users', ['email' => 'fakeadmin@example.com']);
+    }
+
+    public function test_admin_can_create_admin_user(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin', 'status' => 'active']);
+        $admin->syncRoles(['admin']);
+
+        $this->actingAs($admin)
+            ->post(route('admin.users.store'), [
+                'name' => 'Second Admin',
+                'email' => 'admin2@example.com',
+                'password' => 'secret123',
+                'password_confirmation' => 'secret123',
+                'role' => 'admin',
+                'status' => 'active',
+            ])
+            ->assertRedirect(route('admin.users.index'));
+
+        $this->assertDatabaseHas('users', ['email' => 'admin2@example.com', 'role' => 'admin']);
+    }
+
     // ── Audit log ─────────────────────────────────────────────────────────────
 
     public function test_updating_product_writes_activity(): void
