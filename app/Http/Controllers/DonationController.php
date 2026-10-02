@@ -20,8 +20,8 @@ class DonationController extends Controller
         if ($s = $request->query('search')) {
             $query->where(function ($q) use ($s) {
                 $q->where('donation_id', 'like', "%{$s}%")
-                  ->orWhere('transaction_id', 'like', "%{$s}%")
-                  ->orWhereHas('user', fn ($q) => $q->where('name', 'like', "%{$s}%"));
+                    ->orWhere('transaction_id', 'like', "%{$s}%")
+                    ->orWhereHas('user', fn ($q) => $q->where('name', 'like', "%{$s}%"));
             });
         }
 
@@ -46,19 +46,19 @@ class DonationController extends Controller
         }
 
         $stats = [
-            'total'          => Donation::successful()->sum('donation_amount'),
-            'successful'     => Donation::successful()->count(),
-            'donors'         => Donation::successful()->distinct('user_id')->count('user_id'),
-            'handling'       => Donation::successful()->sum('handling_charge'),
-            'gst'            => Donation::successful()->sum('gst_amount'),
+            'total' => Donation::successful()->sum('donation_amount'),
+            'successful' => Donation::successful()->count(),
+            'donors' => Donation::successful()->distinct('user_id')->count('user_id'),
+            'handling' => Donation::successful()->sum('handling_charge'),
+            'gst' => Donation::successful()->sum('gst_amount'),
         ];
 
         return view('donations.index', [
-            'donations'  => $query->paginate(25)->withQueryString(),
-            'gurus'      => Guru::orderBy('name')->get(),
+            'donations' => $query->paginate(25)->withQueryString(),
+            'gurus' => Guru::orderBy('name')->get(),
             'categories' => DonationCategory::orderBy('name')->get(),
-            'statuses'   => Donation::STATUSES,
-            'stats'      => $stats,
+            'statuses' => Donation::STATUSES,
+            'stats' => $stats,
         ]);
     }
 

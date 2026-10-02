@@ -16,8 +16,8 @@ class PanchangMonitorController extends Controller
 
         $today = today()->toDateString();
 
-        $callsToday  = NavamshaApiLog::where('request_date', $today)->count();
-        $callsMonth  = NavamshaApiLog::whereYear('request_date', today()->year)
+        $callsToday = NavamshaApiLog::where('request_date', $today)->count();
+        $callsMonth = NavamshaApiLog::whereYear('request_date', today()->year)
             ->whereMonth('request_date', today()->month)->count();
         $errorsToday = NavamshaApiLog::where('request_date', $today)->where('success', false)->count();
         $totalCached = PanchangCache::count();
@@ -27,7 +27,7 @@ class PanchangMonitorController extends Controller
         $recentLogs = NavamshaApiLog::orderByDesc('created_at')->limit(50)->get();
 
         // Per-feature breakdown this month
-        $featureStats = NavamshaApiLog::selectRaw("feature, COUNT(*) as calls, SUM(CASE WHEN success=0 THEN 1 ELSE 0 END) as errors")
+        $featureStats = NavamshaApiLog::selectRaw('feature, COUNT(*) as calls, SUM(CASE WHEN success=0 THEN 1 ELSE 0 END) as errors')
             ->whereYear('request_date', today()->year)
             ->whereMonth('request_date', today()->month)
             ->groupBy('feature')

@@ -31,15 +31,15 @@ class MatajisApiController extends Controller
     private function format(Mataji $m): array
     {
         return [
-            'id'                 => $m->id,
-            'name'               => $m->name,
-            'temple_name'        => $m->temple_name,
-            'city'               => $m->city,
-            'state'              => $m->state,
-            'description'        => $m->description,
-            'image'              => $m->image ? asset('storage/' . $m->image) : null,
+            'id' => $m->id,
+            'name' => $m->name,
+            'temple_name' => $m->temple_name,
+            'city' => $m->city,
+            'state' => $m->state,
+            'description' => $m->description,
+            'image' => $m->image ? asset('storage/'.$m->image) : null,
             'offering_available' => $m->offering_available,
-            'products_count'     => $m->products_count ?? null,
+            'products_count' => $m->products_count ?? null,
         ];
     }
 }

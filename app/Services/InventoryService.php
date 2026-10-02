@@ -17,11 +17,11 @@ class InventoryService
             $inv->increment('available_stock', $qty);
 
             InventoryTransaction::create([
-                'product_id'      => $product->id,
-                'user_id'         => auth()->id(),
-                'type'            => 'STOCK_ADDED',
+                'product_id' => $product->id,
+                'user_id' => auth()->id(),
+                'type' => 'STOCK_ADDED',
                 'quantity_change' => $qty,
-                'notes'           => $notes,
+                'notes' => $notes,
             ]);
         });
     }
@@ -39,12 +39,12 @@ class InventoryService
             $inv->increment('reserved_stock', $qty);
 
             InventoryTransaction::create([
-                'product_id'      => $product->id,
-                'user_id'         => auth()->id(),
-                'type'            => 'ORDER_RESERVED',
+                'product_id' => $product->id,
+                'user_id' => auth()->id(),
+                'type' => 'ORDER_RESERVED',
                 'quantity_change' => -$qty,
-                'reference_type'  => $refType,
-                'reference_id'    => $refId,
+                'reference_type' => $refType,
+                'reference_id' => $refId,
             ]);
         });
     }
@@ -57,12 +57,12 @@ class InventoryService
             $inv->increment('available_stock', $qty);
 
             InventoryTransaction::create([
-                'product_id'      => $product->id,
-                'user_id'         => auth()->id(),
-                'type'            => 'ORDER_CANCELLED',
+                'product_id' => $product->id,
+                'user_id' => auth()->id(),
+                'type' => 'ORDER_CANCELLED',
                 'quantity_change' => $qty,
-                'reference_type'  => $refType,
-                'reference_id'    => $refId,
+                'reference_type' => $refType,
+                'reference_id' => $refId,
             ]);
         });
     }
@@ -75,12 +75,12 @@ class InventoryService
             $inv->increment('sold_stock', $qty);
 
             InventoryTransaction::create([
-                'product_id'      => $product->id,
-                'user_id'         => auth()->id(),
-                'type'            => 'ORDER_SOLD',
+                'product_id' => $product->id,
+                'user_id' => auth()->id(),
+                'type' => 'ORDER_SOLD',
                 'quantity_change' => -$qty,
-                'reference_type'  => $refType,
-                'reference_id'    => $refId,
+                'reference_type' => $refType,
+                'reference_id' => $refId,
             ]);
         });
     }
@@ -88,20 +88,20 @@ class InventoryService
     public function adjust(Product $product, int $newTotal, ?string $notes = null): void
     {
         DB::transaction(function () use ($product, $newTotal, $notes) {
-            $inv  = $product->inventory()->lockForUpdate()->firstOrFail();
+            $inv = $product->inventory()->lockForUpdate()->firstOrFail();
             $diff = $newTotal - $inv->total_stock;
 
             $inv->update([
-                'total_stock'     => $newTotal,
+                'total_stock' => $newTotal,
                 'available_stock' => max(0, $inv->available_stock + $diff),
             ]);
 
             InventoryTransaction::create([
-                'product_id'      => $product->id,
-                'user_id'         => auth()->id(),
-                'type'            => 'STOCK_ADJUSTED',
+                'product_id' => $product->id,
+                'user_id' => auth()->id(),
+                'type' => 'STOCK_ADJUSTED',
                 'quantity_change' => $diff,
-                'notes'           => $notes,
+                'notes' => $notes,
             ]);
         });
     }

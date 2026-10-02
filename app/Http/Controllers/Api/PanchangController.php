@@ -25,20 +25,20 @@ class PanchangController extends Controller
     public function show(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'latitude'  => ['required', 'numeric', 'between:-90,90'],
+            'latitude' => ['required', 'numeric', 'between:-90,90'],
             'longitude' => ['required', 'numeric', 'between:-180,180'],
-            'timezone'  => ['required', 'numeric', 'between:-14,14'],
-            'date'      => ['nullable', 'date_format:Y-m-d'],
-            'feature'   => ['nullable', 'string', 'in:panchang_full,choghadiya,hora,rahu_kaal,sun_times,abhijit'],
-            'location'  => ['nullable', 'string', 'max:120'],
+            'timezone' => ['required', 'numeric', 'between:-14,14'],
+            'date' => ['nullable', 'date_format:Y-m-d'],
+            'feature' => ['nullable', 'string', 'in:panchang_full,choghadiya,hora,rahu_kaal,sun_times,abhijit'],
+            'location' => ['nullable', 'string', 'max:120'],
         ]);
 
         $result = $this->service->getPanchang(
-            latitude:     (float) $data['latitude'],
-            longitude:    (float) $data['longitude'],
-            timezone:     (float) $data['timezone'],
-            date:         $data['date'] ?? today()->toDateString(),
-            feature:      $data['feature'] ?? 'panchang_full',
+            latitude: (float) $data['latitude'],
+            longitude: (float) $data['longitude'],
+            timezone: (float) $data['timezone'],
+            date: $data['date'] ?? today()->toDateString(),
+            feature: $data['feature'] ?? 'panchang_full',
             locationName: $data['location'] ?? '',
         );
 

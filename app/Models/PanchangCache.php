@@ -19,16 +19,16 @@ class PanchangCache extends Model
     protected function casts(): array
     {
         return [
-            'api_response'   => 'array',
-            'panchang_data'  => 'array',
-            'fetched_at'     => 'datetime',
-            'expires_at'     => 'datetime',
-            'date'           => 'date',
-            'latitude'       => 'float',
-            'longitude'      => 'float',
-            'normalized_latitude'  => 'float',
+            'api_response' => 'array',
+            'panchang_data' => 'array',
+            'fetched_at' => 'datetime',
+            'expires_at' => 'datetime',
+            'date' => 'date',
+            'latitude' => 'float',
+            'longitude' => 'float',
+            'normalized_latitude' => 'float',
             'normalized_longitude' => 'float',
-            'timezone'       => 'float',
+            'timezone' => 'float',
         ];
     }
 

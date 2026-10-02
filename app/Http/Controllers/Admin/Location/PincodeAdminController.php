@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Admin\Location;
 
 use App\Http\Controllers\Controller;
 use App\Models\City;
-use App\Models\Country;
 use App\Models\District;
 use App\Models\Pincode;
 use App\Models\State;
@@ -32,24 +31,25 @@ class PincodeAdminController extends Controller
         if ($s = $request->query('search')) {
             $query->where(function ($q) use ($s) {
                 $q->where('pincode', 'like', "%{$s}%")
-                  ->orWhere('post_office_name', 'like', "%{$s}%");
+                    ->orWhere('post_office_name', 'like', "%{$s}%");
             });
         }
 
         return view('location.pincodes.index', [
-            'pincodes'  => $query->orderBy('pincode')->paginate(50)->withQueryString(),
-            'states'    => State::active()->orderBy('name')->get(['id', 'name', 'code']),
+            'pincodes' => $query->orderBy('pincode')->paginate(50)->withQueryString(),
+            'states' => State::active()->orderBy('name')->get(['id', 'name', 'code']),
             'districts' => District::active()->orderBy('name')->get(['id', 'name', 'state_id']),
-            'cities'    => City::active()->orderBy('name')->get(['id', 'name', 'district_id']),
+            'cities' => City::active()->orderBy('name')->get(['id', 'name', 'district_id']),
         ]);
     }
 
     public function edit(Pincode $pincode): View
     {
         Gate::authorize('manage-appointments');
+
         return view('location.pincodes.edit', [
-            'pincode'   => $pincode->load(['state', 'district', 'city']),
-            'cities'    => City::where('district_id', $pincode->district_id)->active()->orderBy('name')->get(['id', 'name']),
+            'pincode' => $pincode->load(['state', 'district', 'city']),
+            'cities' => City::where('district_id', $pincode->district_id)->active()->orderBy('name')->get(['id', 'name']),
         ]);
     }
 
@@ -59,10 +59,10 @@ class PincodeAdminController extends Controller
 
         $data = $request->validate([
             'post_office_name' => ['required', 'string', 'max:200'],
-            'office_type'      => ['nullable', 'string', 'max:50'],
-            'delivery_status'  => ['nullable', 'string', 'max:20'],
-            'city_id'          => ['nullable', 'exists:cities,id'],
-            'status'           => ['required', 'in:active,inactive'],
+            'office_type' => ['nullable', 'string', 'max:50'],
+            'delivery_status' => ['nullable', 'string', 'max:20'],
+            'city_id' => ['nullable', 'exists:cities,id'],
+            'status' => ['required', 'in:active,inactive'],
         ]);
 
         $pincode->update($data);

@@ -16,8 +16,8 @@ class Guru extends Model
     public function donationCategories(): BelongsToMany
     {
         return $this->belongsToMany(DonationCategory::class, 'guru_donation_categories', 'guru_id', 'category_id')
-                    ->withPivot('status')
-                    ->withTimestamps();
+            ->withPivot('status')
+            ->withTimestamps();
     }
 
     public function activeCategories(): BelongsToMany

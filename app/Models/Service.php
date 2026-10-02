@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 class Service extends Model
 {
@@ -26,8 +26,8 @@ class Service extends Model
     {
         return [
             'translations' => 'array',
-            'images'       => 'array',
-            'pricing'      => 'array',
+            'images' => 'array',
+            'pricing' => 'array',
         ];
     }
 
@@ -60,7 +60,8 @@ class Service extends Model
     public function activeLanguages(): array
     {
         $t = $this->translations ?? [];
-        return array_filter(array_keys($t), fn ($k) => !empty($t[$k]['name']));
+
+        return array_filter(array_keys($t), fn ($k) => ! empty($t[$k]['name']));
     }
 
     public function primaryImage(): ?string
@@ -103,8 +104,8 @@ class Service extends Model
     public function scopeSearch(Builder $q, string $term): Builder
     {
         return $q->where(function ($q) use ($term) {
-            $q->whereRaw("LOWER(JSON_EXTRACT(translations, '$.en.name')) LIKE ?", ['%' . strtolower($term) . '%'])
-              ->orWhereRaw("LOWER(JSON_EXTRACT(translations, '$.hi.name')) LIKE ?", ['%' . strtolower($term) . '%']);
+            $q->whereRaw("LOWER(JSON_EXTRACT(translations, '$.en.name')) LIKE ?", ['%'.strtolower($term).'%'])
+                ->orWhereRaw("LOWER(JSON_EXTRACT(translations, '$.hi.name')) LIKE ?", ['%'.strtolower($term).'%']);
         });
     }
 }

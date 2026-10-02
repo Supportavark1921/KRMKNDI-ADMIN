@@ -32,6 +32,7 @@ class ClientProfileController extends Controller
     public function clients(): View
     {
         Gate::authorize('manage-appointments');
+
         return view('clients.index', ['clients' => User::where('role', 'user')->with('clientProfile')->withCount('appointments')->orderBy('name')->get()]);
     }
 

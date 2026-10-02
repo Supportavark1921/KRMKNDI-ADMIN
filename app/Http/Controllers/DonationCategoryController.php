@@ -24,6 +24,7 @@ class DonationCategoryController extends Controller
     public function create(): View
     {
         Gate::authorize('manage-appointments');
+
         return view('donation-categories.create', ['gurus' => Guru::active()->orderBy('name')->get()]);
     }
 
@@ -32,12 +33,12 @@ class DonationCategoryController extends Controller
         Gate::authorize('manage-appointments');
 
         $data = $request->validate([
-            'name'        => ['required', 'string', 'max:120', 'unique:donation_categories,name'],
+            'name' => ['required', 'string', 'max:120', 'unique:donation_categories,name'],
             'description' => ['nullable', 'string', 'max:1000'],
-            'status'      => ['required', 'in:active,inactive'],
-            'gurus'       => ['nullable', 'array'],
-            'gurus.*'     => ['integer', 'exists:gurus,id'],
-            'image'       => ['nullable', 'image', 'max:5120'],
+            'status' => ['required', 'in:active,inactive'],
+            'gurus' => ['nullable', 'array'],
+            'gurus.*' => ['integer', 'exists:gurus,id'],
+            'image' => ['nullable', 'image', 'max:5120'],
         ]);
 
         if ($request->hasFile('image')) {
@@ -46,7 +47,7 @@ class DonationCategoryController extends Controller
 
         $category = DonationCategory::create($data);
 
-        if (!empty($data['gurus'])) {
+        if (! empty($data['gurus'])) {
             $category->gurus()->sync($data['gurus']);
         }
 
@@ -59,7 +60,7 @@ class DonationCategoryController extends Controller
 
         return view('donation-categories.edit', [
             'category' => $donationCategory->load('gurus'),
-            'gurus'    => Guru::active()->orderBy('name')->get(),
+            'gurus' => Guru::active()->orderBy('name')->get(),
             'assigned' => $donationCategory->gurus->pluck('id')->toArray(),
         ]);
     }
@@ -69,12 +70,12 @@ class DonationCategoryController extends Controller
         Gate::authorize('manage-appointments');
 
         $data = $request->validate([
-            'name'        => ['required', 'string', 'max:120', 'unique:donation_categories,name,' . $donationCategory->id],
+            'name' => ['required', 'string', 'max:120', 'unique:donation_categories,name,'.$donationCategory->id],
             'description' => ['nullable', 'string', 'max:1000'],
-            'status'      => ['required', 'in:active,inactive'],
-            'gurus'       => ['nullable', 'array'],
-            'gurus.*'     => ['integer', 'exists:gurus,id'],
-            'image'       => ['nullable', 'image', 'max:5120'],
+            'status' => ['required', 'in:active,inactive'],
+            'gurus' => ['nullable', 'array'],
+            'gurus.*' => ['integer', 'exists:gurus,id'],
+            'image' => ['nullable', 'image', 'max:5120'],
         ]);
 
         if ($request->hasFile('image')) {

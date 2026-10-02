@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Builder;
 
 class Pincode extends Model
 {
@@ -17,7 +17,7 @@ class Pincode extends Model
     protected function casts(): array
     {
         return [
-            'latitude'  => 'float',
+            'latitude' => 'float',
             'longitude' => 'float',
         ];
     }

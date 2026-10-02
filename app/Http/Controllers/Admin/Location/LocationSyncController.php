@@ -22,11 +22,11 @@ class LocationSyncController extends Controller
         $india = Country::where('iso_code', 'IN')->first();
 
         $stats = [
-            'country'   => $india?->name ?? '—',
-            'states'    => $india ? State::where('country_id', $india->id)->count() : 0,
+            'country' => $india?->name ?? '—',
+            'states' => $india ? State::where('country_id', $india->id)->count() : 0,
             'districts' => $india ? District::whereHas('state', fn ($q) => $q->where('country_id', $india->id))->count() : 0,
-            'cities'    => $india ? City::whereHas('state', fn ($q) => $q->where('country_id', $india->id))->count() : 0,
-            'pincodes'  => $india ? Pincode::where('country_id', $india->id)->count() : 0,
+            'cities' => $india ? City::whereHas('state', fn ($q) => $q->where('country_id', $india->id))->count() : 0,
+            'pincodes' => $india ? Pincode::where('country_id', $india->id)->count() : 0,
         ];
 
         return view('location.sync', compact('stats'));

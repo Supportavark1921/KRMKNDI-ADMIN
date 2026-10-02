@@ -23,6 +23,7 @@ class CountryAdminController extends Controller
     public function create(): View
     {
         Gate::authorize('manage-appointments');
+
         return view('location.countries.create');
     }
 
@@ -31,11 +32,11 @@ class CountryAdminController extends Controller
         Gate::authorize('manage-appointments');
 
         $data = $request->validate([
-            'name'          => ['required', 'string', 'max:100'],
-            'iso_code'      => ['required', 'string', 'size:2', 'unique:countries,iso_code'],
-            'phone_code'    => ['nullable', 'string', 'max:10'],
+            'name' => ['required', 'string', 'max:100'],
+            'iso_code' => ['required', 'string', 'size:2', 'unique:countries,iso_code'],
+            'phone_code' => ['nullable', 'string', 'max:10'],
             'currency_code' => ['nullable', 'string', 'max:5'],
-            'status'        => ['required', 'in:active,inactive'],
+            'status' => ['required', 'in:active,inactive'],
         ]);
 
         $data['iso_code'] = strtoupper($data['iso_code']);
@@ -48,6 +49,7 @@ class CountryAdminController extends Controller
     public function edit(Country $country): View
     {
         Gate::authorize('manage-appointments');
+
         return view('location.countries.edit', compact('country'));
     }
 
@@ -56,10 +58,10 @@ class CountryAdminController extends Controller
         Gate::authorize('manage-appointments');
 
         $data = $request->validate([
-            'name'          => ['required', 'string', 'max:100'],
-            'phone_code'    => ['nullable', 'string', 'max:10'],
+            'name' => ['required', 'string', 'max:100'],
+            'phone_code' => ['nullable', 'string', 'max:10'],
             'currency_code' => ['nullable', 'string', 'max:5'],
-            'status'        => ['required', 'in:active,inactive'],
+            'status' => ['required', 'in:active,inactive'],
         ]);
 
         $country->update($data);

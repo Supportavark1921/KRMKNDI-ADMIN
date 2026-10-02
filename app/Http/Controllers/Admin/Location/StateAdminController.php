@@ -27,7 +27,7 @@ class StateAdminController extends Controller
         }
 
         return view('location.states.index', [
-            'states'    => $query->orderBy('name')->paginate(40)->withQueryString(),
+            'states' => $query->orderBy('name')->paginate(40)->withQueryString(),
             'countries' => Country::active()->orderBy('name')->get(),
         ]);
     }
@@ -35,6 +35,7 @@ class StateAdminController extends Controller
     public function create(): View
     {
         Gate::authorize('manage-appointments');
+
         return view('location.states.create', [
             'countries' => Country::active()->orderBy('name')->get(),
         ]);
@@ -46,10 +47,10 @@ class StateAdminController extends Controller
 
         $data = $request->validate([
             'country_id' => ['required', 'exists:countries,id'],
-            'name'       => ['required', 'string', 'max:150'],
-            'code'       => ['nullable', 'string', 'max:10'],
-            'type'       => ['required', 'in:STATE,UNION_TERRITORY'],
-            'status'     => ['required', 'in:active,inactive'],
+            'name' => ['required', 'string', 'max:150'],
+            'code' => ['nullable', 'string', 'max:10'],
+            'type' => ['required', 'in:STATE,UNION_TERRITORY'],
+            'status' => ['required', 'in:active,inactive'],
         ]);
 
         State::create($data);
@@ -60,8 +61,9 @@ class StateAdminController extends Controller
     public function edit(State $state): View
     {
         Gate::authorize('manage-appointments');
+
         return view('location.states.edit', [
-            'state'     => $state,
+            'state' => $state,
             'countries' => Country::active()->orderBy('name')->get(),
         ]);
     }
@@ -71,9 +73,9 @@ class StateAdminController extends Controller
         Gate::authorize('manage-appointments');
 
         $data = $request->validate([
-            'name'   => ['required', 'string', 'max:150'],
-            'code'   => ['nullable', 'string', 'max:10'],
-            'type'   => ['required', 'in:STATE,UNION_TERRITORY'],
+            'name' => ['required', 'string', 'max:150'],
+            'code' => ['nullable', 'string', 'max:10'],
+            'type' => ['required', 'in:STATE,UNION_TERRITORY'],
             'status' => ['required', 'in:active,inactive'],
         ]);
 

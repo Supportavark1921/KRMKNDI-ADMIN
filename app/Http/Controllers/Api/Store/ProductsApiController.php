@@ -40,22 +40,22 @@ class ProductsApiController extends Controller
         }
 
         $sort = match ($request->query('sort', 'latest')) {
-            'price_asc'  => ['price', 'asc'],
+            'price_asc' => ['price', 'asc'],
             'price_desc' => ['price', 'desc'],
-            'name'       => ['name', 'asc'],
-            default      => ['created_at', 'desc'],
+            'name' => ['name', 'asc'],
+            default => ['created_at', 'desc'],
         };
 
         $products = $query->orderBy(...$sort)->paginate(20)->withQueryString();
 
         return response()->json([
             'success' => true,
-            'data'    => $products->getCollection()->map(fn ($p) => $this->formatSummary($p)),
-            'meta'    => [
-                'current_page'  => $products->currentPage(),
-                'last_page'     => $products->lastPage(),
-                'per_page'      => $products->perPage(),
-                'total'         => $products->total(),
+            'data' => $products->getCollection()->map(fn ($p) => $this->formatSummary($p)),
+            'meta' => [
+                'current_page' => $products->currentPage(),
+                'last_page' => $products->lastPage(),
+                'per_page' => $products->perPage(),
+                'total' => $products->total(),
             ],
         ]);
     }
@@ -67,7 +67,7 @@ class ProductsApiController extends Controller
 
         return response()->json([
             'success' => true,
-            'data'    => $this->formatDetail($product),
+            'data' => $this->formatDetail($product),
         ]);
     }
 
@@ -78,11 +78,11 @@ class ProductsApiController extends Controller
 
         return response()->json([
             'success' => true,
-            'data'    => $products->getCollection()->map(fn ($p) => $this->formatSummary($p)),
-            'meta'    => [
+            'data' => $products->getCollection()->map(fn ($p) => $this->formatSummary($p)),
+            'meta' => [
                 'current_page' => $products->currentPage(),
-                'last_page'    => $products->lastPage(),
-                'total'        => $products->total(),
+                'last_page' => $products->lastPage(),
+                'total' => $products->total(),
             ],
         ]);
     }
@@ -92,37 +92,37 @@ class ProductsApiController extends Controller
     private function formatSummary(Product $p): array
     {
         return [
-            'id'                => $p->id,
-            'product_code'      => $p->product_code,
-            'name'              => $p->name,
+            'id' => $p->id,
+            'product_code' => $p->product_code,
+            'name' => $p->name,
             'short_description' => $p->short_description,
-            'product_type'      => $p->product_type,
-            'price'             => (float) $p->price,
-            'compare_at_price'  => $p->compare_at_price ? (float) $p->compare_at_price : null,
-            'in_stock'          => $p->inventory?->isInStock() ?? false,
-            'available_stock'   => $p->inventory?->available_stock ?? 0,
-            'primary_image'     => $p->primaryImage?->url(),
-            'category'          => ['id' => $p->category?->id, 'name' => $p->category?->name],
-            'mataji'            => $p->mataji ? ['id' => $p->mataji->id, 'name' => $p->mataji->name] : null,
+            'product_type' => $p->product_type,
+            'price' => (float) $p->price,
+            'compare_at_price' => $p->compare_at_price ? (float) $p->compare_at_price : null,
+            'in_stock' => $p->inventory?->isInStock() ?? false,
+            'available_stock' => $p->inventory?->available_stock ?? 0,
+            'primary_image' => $p->primaryImage?->url(),
+            'category' => ['id' => $p->category?->id, 'name' => $p->category?->name],
+            'mataji' => $p->mataji ? ['id' => $p->mataji->id, 'name' => $p->mataji->name] : null,
         ];
     }
 
     private function formatDetail(Product $p): array
     {
         return array_merge($this->formatSummary($p), [
-            'sku'              => $p->sku,
-            'description'      => $p->description,
-            'brand_source'     => $p->brand_source,
-            'offering_eligible'=> $p->offering_eligible,
-            'resale_eligible'  => $p->resale_eligible,
-            'images'           => $p->images->map(fn ($img) => [
-                'id'         => $img->id,
-                'url'        => $img->url(),
+            'sku' => $p->sku,
+            'description' => $p->description,
+            'brand_source' => $p->brand_source,
+            'offering_eligible' => $p->offering_eligible,
+            'resale_eligible' => $p->resale_eligible,
+            'images' => $p->images->map(fn ($img) => [
+                'id' => $img->id,
+                'url' => $img->url(),
                 'image_type' => $img->image_type,
                 'is_primary' => $img->is_primary,
-                'alt_text'   => $img->alt_text,
+                'alt_text' => $img->alt_text,
             ]),
-            'attributes'       => $p->attributes->mapWithKeys(fn ($a) => [$a->key => $a->value]),
+            'attributes' => $p->attributes->mapWithKeys(fn ($a) => [$a->key => $a->value]),
         ]);
     }
 }

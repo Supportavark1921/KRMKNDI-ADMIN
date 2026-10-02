@@ -23,7 +23,7 @@ class DonationFeeController extends Controller
 
         $data = $request->validate([
             'handling_charge' => ['required', 'numeric', 'min:0', 'max:9999'],
-            'gst_rate'        => ['required', 'numeric', 'min:0', 'max:100'],
+            'gst_rate' => ['required', 'numeric', 'min:0', 'max:100'],
         ]);
 
         // Deactivate old, create new — keeps audit trail

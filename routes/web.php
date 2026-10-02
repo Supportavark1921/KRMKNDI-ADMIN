@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AuditLogController as AdminAuditLogController;
 use App\Http\Controllers\Admin\Location\CityAdminController;
 use App\Http\Controllers\Admin\Location\CountryAdminController;
 use App\Http\Controllers\Admin\Location\DistrictAdminController;
@@ -7,27 +8,29 @@ use App\Http\Controllers\Admin\Location\LocationSyncController;
 use App\Http\Controllers\Admin\Location\PincodeAdminController;
 use App\Http\Controllers\Admin\Location\StateAdminController;
 use App\Http\Controllers\Admin\PanchangMonitorController;
+use App\Http\Controllers\Admin\RoleController as AdminRoleController;
 use App\Http\Controllers\Admin\Store\CategoriesController as StoreCategoriesController;
 use App\Http\Controllers\Admin\Store\InventoryController as StoreInventoryController;
 use App\Http\Controllers\Admin\Store\MatajisController as StoreMatajisController;
 use App\Http\Controllers\Admin\Store\ProductsController as StoreProductsController;
 use App\Http\Controllers\Admin\Store\VendorsController as StoreVendorsController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Api\PanchangController;
 use App\Http\Controllers\Api\Store\CategoriesApiController;
 use App\Http\Controllers\Api\Store\MatajisApiController;
 use App\Http\Controllers\Api\Store\ProductsApiController;
 use App\Http\Controllers\ApiDocsController;
+use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\AvailabilityController;
+use App\Http\Controllers\ClientProfileController;
 use App\Http\Controllers\DonationCategoryController;
 use App\Http\Controllers\DonationController;
 use App\Http\Controllers\DonationFeeController;
 use App\Http\Controllers\GuruController;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\AppointmentController;
-use App\Http\Controllers\AvailabilityController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ServiceController;
-use App\Http\Controllers\ClientProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => auth()->check() ? redirect()->route('dashboard') : redirect()->route('login'));
@@ -83,92 +86,122 @@ Route::middleware('auth')->group(function () {
     // Location master-data admin
     Route::prefix('admin/location')->name('admin.location.')->group(function () {
         // Countries
-        Route::get('countries',               [CountryAdminController::class, 'index'])->name('countries.index');
-        Route::get('countries/create',        [CountryAdminController::class, 'create'])->name('countries.create');
-        Route::post('countries',              [CountryAdminController::class, 'store'])->name('countries.store');
-        Route::get('countries/{country}/edit',[CountryAdminController::class, 'edit'])->name('countries.edit');
-        Route::put('countries/{country}',     [CountryAdminController::class, 'update'])->name('countries.update');
+        Route::get('countries', [CountryAdminController::class, 'index'])->name('countries.index');
+        Route::get('countries/create', [CountryAdminController::class, 'create'])->name('countries.create');
+        Route::post('countries', [CountryAdminController::class, 'store'])->name('countries.store');
+        Route::get('countries/{country}/edit', [CountryAdminController::class, 'edit'])->name('countries.edit');
+        Route::put('countries/{country}', [CountryAdminController::class, 'update'])->name('countries.update');
 
         // States / UTs
-        Route::get('states',               [StateAdminController::class, 'index'])->name('states.index');
-        Route::get('states/create',        [StateAdminController::class, 'create'])->name('states.create');
-        Route::post('states',              [StateAdminController::class, 'store'])->name('states.store');
-        Route::get('states/{state}/edit',  [StateAdminController::class, 'edit'])->name('states.edit');
-        Route::put('states/{state}',       [StateAdminController::class, 'update'])->name('states.update');
+        Route::get('states', [StateAdminController::class, 'index'])->name('states.index');
+        Route::get('states/create', [StateAdminController::class, 'create'])->name('states.create');
+        Route::post('states', [StateAdminController::class, 'store'])->name('states.store');
+        Route::get('states/{state}/edit', [StateAdminController::class, 'edit'])->name('states.edit');
+        Route::put('states/{state}', [StateAdminController::class, 'update'])->name('states.update');
 
         // Districts
-        Route::get('districts',                  [DistrictAdminController::class, 'index'])->name('districts.index');
-        Route::get('districts/create',           [DistrictAdminController::class, 'create'])->name('districts.create');
-        Route::post('districts',                 [DistrictAdminController::class, 'store'])->name('districts.store');
-        Route::get('districts/{district}/edit',  [DistrictAdminController::class, 'edit'])->name('districts.edit');
-        Route::put('districts/{district}',       [DistrictAdminController::class, 'update'])->name('districts.update');
+        Route::get('districts', [DistrictAdminController::class, 'index'])->name('districts.index');
+        Route::get('districts/create', [DistrictAdminController::class, 'create'])->name('districts.create');
+        Route::post('districts', [DistrictAdminController::class, 'store'])->name('districts.store');
+        Route::get('districts/{district}/edit', [DistrictAdminController::class, 'edit'])->name('districts.edit');
+        Route::put('districts/{district}', [DistrictAdminController::class, 'update'])->name('districts.update');
 
         // Cities
-        Route::get('cities',              [CityAdminController::class, 'index'])->name('cities.index');
-        Route::get('cities/create',       [CityAdminController::class, 'create'])->name('cities.create');
-        Route::post('cities',             [CityAdminController::class, 'store'])->name('cities.store');
-        Route::get('cities/{city}/edit',  [CityAdminController::class, 'edit'])->name('cities.edit');
-        Route::put('cities/{city}',       [CityAdminController::class, 'update'])->name('cities.update');
+        Route::get('cities', [CityAdminController::class, 'index'])->name('cities.index');
+        Route::get('cities/create', [CityAdminController::class, 'create'])->name('cities.create');
+        Route::post('cities', [CityAdminController::class, 'store'])->name('cities.store');
+        Route::get('cities/{city}/edit', [CityAdminController::class, 'edit'])->name('cities.edit');
+        Route::put('cities/{city}', [CityAdminController::class, 'update'])->name('cities.update');
 
         // PIN codes
-        Route::get('pincodes',                [PincodeAdminController::class, 'index'])->name('pincodes.index');
+        Route::get('pincodes', [PincodeAdminController::class, 'index'])->name('pincodes.index');
         Route::get('pincodes/{pincode}/edit', [PincodeAdminController::class, 'edit'])->name('pincodes.edit');
-        Route::put('pincodes/{pincode}',      [PincodeAdminController::class, 'update'])->name('pincodes.update');
+        Route::put('pincodes/{pincode}', [PincodeAdminController::class, 'update'])->name('pincodes.update');
 
         // Data sync
-        Route::get('sync',  [LocationSyncController::class, 'show'])->name('sync');
+        Route::get('sync', [LocationSyncController::class, 'show'])->name('sync');
         Route::post('sync', [LocationSyncController::class, 'sync'])->name('sync.run');
     });
 
     // Panchang API usage monitor + live test
-    Route::get('/admin/panchang',      [PanchangMonitorController::class, 'index'])->name('admin.panchang.monitor');
+    Route::get('/admin/panchang', [PanchangMonitorController::class, 'index'])->name('admin.panchang.monitor');
     Route::get('/admin/panchang/test', fn () => view('panchang.test'))->name('admin.panchang.test');
+
+    // ── User management ───────────────────────────────────────────────────────
+    Route::prefix('admin/users')->name('admin.users.')->group(function () {
+        Route::get('/', [AdminUserController::class, 'index'])->name('index');
+        Route::get('/create', [AdminUserController::class, 'create'])->name('create');
+        Route::post('/', [AdminUserController::class, 'store'])->name('store');
+        Route::get('/{user}', [AdminUserController::class, 'show'])->name('show');
+        Route::get('/{user}/edit', [AdminUserController::class, 'edit'])->name('edit');
+        Route::put('/{user}', [AdminUserController::class, 'update'])->name('update');
+        Route::delete('/{user}', [AdminUserController::class, 'destroy'])->name('destroy');
+        Route::post('/{id}/restore', [AdminUserController::class, 'restore'])->name('restore');
+        Route::post('/{user}/suspend', [AdminUserController::class, 'suspend'])->name('suspend');
+        Route::post('/{user}/activate', [AdminUserController::class, 'activate'])->name('activate');
+    });
+
+    // ── Audit log ────────────────────────────────────────────────────────────
+    Route::prefix('admin/audit')->name('admin.audit.')->group(function () {
+        Route::get('/', [AdminAuditLogController::class, 'index'])->name('index');
+        Route::get('/{activity}', [AdminAuditLogController::class, 'show'])->name('show');
+    });
+
+    // ── Role management ──────────────────────────────────────────────────────
+    Route::prefix('admin/roles')->name('admin.roles.')->group(function () {
+        Route::get('/', [AdminRoleController::class, 'index'])->name('index');
+        Route::get('/create', [AdminRoleController::class, 'create'])->name('create');
+        Route::post('/', [AdminRoleController::class, 'store'])->name('store');
+        Route::get('/{role}/edit', [AdminRoleController::class, 'edit'])->name('edit');
+        Route::put('/{role}', [AdminRoleController::class, 'update'])->name('update');
+        Route::delete('/{role}', [AdminRoleController::class, 'destroy'])->name('destroy');
+    });
 
     // ── Mataji Vastra Store — Admin ───────────────────────────────────────────
     Route::prefix('admin/store')->name('admin.store.')->group(function () {
         // Matajis
-        Route::get('matajis',                [StoreMatajisController::class, 'index'])->name('matajis.index');
-        Route::get('matajis/create',         [StoreMatajisController::class, 'create'])->name('matajis.create');
-        Route::post('matajis',               [StoreMatajisController::class, 'store'])->name('matajis.store');
-        Route::get('matajis/{mataji}/edit',  [StoreMatajisController::class, 'edit'])->name('matajis.edit');
-        Route::put('matajis/{mataji}',       [StoreMatajisController::class, 'update'])->name('matajis.update');
-        Route::delete('matajis/{mataji}',    [StoreMatajisController::class, 'destroy'])->name('matajis.destroy');
+        Route::get('matajis', [StoreMatajisController::class, 'index'])->name('matajis.index');
+        Route::get('matajis/create', [StoreMatajisController::class, 'create'])->name('matajis.create');
+        Route::post('matajis', [StoreMatajisController::class, 'store'])->name('matajis.store');
+        Route::get('matajis/{mataji}/edit', [StoreMatajisController::class, 'edit'])->name('matajis.edit');
+        Route::put('matajis/{mataji}', [StoreMatajisController::class, 'update'])->name('matajis.update');
+        Route::delete('matajis/{mataji}', [StoreMatajisController::class, 'destroy'])->name('matajis.destroy');
 
         // Categories
-        Route::get('categories',                  [StoreCategoriesController::class, 'index'])->name('categories.index');
-        Route::get('categories/create',           [StoreCategoriesController::class, 'create'])->name('categories.create');
-        Route::post('categories',                 [StoreCategoriesController::class, 'store'])->name('categories.store');
-        Route::get('categories/{category}/edit',  [StoreCategoriesController::class, 'edit'])->name('categories.edit');
-        Route::put('categories/{category}',       [StoreCategoriesController::class, 'update'])->name('categories.update');
-        Route::delete('categories/{category}',    [StoreCategoriesController::class, 'destroy'])->name('categories.destroy');
+        Route::get('categories', [StoreCategoriesController::class, 'index'])->name('categories.index');
+        Route::get('categories/create', [StoreCategoriesController::class, 'create'])->name('categories.create');
+        Route::post('categories', [StoreCategoriesController::class, 'store'])->name('categories.store');
+        Route::get('categories/{category}/edit', [StoreCategoriesController::class, 'edit'])->name('categories.edit');
+        Route::put('categories/{category}', [StoreCategoriesController::class, 'update'])->name('categories.update');
+        Route::delete('categories/{category}', [StoreCategoriesController::class, 'destroy'])->name('categories.destroy');
 
         // Products
-        Route::get('products',                        [StoreProductsController::class, 'index'])->name('products.index');
-        Route::get('products/create',                 [StoreProductsController::class, 'create'])->name('products.create');
-        Route::post('products',                       [StoreProductsController::class, 'store'])->name('products.store');
-        Route::get('products/{product}',              [StoreProductsController::class, 'show'])->name('products.show');
-        Route::get('products/{product}/edit',         [StoreProductsController::class, 'edit'])->name('products.edit');
-        Route::put('products/{product}',              [StoreProductsController::class, 'update'])->name('products.update');
-        Route::delete('products/{product}',           [StoreProductsController::class, 'destroy'])->name('products.destroy');
-        Route::post('products/{id}/restore',          [StoreProductsController::class, 'restore'])->name('products.restore');
-        Route::delete('product-images/{image}',       [StoreProductsController::class, 'deleteImage'])->name('products.images.delete');
+        Route::get('products', [StoreProductsController::class, 'index'])->name('products.index');
+        Route::get('products/create', [StoreProductsController::class, 'create'])->name('products.create');
+        Route::post('products', [StoreProductsController::class, 'store'])->name('products.store');
+        Route::get('products/{product}', [StoreProductsController::class, 'show'])->name('products.show');
+        Route::get('products/{product}/edit', [StoreProductsController::class, 'edit'])->name('products.edit');
+        Route::put('products/{product}', [StoreProductsController::class, 'update'])->name('products.update');
+        Route::delete('products/{product}', [StoreProductsController::class, 'destroy'])->name('products.destroy');
+        Route::post('products/{id}/restore', [StoreProductsController::class, 'restore'])->name('products.restore');
+        Route::delete('product-images/{image}', [StoreProductsController::class, 'deleteImage'])->name('products.images.delete');
         Route::post('product-images/{image}/primary', [StoreProductsController::class, 'setPrimaryImage'])->name('products.images.primary');
 
         // Inventory
-        Route::get('inventory',                        [StoreInventoryController::class, 'index'])->name('inventory.index');
-        Route::post('inventory/{product}/add',         [StoreInventoryController::class, 'addStock'])->name('inventory.add');
-        Route::post('inventory/{product}/adjust',      [StoreInventoryController::class, 'adjust'])->name('inventory.adjust');
-        Route::get('inventory/{product}/history',      [StoreInventoryController::class, 'history'])->name('inventory.history');
+        Route::get('inventory', [StoreInventoryController::class, 'index'])->name('inventory.index');
+        Route::post('inventory/{product}/add', [StoreInventoryController::class, 'addStock'])->name('inventory.add');
+        Route::post('inventory/{product}/adjust', [StoreInventoryController::class, 'adjust'])->name('inventory.adjust');
+        Route::get('inventory/{product}/history', [StoreInventoryController::class, 'history'])->name('inventory.history');
 
         // Vendors
-        Route::get('vendors',                          [StoreVendorsController::class, 'index'])->name('vendors.index');
-        Route::get('vendors/create',                   [StoreVendorsController::class, 'create'])->name('vendors.create');
-        Route::post('vendors',                         [StoreVendorsController::class, 'store'])->name('vendors.store');
-        Route::get('vendors/{vendor}',                 [StoreVendorsController::class, 'show'])->name('vendors.show');
-        Route::get('vendors/{vendor}/edit',            [StoreVendorsController::class, 'edit'])->name('vendors.edit');
-        Route::put('vendors/{vendor}',                 [StoreVendorsController::class, 'update'])->name('vendors.update');
-        Route::post('vendors/{vendor}/approve',        [StoreVendorsController::class, 'approve'])->name('vendors.approve');
-        Route::post('vendors/{vendor}/suspend',        [StoreVendorsController::class, 'suspend'])->name('vendors.suspend');
+        Route::get('vendors', [StoreVendorsController::class, 'index'])->name('vendors.index');
+        Route::get('vendors/create', [StoreVendorsController::class, 'create'])->name('vendors.create');
+        Route::post('vendors', [StoreVendorsController::class, 'store'])->name('vendors.store');
+        Route::get('vendors/{vendor}', [StoreVendorsController::class, 'show'])->name('vendors.show');
+        Route::get('vendors/{vendor}/edit', [StoreVendorsController::class, 'edit'])->name('vendors.edit');
+        Route::put('vendors/{vendor}', [StoreVendorsController::class, 'update'])->name('vendors.update');
+        Route::post('vendors/{vendor}/approve', [StoreVendorsController::class, 'approve'])->name('vendors.approve');
+        Route::post('vendors/{vendor}/suspend', [StoreVendorsController::class, 'suspend'])->name('vendors.suspend');
     });
 });
 
@@ -177,22 +210,22 @@ Route::prefix('api/v1')->name('api.v1.')->group(function () {
     Route::get('panchang', [PanchangController::class, 'show'])->name('panchang');
 
     // Store catalog
-    Route::get('products',             [ProductsApiController::class, 'index'])->name('store.products.index');
-    Route::get('products/{id}',        [ProductsApiController::class, 'show'])->name('store.products.show');
-    Route::get('resale-products',      [ProductsApiController::class, 'resale'])->name('store.products.resale');
-    Route::get('categories',           [CategoriesApiController::class, 'index'])->name('store.categories.index');
-    Route::get('matajis',              [MatajisApiController::class, 'index'])->name('store.matajis.index');
-    Route::get('matajis/{mataji}',     [MatajisApiController::class, 'show'])->name('store.matajis.show');
+    Route::get('products', [ProductsApiController::class, 'index'])->name('store.products.index');
+    Route::get('products/{id}', [ProductsApiController::class, 'show'])->name('store.products.show');
+    Route::get('resale-products', [ProductsApiController::class, 'resale'])->name('store.products.resale');
+    Route::get('categories', [CategoriesApiController::class, 'index'])->name('store.categories.index');
+    Route::get('matajis', [MatajisApiController::class, 'index'])->name('store.matajis.index');
+    Route::get('matajis/{mataji}', [MatajisApiController::class, 'show'])->name('store.matajis.show');
 });
 
 // Location API (cascading dropdowns) — auth required
 Route::middleware('auth')->prefix('api/locations')->name('api.locations.')->group(function () {
-    Route::get('countries',                          [LocationController::class, 'countries'])->name('countries');
-    Route::get('countries/{country}/states',         [LocationController::class, 'states'])->name('states');
-    Route::get('countries/iso/{iso}/states',         [LocationController::class, 'statesByIso'])->name('states.iso');
-    Route::get('states/{state}/districts',           [LocationController::class, 'districts'])->name('districts');
-    Route::get('districts/{district}/cities',        [LocationController::class, 'cities'])->name('cities');
-    Route::get('cities/{city}/pincodes',             [LocationController::class, 'pincodes'])->name('pincodes');
-    Route::get('pincodes/{pincode}',                 [LocationController::class, 'lookup'])->name('lookup');
-    Route::get('search',                             [LocationController::class, 'search'])->name('search');
+    Route::get('countries', [LocationController::class, 'countries'])->name('countries');
+    Route::get('countries/{country}/states', [LocationController::class, 'states'])->name('states');
+    Route::get('countries/iso/{iso}/states', [LocationController::class, 'statesByIso'])->name('states.iso');
+    Route::get('states/{state}/districts', [LocationController::class, 'districts'])->name('districts');
+    Route::get('districts/{district}/cities', [LocationController::class, 'cities'])->name('cities');
+    Route::get('cities/{city}/pincodes', [LocationController::class, 'pincodes'])->name('pincodes');
+    Route::get('pincodes/{pincode}', [LocationController::class, 'lookup'])->name('lookup');
+    Route::get('search', [LocationController::class, 'search'])->name('search');
 });

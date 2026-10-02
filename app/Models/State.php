@@ -2,15 +2,16 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Builder;
 
 class State extends Model
 {
     public const TYPE_STATE = 'STATE';
-    public const TYPE_UT    = 'UNION_TERRITORY';
+
+    public const TYPE_UT = 'UNION_TERRITORY';
 
     protected $fillable = ['country_id', 'name', 'code', 'type', 'status'];
 

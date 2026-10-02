@@ -15,6 +15,7 @@ class MatajisController extends Controller
     public function index(): View
     {
         Gate::authorize('manage-store');
+
         return view('admin.store.matajis.index', [
             'matajis' => Mataji::latest()->paginate(20),
         ]);
@@ -23,6 +24,7 @@ class MatajisController extends Controller
     public function create(): View
     {
         Gate::authorize('manage-store');
+
         return view('admin.store.matajis.create');
     }
 
@@ -31,18 +33,18 @@ class MatajisController extends Controller
         Gate::authorize('manage-store');
 
         $data = $request->validate([
-            'name'               => ['required', 'string', 'max:150'],
-            'temple_name'        => ['nullable', 'string', 'max:200'],
-            'address'            => ['nullable', 'string', 'max:300'],
-            'city'               => ['nullable', 'string', 'max:100'],
-            'state'              => ['nullable', 'string', 'max:100'],
-            'pin_code'           => ['nullable', 'string', 'max:10'],
-            'description'        => ['nullable', 'string', 'max:2000'],
+            'name' => ['required', 'string', 'max:150'],
+            'temple_name' => ['nullable', 'string', 'max:200'],
+            'address' => ['nullable', 'string', 'max:300'],
+            'city' => ['nullable', 'string', 'max:100'],
+            'state' => ['nullable', 'string', 'max:100'],
+            'pin_code' => ['nullable', 'string', 'max:10'],
+            'description' => ['nullable', 'string', 'max:2000'],
             'offering_available' => ['boolean'],
-            'status'             => ['required', 'in:active,inactive'],
-            'image'              => ['nullable', 'image', 'max:5120'],
-            'contact_phone'      => ['nullable', 'string', 'max:20'],
-            'contact_email'      => ['nullable', 'email', 'max:150'],
+            'status' => ['required', 'in:active,inactive'],
+            'image' => ['nullable', 'image', 'max:5120'],
+            'contact_phone' => ['nullable', 'string', 'max:20'],
+            'contact_email' => ['nullable', 'email', 'max:150'],
         ]);
 
         if ($request->hasFile('image')) {
@@ -65,6 +67,7 @@ class MatajisController extends Controller
     public function edit(Mataji $mataji): View
     {
         Gate::authorize('manage-store');
+
         return view('admin.store.matajis.edit', compact('mataji'));
     }
 
@@ -73,18 +76,18 @@ class MatajisController extends Controller
         Gate::authorize('manage-store');
 
         $data = $request->validate([
-            'name'               => ['required', 'string', 'max:150'],
-            'temple_name'        => ['nullable', 'string', 'max:200'],
-            'address'            => ['nullable', 'string', 'max:300'],
-            'city'               => ['nullable', 'string', 'max:100'],
-            'state'              => ['nullable', 'string', 'max:100'],
-            'pin_code'           => ['nullable', 'string', 'max:10'],
-            'description'        => ['nullable', 'string', 'max:2000'],
+            'name' => ['required', 'string', 'max:150'],
+            'temple_name' => ['nullable', 'string', 'max:200'],
+            'address' => ['nullable', 'string', 'max:300'],
+            'city' => ['nullable', 'string', 'max:100'],
+            'state' => ['nullable', 'string', 'max:100'],
+            'pin_code' => ['nullable', 'string', 'max:10'],
+            'description' => ['nullable', 'string', 'max:2000'],
             'offering_available' => ['boolean'],
-            'status'             => ['required', 'in:active,inactive'],
-            'image'              => ['nullable', 'image', 'max:5120'],
-            'contact_phone'      => ['nullable', 'string', 'max:20'],
-            'contact_email'      => ['nullable', 'email', 'max:150'],
+            'status' => ['required', 'in:active,inactive'],
+            'image' => ['nullable', 'image', 'max:5120'],
+            'contact_phone' => ['nullable', 'string', 'max:20'],
+            'contact_email' => ['nullable', 'email', 'max:150'],
         ]);
 
         if ($request->hasFile('image')) {

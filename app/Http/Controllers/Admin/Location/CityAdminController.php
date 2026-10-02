@@ -30,8 +30,8 @@ class CityAdminController extends Controller
         }
 
         return view('location.cities.index', [
-            'cities'    => $query->orderBy('name')->paginate(50)->withQueryString(),
-            'states'    => State::active()->orderBy('name')->get(['id', 'name', 'code']),
+            'cities' => $query->orderBy('name')->paginate(50)->withQueryString(),
+            'states' => State::active()->orderBy('name')->get(['id', 'name', 'code']),
             'districts' => District::active()->orderBy('name')->get(['id', 'name', 'state_id']),
         ]);
     }
@@ -39,8 +39,9 @@ class CityAdminController extends Controller
     public function create(): View
     {
         Gate::authorize('manage-appointments');
+
         return view('location.cities.create', [
-            'states'    => State::active()->orderBy('name')->get(['id', 'name', 'code']),
+            'states' => State::active()->orderBy('name')->get(['id', 'name', 'code']),
             'districts' => collect(),
         ]);
     }
@@ -50,10 +51,10 @@ class CityAdminController extends Controller
         Gate::authorize('manage-appointments');
 
         $data = $request->validate([
-            'state_id'    => ['required', 'exists:states,id'],
+            'state_id' => ['required', 'exists:states,id'],
             'district_id' => ['required', 'exists:districts,id'],
-            'name'        => ['required', 'string', 'max:150'],
-            'status'      => ['required', 'in:active,inactive'],
+            'name' => ['required', 'string', 'max:150'],
+            'status' => ['required', 'in:active,inactive'],
         ]);
 
         City::create($data);
@@ -64,9 +65,10 @@ class CityAdminController extends Controller
     public function edit(City $city): View
     {
         Gate::authorize('manage-appointments');
+
         return view('location.cities.edit', [
-            'city'      => $city,
-            'states'    => State::active()->orderBy('name')->get(['id', 'name', 'code']),
+            'city' => $city,
+            'states' => State::active()->orderBy('name')->get(['id', 'name', 'code']),
             'districts' => District::where('state_id', $city->state_id)->active()->orderBy('name')->get(['id', 'name']),
         ]);
     }
@@ -77,8 +79,8 @@ class CityAdminController extends Controller
 
         $data = $request->validate([
             'district_id' => ['required', 'exists:districts,id'],
-            'name'        => ['required', 'string', 'max:150'],
-            'status'      => ['required', 'in:active,inactive'],
+            'name' => ['required', 'string', 'max:150'],
+            'status' => ['required', 'in:active,inactive'],
         ]);
 
         $district = District::findOrFail($data['district_id']);

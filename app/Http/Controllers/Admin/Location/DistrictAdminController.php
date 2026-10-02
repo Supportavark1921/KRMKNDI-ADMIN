@@ -29,7 +29,7 @@ class DistrictAdminController extends Controller
 
         return view('location.districts.index', [
             'districts' => $query->orderBy('name')->paginate(50)->withQueryString(),
-            'states'    => State::active()->orderBy('name')->get(['id', 'name', 'code']),
+            'states' => State::active()->orderBy('name')->get(['id', 'name', 'code']),
             'countries' => Country::active()->orderBy('name')->get(),
         ]);
     }
@@ -37,6 +37,7 @@ class DistrictAdminController extends Controller
     public function create(): View
     {
         Gate::authorize('manage-appointments');
+
         return view('location.districts.create', [
             'states' => State::active()->orderBy('name')->get(['id', 'name', 'code', 'country_id']),
         ]);
@@ -48,9 +49,9 @@ class DistrictAdminController extends Controller
 
         $data = $request->validate([
             'state_id' => ['required', 'exists:states,id'],
-            'name'     => ['required', 'string', 'max:150'],
-            'code'     => ['nullable', 'string', 'max:20'],
-            'status'   => ['required', 'in:active,inactive'],
+            'name' => ['required', 'string', 'max:150'],
+            'code' => ['nullable', 'string', 'max:20'],
+            'status' => ['required', 'in:active,inactive'],
         ]);
 
         District::create($data);
@@ -61,9 +62,10 @@ class DistrictAdminController extends Controller
     public function edit(District $district): View
     {
         Gate::authorize('manage-appointments');
+
         return view('location.districts.edit', [
             'district' => $district,
-            'states'   => State::active()->orderBy('name')->get(['id', 'name', 'code', 'country_id']),
+            'states' => State::active()->orderBy('name')->get(['id', 'name', 'code', 'country_id']),
         ]);
     }
 
@@ -72,8 +74,8 @@ class DistrictAdminController extends Controller
         Gate::authorize('manage-appointments');
 
         $data = $request->validate([
-            'name'   => ['required', 'string', 'max:150'],
-            'code'   => ['nullable', 'string', 'max:20'],
+            'name' => ['required', 'string', 'max:150'],
+            'code' => ['nullable', 'string', 'max:20'],
             'status' => ['required', 'in:active,inactive'],
         ]);
 

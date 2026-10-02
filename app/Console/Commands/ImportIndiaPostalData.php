@@ -8,7 +8,6 @@ use App\Models\District;
 use App\Models\Pincode;
 use App\Models\State;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
 
 /**
  * Import India Post / data.gov.in pincode directory CSV.
@@ -22,16 +21,19 @@ use Illuminate\Support\Facades\DB;
  */
 class ImportIndiaPostalData extends Command
 {
-    protected $signature   = 'location:import-india
+    protected $signature = 'location:import-india
                                 {--file= : Path to CSV file (default: storage/app/imports/india_pincodes.csv)}
                                 {--dry-run : Parse only, no DB writes}';
 
     protected $description = 'Import / sync India Post pincode directory into the location master tables.';
 
-    private int $newPincodes    = 0;
+    private int $newPincodes = 0;
+
     private int $updatedPincodes = 0;
-    private int $newCities      = 0;
-    private int $newDistricts   = 0;
+
+    private int $newCities = 0;
+
+    private int $newDistricts = 0;
 
     public function handle(): int
     {
@@ -43,12 +45,14 @@ class ImportIndiaPostalData extends Command
             $this->line('Download the All India Pincode Directory from:');
             $this->line('  https://data.gov.in/catalog/all-india-pincode-directory');
             $this->line("Place the CSV at: {$file}");
+
             return self::FAILURE;
         }
 
         $india = Country::where('iso_code', 'IN')->first();
         if (! $india) {
             $this->error('India not found in countries table. Run: php artisan db:seed --class=IndiaLocationSeeder');
+
             return self::FAILURE;
         }
 
@@ -63,15 +67,15 @@ class ImportIndiaPostalData extends Command
             ->keyBy(fn ($s) => $this->normalise($s->name));
 
         $districtCache = [];
-        $cityCache     = [];
+        $cityCache = [];
 
         $handle = fopen($file, 'r');
         $header = fgetcsv($handle);
         $header = array_map('trim', $header);
 
-        $bar   = $this->output->createProgressBar();
+        $bar = $this->output->createProgressBar();
         $batch = [];
-        $line  = 0;
+        $line = 0;
 
         while (($row = fgetcsv($handle)) !== false) {
             $line++;
@@ -82,17 +86,17 @@ class ImportIndiaPostalData extends Command
 
             $cols = array_combine($header, array_map('trim', $row));
 
-            $stateName       = $cols['StateName']    ?? $cols['State']    ?? '';
-            $districtName    = $cols['District']     ?? '';
-            $officeName      = $cols['OfficeName']   ?? $cols['Office']   ?? '';
-            $pincode         = $cols['Pincode']      ?? $cols['Pincode']  ?? '';
-            $officeType      = $cols['OfficeType']   ?? $cols['Type']     ?? null;
-            $delivery        = $cols['Delivery']     ?? null;
-            $circle          = $cols['CircleName']   ?? null;
-            $region          = $cols['RegionName']   ?? null;
-            $division        = $cols['DivisionName'] ?? null;
-            $lat             = $cols['Latitude']     ?? null;
-            $lng             = $cols['Longitude']    ?? null;
+            $stateName = $cols['StateName'] ?? $cols['State'] ?? '';
+            $districtName = $cols['District'] ?? '';
+            $officeName = $cols['OfficeName'] ?? $cols['Office'] ?? '';
+            $pincode = $cols['Pincode'] ?? $cols['Pincode'] ?? '';
+            $officeType = $cols['OfficeType'] ?? $cols['Type'] ?? null;
+            $delivery = $cols['Delivery'] ?? null;
+            $circle = $cols['CircleName'] ?? null;
+            $region = $cols['RegionName'] ?? null;
+            $division = $cols['DivisionName'] ?? null;
+            $lat = $cols['Latitude'] ?? null;
+            $lng = $cols['Longitude'] ?? null;
 
             if (! $pincode || ! $officeName || ! $stateName) {
                 continue;
@@ -105,6 +109,7 @@ class ImportIndiaPostalData extends Command
 
             if ($isDry) {
                 $bar->advance();
+
                 continue;
             }
 
@@ -120,7 +125,7 @@ class ImportIndiaPostalData extends Command
             }
 
             // Resolve district
-            $districtKey = $state->id . '::' . $this->normalise($districtName);
+            $districtKey = $state->id.'::'.$this->normalise($districtName);
             if (! isset($districtCache[$districtKey])) {
                 $district = District::firstOrCreate(
                     ['state_id' => $state->id, 'name' => $districtName],
@@ -134,8 +139,8 @@ class ImportIndiaPostalData extends Command
             $districtId = $districtCache[$districtKey];
 
             // Resolve city (use district name as city when no separate city info)
-            $cityName    = $districtName;
-            $cityKey     = $districtId . '::' . $this->normalise($cityName);
+            $cityName = $districtName;
+            $cityKey = $districtId.'::'.$this->normalise($cityName);
             if (! isset($cityCache[$cityKey])) {
                 $city = City::firstOrCreate(
                     ['district_id' => $districtId, 'name' => $cityName],
@@ -155,18 +160,18 @@ class ImportIndiaPostalData extends Command
                 ->first();
 
             $payload = [
-                'country_id'       => $india->id,
-                'state_id'         => $state->id,
-                'district_id'      => $districtId,
-                'city_id'          => $cityId,
-                'office_type'      => $officeType,
-                'delivery_status'  => $delivery,
-                'circle'           => $circle,
-                'region'           => $region,
-                'division'         => $division,
-                'latitude'         => is_numeric($lat) ? (float) $lat : null,
-                'longitude'        => is_numeric($lng) ? (float) $lng : null,
-                'status'           => 'active',
+                'country_id' => $india->id,
+                'state_id' => $state->id,
+                'district_id' => $districtId,
+                'city_id' => $cityId,
+                'office_type' => $officeType,
+                'delivery_status' => $delivery,
+                'circle' => $circle,
+                'region' => $region,
+                'division' => $division,
+                'latitude' => is_numeric($lat) ? (float) $lat : null,
+                'longitude' => is_numeric($lng) ? (float) $lng : null,
+                'status' => 'active',
             ];
 
             if ($existing) {
@@ -174,7 +179,7 @@ class ImportIndiaPostalData extends Command
                 $this->updatedPincodes++;
             } else {
                 Pincode::create(array_merge($payload, [
-                    'pincode'          => $pincode,
+                    'pincode' => $pincode,
                     'post_office_name' => $officeName,
                 ]));
                 $this->newPincodes++;
@@ -185,7 +190,7 @@ class ImportIndiaPostalData extends Command
             if ($line % 1000 === 0) {
                 // Free memory for large datasets
                 $districtCache = array_slice($districtCache, -500, null, true);
-                $cityCache     = array_slice($cityCache, -500, null, true);
+                $cityCache = array_slice($cityCache, -500, null, true);
             }
         }
 
@@ -195,6 +200,7 @@ class ImportIndiaPostalData extends Command
 
         if ($isDry) {
             $this->info("Dry run complete. {$line} rows parsed.");
+
             return self::SUCCESS;
         }
 

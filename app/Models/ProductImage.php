@@ -18,6 +18,6 @@ class ProductImage extends Model
 
     public function url(): string
     {
-        return asset('storage/' . $this->path);
+        return asset('storage/'.$this->path);
     }
 }

@@ -85,19 +85,19 @@ class LocationController extends Controller
         // PIN code search
         if (ctype_digit($q) && strlen($q) <= 6) {
             $rows = Pincode::active()
-                ->where('pincode', 'like', $q . '%')
+                ->where('pincode', 'like', $q.'%')
                 ->with(['state:id,name,code', 'district:id,name'])
                 ->limit(20)
                 ->get(['id', 'pincode', 'post_office_name', 'state_id', 'district_id', 'city_id']);
 
             return response()->json($rows->map(fn ($p) => [
-                'type'             => 'pincode',
-                'id'               => $p->id,
-                'label'            => "{$p->pincode} — {$p->post_office_name}",
-                'pincode'          => $p->pincode,
+                'type' => 'pincode',
+                'id' => $p->id,
+                'label' => "{$p->pincode} — {$p->post_office_name}",
+                'pincode' => $p->pincode,
                 'post_office_name' => $p->post_office_name,
-                'state'            => $p->state?->name,
-                'district'         => $p->district?->name,
+                'state' => $p->state?->name,
+                'district' => $p->district?->name,
             ]));
         }
 
@@ -118,23 +118,23 @@ class LocationController extends Controller
 
         foreach ($cities as $c) {
             $results->push([
-                'type'     => 'city',
-                'id'       => $c->id,
-                'label'    => "{$c->name}, {$c->district?->name}, {$c->state?->name}",
-                'city'     => $c->name,
+                'type' => 'city',
+                'id' => $c->id,
+                'label' => "{$c->name}, {$c->district?->name}, {$c->state?->name}",
+                'city' => $c->name,
                 'district' => $c->district?->name,
-                'state'    => $c->state?->name,
+                'state' => $c->state?->name,
                 'state_code' => $c->state?->code,
             ]);
         }
 
         foreach ($districts as $d) {
             $results->push([
-                'type'       => 'district',
-                'id'         => $d->id,
-                'label'      => "{$d->name}, {$d->state?->name}",
-                'district'   => $d->name,
-                'state'      => $d->state?->name,
+                'type' => 'district',
+                'id' => $d->id,
+                'label' => "{$d->name}, {$d->state?->name}",
+                'district' => $d->name,
+                'state' => $d->state?->name,
                 'state_code' => $d->state?->code,
             ]);
         }

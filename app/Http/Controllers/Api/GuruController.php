@@ -30,23 +30,23 @@ class GuruController extends Controller
     {
         $categories = $guru->activeCategories()->get()
             ->map(fn ($c) => [
-                'id'          => $c->id,
-                'name'        => $c->name,
+                'id' => $c->id,
+                'name' => $c->name,
                 'description' => $c->description,
-                'image'       => $c->image ? Storage::disk('public')->url($c->image) : null,
-                'status'      => $c->pivot->status,
+                'image' => $c->image ? Storage::disk('public')->url($c->image) : null,
+                'status' => $c->pivot->status,
             ]);
 
         $fee = DonationFeeConfig::active();
 
         return response()->json([
             'data' => [
-                'guru'       => $this->formatGuru($guru),
+                'guru' => $this->formatGuru($guru),
                 'categories' => $categories,
                 'fee_config' => [
                     'handling_charge' => $fee->handling_charge,
-                    'gst_rate'        => $fee->gst_rate,
-                    'gst_label'       => "GST @ {$fee->gst_rate}%",
+                    'gst_rate' => $fee->gst_rate,
+                    'gst_label' => "GST @ {$fee->gst_rate}%",
                 ],
             ],
         ]);
@@ -55,18 +55,18 @@ class GuruController extends Controller
     private function formatGuru(Guru $guru, bool $withStats = false): array
     {
         $result = [
-            'id'          => $guru->id,
-            'name'        => $guru->name,
+            'id' => $guru->id,
+            'name' => $guru->name,
             'description' => $guru->description,
-            'image'       => $guru->image ? Storage::disk('public')->url($guru->image) : null,
-            'status'      => $guru->status,
+            'image' => $guru->image ? Storage::disk('public')->url($guru->image) : null,
+            'status' => $guru->status,
         ];
 
         if ($withStats) {
             $result['stats'] = [
-                'total_donations'   => $guru->totalDonations(),
-                'total_donors'      => $guru->totalDonors(),
-                'total_transactions'=> $guru->totalTransactions(),
+                'total_donations' => $guru->totalDonations(),
+                'total_donors' => $guru->totalDonors(),
+                'total_transactions' => $guru->totalTransactions(),
             ];
         }
 

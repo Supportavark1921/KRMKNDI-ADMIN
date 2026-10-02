@@ -22,7 +22,7 @@ class ServiceController extends Controller
         }
 
         if ($lang = $request->query('language')) {
-            $query->whereRaw("JSON_TYPE(JSON_EXTRACT(translations, '$." . $lang . "')) IS NOT NULL");
+            $query->whereRaw("JSON_TYPE(JSON_EXTRACT(translations, '$.".$lang."')) IS NOT NULL");
         }
 
         if ($status = $request->query('status')) {
@@ -30,7 +30,7 @@ class ServiceController extends Controller
         }
 
         return view('services.index', [
-            'services'  => $query->paginate(15)->withQueryString(),
+            'services' => $query->paginate(15)->withQueryString(),
             'languages' => Service::SUPPORTED_LANGUAGES,
         ]);
     }
@@ -62,7 +62,7 @@ class ServiceController extends Controller
         Gate::authorize('manage-appointments');
 
         return view('services.show', [
-            'service'   => $service,
+            'service' => $service,
             'languages' => Service::SUPPORTED_LANGUAGES,
         ]);
     }
@@ -72,7 +72,7 @@ class ServiceController extends Controller
         Gate::authorize('manage-appointments');
 
         return view('services.edit', [
-            'service'   => $service,
+            'service' => $service,
             'languages' => Service::SUPPORTED_LANGUAGES,
         ]);
     }
@@ -115,17 +115,17 @@ class ServiceController extends Controller
         $langs = array_keys(Service::SUPPORTED_LANGUAGES);
 
         $rules = [
-            'status'           => ['required', 'in:active,inactive'],
-            'pricing.amount'   => ['required', 'integer', 'min:0', 'max:9999999'],
+            'status' => ['required', 'in:active,inactive'],
+            'pricing.amount' => ['required', 'integer', 'min:0', 'max:9999999'],
             'pricing.currency' => ['required', 'string', 'max:10'],
             'pricing.discount_amount' => ['nullable', 'integer', 'min:0', 'max:9999999'],
         ];
 
         // Require EN name; others are optional
         foreach ($langs as $lang) {
-            $required = $lang === Service::DEFAULT_LANGUAGE ? 'required_with:translations.' . $lang . '.title,translations.' . $lang . '.description' : 'nullable';
-            $rules["translations.{$lang}.name"]        = [$required, 'nullable', 'string', 'max:120'];
-            $rules["translations.{$lang}.title"]       = ['nullable', 'string', 'max:200'];
+            $required = $lang === Service::DEFAULT_LANGUAGE ? 'required_with:translations.'.$lang.'.title,translations.'.$lang.'.description' : 'nullable';
+            $rules["translations.{$lang}.name"] = [$required, 'nullable', 'string', 'max:120'];
+            $rules["translations.{$lang}.title"] = ['nullable', 'string', 'max:200'];
             $rules["translations.{$lang}.description"] = ['nullable', 'string', 'max:2000'];
         }
 
@@ -138,7 +138,7 @@ class ServiceController extends Controller
         $translations = [];
         foreach ($data['translations'] ?? [] as $lang => $block) {
             $clean = array_filter($block, fn ($v) => $v !== null && $v !== '');
-            if (!empty($clean)) {
+            if (! empty($clean)) {
                 $translations[$lang] = $block;
             }
         }
@@ -157,8 +157,8 @@ class ServiceController extends Controller
     private function handleImages(Request $request, ?Service $service = null): array
     {
         $existing = $service?->images ?? ['primary' => null, 'gallery' => []];
-        $primary  = $existing['primary'];
-        $gallery  = $existing['gallery'] ?? [];
+        $primary = $existing['primary'];
+        $gallery = $existing['gallery'] ?? [];
 
         // Primary image
         if ($request->hasFile('primary_image')) {

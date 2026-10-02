@@ -13,10 +13,10 @@ class IndiaLocationSeeder extends Seeder
         $india = Country::firstOrCreate(
             ['iso_code' => 'IN'],
             [
-                'name'          => 'India',
-                'phone_code'    => '+91',
+                'name' => 'India',
+                'phone_code' => '+91',
                 'currency_code' => 'INR',
-                'status'        => 'active',
+                'status' => 'active',
             ]
         );
 

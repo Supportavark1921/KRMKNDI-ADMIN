@@ -14,28 +14,29 @@ class NavamshaPanchangService
     // Rounding precision for location normalisation (2 decimal places ≈ ~1 km grid)
     private const PRECISION = 2;
 
-    private const BASE_URL    = 'https://api.navamsha.in';
-    private const ENDPOINT    = '/api/v1/panchang/full';
-    private const LOCK_TTL    = 30;   // seconds to hold the distributed lock
-    private const LOCK_WAIT   = 10;   // seconds a waiting request polls for the lock
+    private const BASE_URL = 'https://api.navamsha.in';
+
+    private const ENDPOINT = '/api/v1/panchang/full';
+
+    private const LOCK_TTL = 30;   // seconds to hold the distributed lock
+
+    private const LOCK_WAIT = 10;   // seconds a waiting request polls for the lock
 
     // ── Public entry point ────────────────────────────────────────────────────
 
     /**
      * Return Panchang for the given location / date / feature.
      *
-     * @param  float  $latitude
-     * @param  float  $longitude
-     * @param  float  $timezone   UTC offset, e.g. 5.5 for IST
-     * @param  string $date       Y-m-d
-     * @param  string $feature    panchang_full | choghadiya | sun_times …
-     * @param  string $locationName  optional display label
+     * @param  float  $timezone  UTC offset, e.g. 5.5 for IST
+     * @param  string  $date  Y-m-d
+     * @param  string  $feature  panchang_full | choghadiya | sun_times …
+     * @param  string  $locationName  optional display label
      * @return array{success:bool, cached:bool, date:string, location:array, data:array|null, error:array|null}
      */
     public function getPanchang(
-        float  $latitude,
-        float  $longitude,
-        float  $timezone,
+        float $latitude,
+        float $longitude,
+        float $timezone,
         string $date,
         string $feature = 'panchang_full',
         string $locationName = ''
@@ -50,8 +51,8 @@ class NavamshaPanchangService
         }
 
         // ── Acquire distributed lock to prevent duplicate Navamsha calls ──────
-        $lockKey = 'panchang_lock:' . $cacheKey;
-        $lock    = Cache::lock($lockKey, self::LOCK_TTL);
+        $lockKey = 'panchang_lock:'.$cacheKey;
+        $lock = Cache::lock($lockKey, self::LOCK_TTL);
 
         try {
             if (! $lock->block(self::LOCK_WAIT)) {
@@ -60,6 +61,7 @@ class NavamshaPanchangService
                 if ($cached) {
                     return $this->formatResponse($cached, true);
                 }
+
                 return $this->errorResponse('LOCK_TIMEOUT', 'Panchang data is temporarily unavailable. Please retry.');
             }
 
@@ -78,17 +80,17 @@ class NavamshaPanchangService
 
             // ── Persist & return ──────────────────────────────────────────────
             $record = $this->saveResponse(
-                cacheKey:    $cacheKey,
-                date:        $date,
-                latitude:    $latitude,
-                longitude:   $longitude,
-                normLat:     $normLat,
-                normLon:     $normLon,
-                timezone:    $timezone,
-                feature:     $feature,
-                locationName:$locationName,
+                cacheKey: $cacheKey,
+                date: $date,
+                latitude: $latitude,
+                longitude: $longitude,
+                normLat: $normLat,
+                normLon: $normLon,
+                timezone: $timezone,
+                feature: $feature,
+                locationName: $locationName,
                 apiResponse: $result['raw'],
-                panchangData:$result['data'],
+                panchangData: $result['data'],
             );
 
             return $this->formatResponse($record, false);
@@ -102,9 +104,9 @@ class NavamshaPanchangService
 
     public function generateCacheKey(
         string $date,
-        float  $normLat,
-        float  $normLon,
-        float  $timezone,
+        float $normLat,
+        float $normLon,
+        float $timezone,
         string $feature = 'panchang_full'
     ): string {
         return sprintf('%s:%.2f:%.2f:%.1f:%s', $date, $normLat, $normLon, $timezone, $feature);
@@ -113,6 +115,7 @@ class NavamshaPanchangService
     public function normalizeLocation(float $lat, float $lon): array
     {
         $p = 10 ** self::PRECISION;
+
         return [
             round(round($lat * $p) / $p, self::PRECISION),
             round(round($lon * $p) / $p, self::PRECISION),
@@ -134,39 +137,39 @@ class NavamshaPanchangService
     // ── Navamsha API client ───────────────────────────────────────────────────
 
     private function callNavamsha(
-        float  $latitude,
-        float  $longitude,
-        float  $timezone,
+        float $latitude,
+        float $longitude,
+        float $timezone,
         string $date,
         string $feature,
         string $cacheKey
     ): array {
-        $apiKey   = config('services.navamsha.key');
-        $endpoint = self::BASE_URL . $this->endpointPath($feature);
+        $apiKey = config('services.navamsha.key');
+        $endpoint = self::BASE_URL.$this->endpointPath($feature);
 
         $parsed = Carbon::createFromFormat('Y-m-d', $date);
 
         // Use current local time for today; midnight for historical/future dates
         $offsetMinutes = (int) ($timezone * 60);
-        $localNow      = now()->addMinutes($offsetMinutes);
-        $isToday       = $parsed->toDateString() === $localNow->toDateString();
+        $localNow = now()->addMinutes($offsetMinutes);
+        $isToday = $parsed->toDateString() === $localNow->toDateString();
 
         $payload = [
-            'year'      => (int) $parsed->format('Y'),
-            'month'     => (int) $parsed->format('m'),
-            'date'      => (int) $parsed->format('d'),
-            'hours'     => $isToday ? (int) $localNow->format('H') : 0,
-            'minutes'   => $isToday ? (int) $localNow->format('i') : 0,
-            'seconds'   => $isToday ? (int) $localNow->format('s') : 0,
-            'latitude'  => $latitude,
+            'year' => (int) $parsed->format('Y'),
+            'month' => (int) $parsed->format('m'),
+            'date' => (int) $parsed->format('d'),
+            'hours' => $isToday ? (int) $localNow->format('H') : 0,
+            'minutes' => $isToday ? (int) $localNow->format('i') : 0,
+            'seconds' => $isToday ? (int) $localNow->format('s') : 0,
+            'latitude' => $latitude,
             'longitude' => $longitude,
-            'timezone'  => (string) $timezone,
+            'timezone' => (string) $timezone,
         ];
 
         $start = microtime(true);
         $httpStatus = null;
-        $success    = false;
-        $errorMsg   = null;
+        $success = false;
+        $errorMsg = null;
 
         try {
             $response = Http::withHeaders(['X-API-Key' => $apiKey])
@@ -175,7 +178,7 @@ class NavamshaPanchangService
                 ->post($endpoint, $payload);
 
             $httpStatus = $response->status();
-            $elapsed    = (int) ((microtime(true) - $start) * 1000);
+            $elapsed = (int) ((microtime(true) - $start) * 1000);
 
             if ($response->successful()) {
                 $body = $response->json();
@@ -186,10 +189,10 @@ class NavamshaPanchangService
                 return ['success' => true, 'raw' => $body, 'data' => $this->extractPanchangData($body)];
             }
 
-            $errorMsg = 'HTTP ' . $httpStatus . ': ' . $response->body();
+            $errorMsg = 'HTTP '.$httpStatus.': '.$response->body();
 
         } catch (\Throwable $e) {
-            $elapsed  = (int) ((microtime(true) - $start) * 1000);
+            $elapsed = (int) ((microtime(true) - $start) * 1000);
             $errorMsg = $e->getMessage();
             Log::error('Navamsha API error', ['error' => $errorMsg, 'cache_key' => $cacheKey]);
         }
@@ -202,12 +205,12 @@ class NavamshaPanchangService
     private function endpointPath(string $feature): string
     {
         return match ($feature) {
-            'choghadiya'    => '/api/v1/panchang/choghadiya',
-            'hora'          => '/api/v1/panchang/hora',
-            'rahu_kaal'     => '/api/v1/panchang/rahu-kaal',
-            'sun_times'     => '/api/v1/sun-times',
-            'abhijit'       => '/api/v1/panchang/abhijit',
-            default         => self::ENDPOINT,
+            'choghadiya' => '/api/v1/panchang/choghadiya',
+            'hora' => '/api/v1/panchang/hora',
+            'rahu_kaal' => '/api/v1/panchang/rahu-kaal',
+            'sun_times' => '/api/v1/sun-times',
+            'abhijit' => '/api/v1/panchang/abhijit',
+            default => self::ENDPOINT,
         };
     }
 
@@ -223,15 +226,15 @@ class NavamshaPanchangService
     private function saveResponse(
         string $cacheKey,
         string $date,
-        float  $latitude,
-        float  $longitude,
-        float  $normLat,
-        float  $normLon,
-        float  $timezone,
+        float $latitude,
+        float $longitude,
+        float $normLat,
+        float $normLon,
+        float $timezone,
         string $feature,
         string $locationName,
-        array  $apiResponse,
-        array  $panchangData
+        array $apiResponse,
+        array $panchangData
     ): PanchangCache {
         // Expire at end of local calendar day
         $expiresAt = Carbon::createFromFormat('Y-m-d', $date)
@@ -242,20 +245,20 @@ class NavamshaPanchangService
         return PanchangCache::updateOrCreate(
             ['cache_key' => $cacheKey],
             [
-                'date'                 => $date,
-                'latitude'             => $latitude,
-                'longitude'            => $longitude,
-                'normalized_latitude'  => $normLat,
+                'date' => $date,
+                'latitude' => $latitude,
+                'longitude' => $longitude,
+                'normalized_latitude' => $normLat,
                 'normalized_longitude' => $normLon,
-                'timezone'             => $timezone,
-                'location_name'        => $locationName ?: null,
-                'feature'              => $feature,
-                'api_endpoint'         => self::BASE_URL . $this->endpointPath($feature),
-                'api_response'         => $apiResponse,
-                'panchang_data'        => $panchangData,
-                'api_status'           => 'success',
-                'fetched_at'           => now(),
-                'expires_at'           => $expiresAt,
+                'timezone' => $timezone,
+                'location_name' => $locationName ?: null,
+                'feature' => $feature,
+                'api_endpoint' => self::BASE_URL.$this->endpointPath($feature),
+                'api_response' => $apiResponse,
+                'panchang_data' => $panchangData,
+                'api_status' => 'success',
+                'fetched_at' => now(),
+                'expires_at' => $expiresAt,
             ]
         );
     }
@@ -263,34 +266,34 @@ class NavamshaPanchangService
     // ── Logging ───────────────────────────────────────────────────────────────
 
     private function log(
-        string  $endpoint,
-        string  $cacheKey,
-        string  $feature,
-        string  $date,
-        float   $latitude,
-        float   $longitude,
-        float   $timezone,
-        ?int    $httpStatus,
-        int     $responseTimeMs,
-        bool    $success,
+        string $endpoint,
+        string $cacheKey,
+        string $feature,
+        string $date,
+        float $latitude,
+        float $longitude,
+        float $timezone,
+        ?int $httpStatus,
+        int $responseTimeMs,
+        bool $success,
         ?string $errorMessage = null
     ): void {
         try {
             NavamshaApiLog::create([
-                'endpoint'        => $endpoint,
-                'cache_key'       => $cacheKey,
-                'feature'         => $feature,
-                'request_date'    => $date,
-                'latitude'        => $latitude,
-                'longitude'       => $longitude,
-                'timezone'        => $timezone,
-                'http_status'     => $httpStatus,
-                'response_time_ms'=> $responseTimeMs,
-                'success'         => $success,
-                'error_message'   => $errorMessage,
+                'endpoint' => $endpoint,
+                'cache_key' => $cacheKey,
+                'feature' => $feature,
+                'request_date' => $date,
+                'latitude' => $latitude,
+                'longitude' => $longitude,
+                'timezone' => $timezone,
+                'http_status' => $httpStatus,
+                'response_time_ms' => $responseTimeMs,
+                'success' => $success,
+                'error_message' => $errorMessage,
             ]);
         } catch (\Throwable $e) {
-            Log::warning('Failed to write Navamsha API log: ' . $e->getMessage());
+            Log::warning('Failed to write Navamsha API log: '.$e->getMessage());
         }
     }
 
@@ -299,16 +302,16 @@ class NavamshaPanchangService
     private function formatResponse(PanchangCache $record, bool $cached): array
     {
         return [
-            'success'      => true,
-            'cached'       => $cached,
-            'date'         => $record->date->format('Y-m-d'),
-            'location'     => [
-                'name'      => $record->location_name,
-                'latitude'  => $record->latitude,
+            'success' => true,
+            'cached' => $cached,
+            'date' => $record->date->format('Y-m-d'),
+            'location' => [
+                'name' => $record->location_name,
+                'latitude' => $record->latitude,
                 'longitude' => $record->longitude,
-                'timezone'  => $record->timezone,
+                'timezone' => $record->timezone,
             ],
-            'data'         => $record->panchang_data,
+            'data' => $record->panchang_data,
             'raw_response' => $record->api_response,
         ];
     }
@@ -317,8 +320,8 @@ class NavamshaPanchangService
     {
         return [
             'success' => false,
-            'cached'  => false,
-            'error'   => ['code' => $code, 'message' => $message],
+            'cached' => false,
+            'error' => ['code' => $code, 'message' => $message],
         ];
     }
 
@@ -333,9 +336,9 @@ class NavamshaPanchangService
         $callsMonth = NavamshaApiLog::whereYear('request_date', today()->year)
             ->whereMonth('request_date', today()->month)->count();
         $totalCache = PanchangCache::count();
-        $missesToday= NavamshaApiLog::where('request_date', $today)->count(); // each log = a miss
-        $hitsToday  = max(0, $callsToday === 0 ? 0 : 0); // placeholder — track separately if needed
-        $errorsToday= NavamshaApiLog::where('request_date', $today)->where('success', false)->count();
+        $missesToday = NavamshaApiLog::where('request_date', $today)->count(); // each log = a miss
+        $hitsToday = max(0, $callsToday === 0 ? 0 : 0); // placeholder — track separately if needed
+        $errorsToday = NavamshaApiLog::where('request_date', $today)->where('success', false)->count();
 
         return compact('callsToday', 'callsMonth', 'totalCache', 'missesToday', 'errorsToday');
     }

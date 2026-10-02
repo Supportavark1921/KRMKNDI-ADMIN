@@ -17,10 +17,10 @@ class NavamshaApiLog extends Model
     protected function casts(): array
     {
         return [
-            'request_date'     => 'date',
-            'success'          => 'boolean',
+            'request_date' => 'date',
+            'success' => 'boolean',
             'response_time_ms' => 'integer',
-            'http_status'      => 'integer',
+            'http_status' => 'integer',
         ];
     }
 }

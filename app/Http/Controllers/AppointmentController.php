@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Appointment;
 use App\Models\AvailabilitySlot;
-use App\Models\User;
 use App\Models\Service;
+use App\Models\User;
 use App\Notifications\AppointmentRequested;
 use App\Notifications\AppointmentStatusChanged;
 use Illuminate\Http\RedirectResponse;

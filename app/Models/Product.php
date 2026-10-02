@@ -8,10 +8,20 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Product extends Model
 {
-    use SoftDeletes;
+    use LogsActivity, SoftDeletes;
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['name', 'sku', 'price', 'status', 'product_type', 'category_id', 'vendor_id'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
     protected $fillable = [
         'product_code', 'sku', 'category_id', 'mataji_id', 'vendor_id',
@@ -21,17 +31,17 @@ class Product extends Model
     ];
 
     protected $casts = [
-        'price'             => 'decimal:2',
-        'compare_at_price'  => 'decimal:2',
+        'price' => 'decimal:2',
+        'compare_at_price' => 'decimal:2',
         'offering_eligible' => 'boolean',
-        'resale_eligible'   => 'boolean',
+        'resale_eligible' => 'boolean',
     ];
 
     protected static function booted(): void
     {
         static::creating(function (self $p) {
             if (empty($p->product_code)) {
-                $p->product_code = 'PROD-' . strtoupper(substr(uniqid(), -6));
+                $p->product_code = 'PROD-'.strtoupper(substr(uniqid(), -6));
             }
         });
 

@@ -6,7 +6,6 @@
  * Change DEPLOY_TOKEN below before uploading to the server.
  * DELETE this file once the deploy is stable.
  */
-
 define('DEPLOY_TOKEN', 'krmkndi-deploy-2026');   // ← change this
 define('BASE_DIR', dirname(__DIR__));              // project root (one level above public/)
 
@@ -25,36 +24,36 @@ if ($token !== DEPLOY_TOKEN) {
     exit;
 }
 
-$artisan = escapeshellarg(BASE_DIR . '/artisan');
-$php     = escapeshellarg(PHP_BIN);
-$base    = escapeshellarg(BASE_DIR);
+$artisan = escapeshellarg(BASE_DIR.'/artisan');
+$php = escapeshellarg(PHP_BIN);
+$base = escapeshellarg(BASE_DIR);
 
 // ── Command definitions ──────────────────────────────────────────────────────
 // Each entry: label, cmd, note (optional advisory shown before run)
 $commands = [
     'safe_dir' => [
         'label' => '① Fix git safe.directory',
-        'cmd'   => 'git config --global --add safe.directory ' . BASE_DIR . ' 2>&1',
-        'note'  => 'Fixes "dubious ownership" error on shared hosting. Run this first.',
+        'cmd' => 'git config --global --add safe.directory '.BASE_DIR.' 2>&1',
+        'note' => 'Fixes "dubious ownership" error on shared hosting. Run this first.',
     ],
     'git_pull' => [
         'label' => '② git pull (SSH only)',
-        'cmd'   => 'echo "git pull must be run via SSH — the web process cannot write to .git/\nSSH command: cd ' . BASE_DIR . ' && git pull origin main"',
-        'note'  => 'Run <code>git pull origin main</code> via SSH, then come back here for the remaining steps.',
+        'cmd' => 'echo "git pull must be run via SSH — the web process cannot write to .git/\nSSH command: cd '.BASE_DIR.' && git pull origin main"',
+        'note' => 'Run <code>git pull origin main</code> via SSH, then come back here for the remaining steps.',
     ],
     'composer' => [
         'label' => '③ composer install',
-        'cmd'   => file_exists(BASE_DIR . '/vendor/autoload.php')
+        'cmd' => file_exists(BASE_DIR.'/vendor/autoload.php')
             ? 'echo "vendor/autoload.php already exists — skipping composer install (run via SSH if packages changed)"'
-            : 'composer install --optimize-autoloader --working-dir=' . $base . ' 2>&1',
-        'note'  => 'Skipped automatically when vendor/ is already present (shared hosting file permission limitation). Run via SSH to update packages.',
+            : 'composer install --optimize-autoloader --working-dir='.$base.' 2>&1',
+        'note' => 'Skipped automatically when vendor/ is already present (shared hosting file permission limitation). Run via SSH to update packages.',
     ],
     'fix_db_state' => [
         'label' => '④-A Fix DB state (existing server)',
-        'cmd'   => $php . ' -r ' . escapeshellarg('
+        'cmd' => $php.' -r '.escapeshellarg('
 // Bootstrap Laravel
-require "' . BASE_DIR . '/vendor/autoload.php";
-$app = require "' . BASE_DIR . '/bootstrap/app.php";
+require "'.BASE_DIR.'/vendor/autoload.php";
+$app = require "'.BASE_DIR.'/bootstrap/app.php";
 $app->make(Illuminate\Contracts\Http\Kernel::class)->bootstrap();
 
 use Illuminate\Support\Facades\DB;
@@ -91,52 +90,52 @@ foreach ($alreadyRan as $m) {
     }
 }
 echo "Done — now run ④-B migrate.\n";
-') . ' 2>&1',
-        'note'  => 'Run this ONCE on a server that already had tables before migrations. Uses CREATE TABLE IF NOT EXISTS — safe to run multiple times.',
+').' 2>&1',
+        'note' => 'Run this ONCE on a server that already had tables before migrations. Uses CREATE TABLE IF NOT EXISTS — safe to run multiple times.',
     ],
     'migrate' => [
         'label' => '④-B migrate (runs only new ones)',
-        'cmd'   => $php . ' ' . $artisan . ' migrate --force 2>&1',
-        'note'  => 'Run after ④-A on an existing server, or on its own for normal updates.',
+        'cmd' => $php.' '.$artisan.' migrate --force 2>&1',
+        'note' => 'Run after ④-A on an existing server, or on its own for normal updates.',
     ],
     'migrate_fresh' => [
         'label' => '④-FRESH migrate:fresh + seed',
-        'cmd'   => $php . ' ' . $artisan . ' migrate:fresh --seed --force 2>&1',
-        'note'  => '⚠ DROPS ALL TABLES then rebuilds. Use only on a clean/empty database.',
-        'danger'=> true,
+        'cmd' => $php.' '.$artisan.' migrate:fresh --seed --force 2>&1',
+        'note' => '⚠ DROPS ALL TABLES then rebuilds. Use only on a clean/empty database.',
+        'danger' => true,
     ],
     'seed' => [
         'label' => '⑤ db:seed',
-        'cmd'   => $php . ' ' . $artisan . ' db:seed --force 2>&1',
-        'note'  => 'Uses firstOrCreate — safe to re-run; will not duplicate admin/test users.',
+        'cmd' => $php.' '.$artisan.' db:seed --force 2>&1',
+        'note' => 'Uses firstOrCreate — safe to re-run; will not duplicate admin/test users.',
     ],
     'cache_clear' => [
         'label' => '⑥-A Clear all cache',
-        'cmd'   => $php . ' ' . $artisan . ' config:clear 2>&1 && '
-                 . $php . ' ' . $artisan . ' route:clear  2>&1 && '
-                 . $php . ' ' . $artisan . ' view:clear   2>&1 && '
-                 . $php . ' ' . $artisan . ' cache:clear  2>&1 && '
-                 . $php . ' ' . $artisan . ' event:clear  2>&1',
-        'note'  => 'Wipes config, route, view, application and event cache. Run this when new menus or routes are not showing.',
+        'cmd' => $php.' '.$artisan.' config:clear 2>&1 && '
+                 .$php.' '.$artisan.' route:clear  2>&1 && '
+                 .$php.' '.$artisan.' view:clear   2>&1 && '
+                 .$php.' '.$artisan.' cache:clear  2>&1 && '
+                 .$php.' '.$artisan.' event:clear  2>&1',
+        'note' => 'Wipes config, route, view, application and event cache. Run this when new menus or routes are not showing.',
     ],
     'cache' => [
         'label' => '⑥-B Rebuild cache',
-        'cmd'   => $php . ' ' . $artisan . ' config:cache 2>&1 && '
-                 . $php . ' ' . $artisan . ' route:cache  2>&1 && '
-                 . $php . ' ' . $artisan . ' view:cache   2>&1',
-        'note'  => 'Rebuilds config, route and view cache for production performance.',
+        'cmd' => $php.' '.$artisan.' config:cache 2>&1 && '
+                 .$php.' '.$artisan.' route:cache  2>&1 && '
+                 .$php.' '.$artisan.' view:cache   2>&1',
+        'note' => 'Rebuilds config, route and view cache for production performance.',
     ],
     'storage' => [
         'label' => '⑦ storage:link',
-        'cmd'   => $php . ' ' . $artisan . ' storage:link 2>&1',
-        'note'  => 'May fail with "Permission denied" on shared hosting — ask your host to run: <code>php artisan storage:link</code> as the system user, or create the symlink manually.',
+        'cmd' => $php.' '.$artisan.' storage:link 2>&1',
+        'note' => 'May fail with "Permission denied" on shared hosting — ask your host to run: <code>php artisan storage:link</code> as the system user, or create the symlink manually.',
     ],
 ];
 
 // "Run All (update)" — skips migrate:fresh
-$update_steps = ['safe_dir','composer','fix_db_state','migrate','seed','cache_clear','cache','storage'];
+$update_steps = ['safe_dir', 'composer', 'fix_db_state', 'migrate', 'seed', 'cache_clear', 'cache', 'storage'];
 // "First Deploy" — uses fresh
-$fresh_steps  = ['safe_dir','composer','migrate_fresh','cache_clear','cache','storage'];
+$fresh_steps = ['safe_dir', 'composer', 'migrate_fresh', 'cache_clear', 'cache', 'storage'];
 
 if (isset($_POST['run_all_update'])) {
     $_POST['run'] = $update_steps;
@@ -150,23 +149,25 @@ if (isset($_POST['run_all_fresh'])) {
 }
 
 $results = [];
-if (!empty($_POST['run']) && empty($error)) {
+if (! empty($_POST['run']) && empty($error)) {
     foreach ((array) $_POST['run'] as $key) {
-        if (!isset($commands[$key])) continue;
-        $start  = microtime(true);
+        if (! isset($commands[$key])) {
+            continue;
+        }
+        $start = microtime(true);
         $output = [];
         exec($commands[$key]['cmd'], $output, $code);
         $results[$key] = [
-            'label'   => $commands[$key]['label'],
-            'output'  => implode("\n", $output),
-            'code'    => $code,
+            'label' => $commands[$key]['label'],
+            'output' => implode("\n", $output),
+            'code' => $code,
             'elapsed' => round(microtime(true) - $start, 2),
-            'note'    => $commands[$key]['note'] ?? null,
+            'note' => $commands[$key]['note'] ?? null,
         ];
     }
 }
 
-$tokenQ = '?token=' . urlencode(DEPLOY_TOKEN);
+$tokenQ = '?token='.urlencode(DEPLOY_TOKEN);
 ?>
 <!doctype html>
 <html lang="en">
@@ -248,9 +249,9 @@ pre::-webkit-scrollbar{width:5px}pre::-webkit-scrollbar-track{background:#111}pr
         <strong>Delete <code>public/deploy.php</code></strong> from the server after use.
     </div>
 
-    <?php if (!empty($error)): ?>
+    <?php if (! empty($error)) { ?>
         <div class="err">⚠ <?= htmlspecialchars($error) ?></div>
-    <?php endif; ?>
+    <?php } ?>
 
     <!-- ── Run All ─────────────────────────────────────────────────────── -->
     <div class="section">
@@ -293,49 +294,49 @@ pre::-webkit-scrollbar{width:5px}pre::-webkit-scrollbar-track{background:#111}pr
     <div class="section">
         <div class="section-title">Individual Steps</div>
         <div class="cmd-grid">
-            <?php foreach ($commands as $key => $cmd):
-                $isDanger = !empty($cmd['danger']); ?>
+            <?php foreach ($commands as $key => $cmd) {
+                $isDanger = ! empty($cmd['danger']); ?>
             <div class="cmd-card <?= $isDanger ? 'danger-cmd' : '' ?>">
                 <div class="cmd-top">
                     <span class="cmd-label"><?= htmlspecialchars($cmd['label']) ?></span>
                     <form method="POST" action="<?= htmlspecialchars($tokenQ) ?>">
                         <input type="hidden" name="run[]" value="<?= htmlspecialchars($key) ?>">
-                        <?php if ($isDanger): ?>
+                        <?php if ($isDanger) { ?>
                             <button class="btn-single" type="submit"
                                 onclick="return confirm('This DROPS ALL TABLES. Continue?')">Run</button>
-                        <?php else: ?>
+                        <?php } else { ?>
                             <button class="btn-single" type="submit">Run</button>
-                        <?php endif; ?>
+                        <?php } ?>
                     </form>
                 </div>
-                <?php if (!empty($cmd['note'])): ?>
+                <?php if (! empty($cmd['note'])) { ?>
                     <div class="cmd-note"><?= $cmd['note'] ?></div>
-                <?php endif; ?>
+                <?php } ?>
             </div>
-            <?php endforeach; ?>
+            <?php } ?>
         </div>
     </div>
 
     <!-- ── Results ──────────────────────────────────────────────────────── -->
-    <?php if (!empty($results)): ?>
+    <?php if (! empty($results)) { ?>
     <div class="results-section">
         <div class="section-title">Output</div>
-        <?php foreach ($results as $r): ?>
+        <?php foreach ($results as $r) { ?>
         <div class="result">
             <div class="result-header">
                 <span class="result-label"><?= htmlspecialchars($r['label']) ?></span>
                 <span class="result-meta">
                     <span class="elapsed"><?= $r['elapsed'] ?>s</span>
                     <span class="badge <?= $r['code'] === 0 ? 'ok' : 'fail' ?>">
-                        <?= $r['code'] === 0 ? '✓ OK' : '✗ exit ' . $r['code'] ?>
+                        <?= $r['code'] === 0 ? '✓ OK' : '✗ exit '.$r['code'] ?>
                     </span>
                 </span>
             </div>
             <pre><?= htmlspecialchars($r['output'] ?: '(no output)') ?></pre>
         </div>
-        <?php endforeach; ?>
+        <?php } ?>
     </div>
-    <?php endif; ?>
+    <?php } ?>
 </div>
 </body>
 </html>

@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use App\Models\Appointment;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -42,11 +42,14 @@ class AuthController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'role' => ['required', 'in:admin,user'],
             'password' => ['required', 'confirmed', 'min:8'],
         ]);
 
+        $data['role'] = 'user'; // public registration is always end-user
+        $data['status'] = 'active';
+
         $user = User::create($data);
+        $user->assignRole('user');
 
         Auth::login($user);
         $request->session()->regenerate();

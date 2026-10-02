@@ -22,7 +22,7 @@ class Donation extends Model
             if (empty($d->donation_id)) {
                 // Generate after we know the next id
                 $next = (static::max('id') ?? 0) + 1;
-                $d->donation_id = 'DON-' . str_pad($next, 5, '0', STR_PAD_LEFT);
+                $d->donation_id = 'DON-'.str_pad($next, 5, '0', STR_PAD_LEFT);
             }
         });
     }
@@ -61,22 +61,22 @@ class Donation extends Model
     public function statusColor(): string
     {
         return match ($this->payment_status) {
-            'success'   => 'green',
-            'pending'   => 'orange',
-            'failed'    => 'red',
+            'success' => 'green',
+            'pending' => 'orange',
+            'failed' => 'red',
             'cancelled' => 'gray',
-            'refunded'  => 'blue',
-            default     => 'gray',
+            'refunded' => 'blue',
+            default => 'gray',
         };
     }
 
     public function formattedAmount(): string
     {
-        return '₹' . number_format($this->donation_amount, 2);
+        return '₹'.number_format($this->donation_amount, 2);
     }
 
     public function formattedTotal(): string
     {
-        return '₹' . number_format($this->total_amount, 2);
+        return '₹'.number_format($this->total_amount, 2);
     }
 }

@@ -15,12 +15,12 @@ class CategoriesApiController extends Controller
             ->orderBy('sort_order')
             ->get()
             ->map(fn ($c) => [
-                'id'            => $c->id,
-                'name'          => $c->name,
-                'slug'          => $c->slug,
-                'description'   => $c->description,
-                'image'         => $c->image ? asset('storage/' . $c->image) : null,
-                'products_count'=> $c->products_count,
+                'id' => $c->id,
+                'name' => $c->name,
+                'slug' => $c->slug,
+                'description' => $c->description,
+                'image' => $c->image ? asset('storage/'.$c->image) : null,
+                'products_count' => $c->products_count,
             ]);
 
         return response()->json(['success' => true, 'data' => $categories]);

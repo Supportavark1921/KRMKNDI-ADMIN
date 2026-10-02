@@ -28,6 +28,7 @@ class GuruController extends Controller
     public function create(): View
     {
         Gate::authorize('manage-appointments');
+
         return view('gurus.create', ['categories' => DonationCategory::active()->orderBy('name')->get()]);
     }
 
@@ -36,12 +37,12 @@ class GuruController extends Controller
         Gate::authorize('manage-appointments');
 
         $data = $request->validate([
-            'name'        => ['required', 'string', 'max:150'],
+            'name' => ['required', 'string', 'max:150'],
             'description' => ['nullable', 'string', 'max:2000'],
-            'status'      => ['required', 'in:active,inactive'],
-            'categories'  => ['nullable', 'array'],
-            'categories.*'=> ['integer', 'exists:donation_categories,id'],
-            'image'       => ['nullable', 'image', 'max:5120'],
+            'status' => ['required', 'in:active,inactive'],
+            'categories' => ['nullable', 'array'],
+            'categories.*' => ['integer', 'exists:donation_categories,id'],
+            'image' => ['nullable', 'image', 'max:5120'],
         ]);
 
         if ($request->hasFile('image')) {
@@ -50,7 +51,7 @@ class GuruController extends Controller
 
         $guru = Guru::create($data);
 
-        if (!empty($data['categories'])) {
+        if (! empty($data['categories'])) {
             $guru->donationCategories()->sync($data['categories']);
         }
 
@@ -68,7 +69,7 @@ class GuruController extends Controller
             ->get()
             ->groupBy('category_id')
             ->map(fn ($group) => [
-                'name'  => $group->first()->category->name ?? 'Unknown',
+                'name' => $group->first()->category->name ?? 'Unknown',
                 'total' => $group->sum('donation_amount'),
                 'count' => $group->count(),
             ])
@@ -83,10 +84,11 @@ class GuruController extends Controller
         Gate::authorize('manage-appointments');
 
         $guru->load('donationCategories');
+
         return view('gurus.edit', [
-            'guru'       => $guru,
+            'guru' => $guru,
             'categories' => DonationCategory::active()->orderBy('name')->get(),
-            'assigned'   => $guru->donationCategories->pluck('id')->toArray(),
+            'assigned' => $guru->donationCategories->pluck('id')->toArray(),
         ]);
     }
 
@@ -95,12 +97,12 @@ class GuruController extends Controller
         Gate::authorize('manage-appointments');
 
         $data = $request->validate([
-            'name'        => ['required', 'string', 'max:150'],
+            'name' => ['required', 'string', 'max:150'],
             'description' => ['nullable', 'string', 'max:2000'],
-            'status'      => ['required', 'in:active,inactive'],
-            'categories'  => ['nullable', 'array'],
-            'categories.*'=> ['integer', 'exists:donation_categories,id'],
-            'image'       => ['nullable', 'image', 'max:5120'],
+            'status' => ['required', 'in:active,inactive'],
+            'categories' => ['nullable', 'array'],
+            'categories.*' => ['integer', 'exists:donation_categories,id'],
+            'image' => ['nullable', 'image', 'max:5120'],
         ]);
 
         if ($request->hasFile('image')) {

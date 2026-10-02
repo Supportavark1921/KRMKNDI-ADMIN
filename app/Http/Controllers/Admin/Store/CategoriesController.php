@@ -16,6 +16,7 @@ class CategoriesController extends Controller
     public function index(): View
     {
         Gate::authorize('manage-store');
+
         return view('admin.store.categories.index', [
             'categories' => ProductCategory::withCount('products')->orderBy('sort_order')->paginate(25),
         ]);
@@ -24,6 +25,7 @@ class CategoriesController extends Controller
     public function create(): View
     {
         Gate::authorize('manage-store');
+
         return view('admin.store.categories.create');
     }
 
@@ -32,12 +34,12 @@ class CategoriesController extends Controller
         Gate::authorize('manage-store');
 
         $data = $request->validate([
-            'name'        => ['required', 'string', 'max:150'],
-            'slug'        => ['nullable', 'string', 'max:150', 'alpha_dash', 'unique:product_categories,slug'],
+            'name' => ['required', 'string', 'max:150'],
+            'slug' => ['nullable', 'string', 'max:150', 'alpha_dash', 'unique:product_categories,slug'],
             'description' => ['nullable', 'string', 'max:1000'],
-            'sort_order'  => ['nullable', 'integer', 'min:0'],
-            'status'      => ['required', 'in:active,inactive'],
-            'image'       => ['nullable', 'image', 'max:5120'],
+            'sort_order' => ['nullable', 'integer', 'min:0'],
+            'status' => ['required', 'in:active,inactive'],
+            'image' => ['nullable', 'image', 'max:5120'],
         ]);
 
         $data['slug'] = $data['slug'] ?? Str::slug($data['name']);
@@ -54,6 +56,7 @@ class CategoriesController extends Controller
     public function edit(ProductCategory $category): View
     {
         Gate::authorize('manage-store');
+
         return view('admin.store.categories.edit', compact('category'));
     }
 
@@ -62,12 +65,12 @@ class CategoriesController extends Controller
         Gate::authorize('manage-store');
 
         $data = $request->validate([
-            'name'        => ['required', 'string', 'max:150'],
-            'slug'        => ['nullable', 'string', 'max:150', 'alpha_dash', "unique:product_categories,slug,{$category->id}"],
+            'name' => ['required', 'string', 'max:150'],
+            'slug' => ['nullable', 'string', 'max:150', 'alpha_dash', "unique:product_categories,slug,{$category->id}"],
             'description' => ['nullable', 'string', 'max:1000'],
-            'sort_order'  => ['nullable', 'integer', 'min:0'],
-            'status'      => ['required', 'in:active,inactive'],
-            'image'       => ['nullable', 'image', 'max:5120'],
+            'sort_order' => ['nullable', 'integer', 'min:0'],
+            'status' => ['required', 'in:active,inactive'],
+            'image' => ['nullable', 'image', 'max:5120'],
         ]);
 
         $data['slug'] = $data['slug'] ?? Str::slug($data['name']);

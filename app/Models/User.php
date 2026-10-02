@@ -2,46 +2,38 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, HasRoles, LogsActivity, Notifiable, SoftDeletes;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
+    // Allowed role values: admin | manager | support | guruji | vendor | user
+    public const ROLES = ['admin', 'manager', 'support', 'guruji', 'vendor', 'user'];
+
     protected $fillable = [
         'name',
         'email',
         'password',
         'role',
+        'status', // active | suspended
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
@@ -50,17 +42,54 @@ class User extends Authenticatable
         ];
     }
 
-    // ── Roles ────────────────────────────────────────────────────────────────
-    // Allowed: admin | guruji | vendor | user
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['name', 'email', 'role', 'status'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
+    }
 
-    public function isAdmin(): bool    { return $this->role === 'admin'; }
-    public function isGuruji(): bool   { return $this->role === 'guruji'; }
-    public function isVendor(): bool   { return $this->role === 'vendor'; }
-    public function isEndUser(): bool  { return $this->role === 'user'; }
+    // ── Role helpers (primary-type shortcuts) ────────────────────────────────
 
-    public function hasRole(string|array $roles): bool
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isManager(): bool
+    {
+        return $this->role === 'manager';
+    }
+
+    public function isSupport(): bool
+    {
+        return $this->role === 'support';
+    }
+
+    public function isGuruji(): bool
+    {
+        return $this->role === 'guruji';
+    }
+
+    public function isVendor(): bool
+    {
+        return $this->role === 'vendor';
+    }
+
+    public function isEndUser(): bool
+    {
+        return $this->role === 'user';
+    }
+
+    public function hasRoleType(string|array $roles): bool
     {
         return in_array($this->role, (array) $roles, true);
+    }
+
+    public function isActive(): bool
+    {
+        return $this->status === 'active';
     }
 
     // ── Relations ────────────────────────────────────────────────────────────

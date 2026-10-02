@@ -10,9 +10,7 @@ class AppointmentStatusChanged extends Notification
 {
     use Queueable;
 
-    public function __construct(private readonly Appointment $appointment)
-    {
-    }
+    public function __construct(private readonly Appointment $appointment) {}
 
     public function via(object $notifiable): array
     {

@@ -31,14 +31,15 @@ class VendorsController extends Controller
         }
 
         return view('admin.store.vendors.index', [
-            'vendors'  => $query->latest()->paginate(20)->withQueryString(),
-            'pending'  => Vendor::pending()->count(),
+            'vendors' => $query->latest()->paginate(20)->withQueryString(),
+            'pending' => Vendor::pending()->count(),
         ]);
     }
 
     public function create(): View
     {
         Gate::authorize('manage-vendors');
+
         return view('admin.store.vendors.create');
     }
 
@@ -47,49 +48,49 @@ class VendorsController extends Controller
         Gate::authorize('manage-vendors');
 
         $data = $request->validate([
-            'user_name'      => ['required', 'string', 'max:150'],
-            'user_email'     => ['required', 'email', 'unique:users,email'],
-            'user_password'  => ['required', 'string', 'min:8'],
-            'business_name'  => ['required', 'string', 'max:200'],
+            'user_name' => ['required', 'string', 'max:150'],
+            'user_email' => ['required', 'email', 'unique:users,email'],
+            'user_password' => ['required', 'string', 'min:8'],
+            'business_name' => ['required', 'string', 'max:200'],
             'contact_person' => ['nullable', 'string', 'max:150'],
-            'phone'          => ['nullable', 'string', 'max:20'],
-            'email'          => ['nullable', 'email', 'max:150'],
-            'address'        => ['nullable', 'string'],
-            'city'           => ['nullable', 'string', 'max:100'],
-            'state'          => ['nullable', 'string', 'max:100'],
-            'gstin'          => ['nullable', 'string', 'max:20'],
-            'pan'            => ['nullable', 'string', 'max:10'],
-            'status'         => ['required', 'in:pending,active,suspended'],
-            'logo'           => ['nullable', 'image', 'max:5120'],
-            'bank_account_no'=> ['nullable', 'string', 'max:25'],
-            'bank_ifsc'      => ['nullable', 'string', 'max:12'],
-            'bank_name'      => ['nullable', 'string', 'max:100'],
+            'phone' => ['nullable', 'string', 'max:20'],
+            'email' => ['nullable', 'email', 'max:150'],
+            'address' => ['nullable', 'string'],
+            'city' => ['nullable', 'string', 'max:100'],
+            'state' => ['nullable', 'string', 'max:100'],
+            'gstin' => ['nullable', 'string', 'max:20'],
+            'pan' => ['nullable', 'string', 'max:10'],
+            'status' => ['required', 'in:pending,active,suspended'],
+            'logo' => ['nullable', 'image', 'max:5120'],
+            'bank_account_no' => ['nullable', 'string', 'max:25'],
+            'bank_ifsc' => ['nullable', 'string', 'max:12'],
+            'bank_name' => ['nullable', 'string', 'max:100'],
         ]);
 
         DB::transaction(function () use ($request, $data) {
             $user = User::create([
-                'name'     => $data['user_name'],
-                'email'    => $data['user_email'],
+                'name' => $data['user_name'],
+                'email' => $data['user_email'],
                 'password' => Hash::make($data['user_password']),
-                'role'     => 'vendor',
+                'role' => 'vendor',
             ]);
 
             $vendorData = array_filter([
-                'user_id'        => $user->id,
-                'business_name'  => $data['business_name'],
+                'user_id' => $user->id,
+                'business_name' => $data['business_name'],
                 'contact_person' => $data['contact_person'] ?? null,
-                'phone'          => $data['phone'] ?? null,
-                'email'          => $data['email'] ?? null,
-                'address'        => $data['address'] ?? null,
-                'city'           => $data['city'] ?? null,
-                'state'          => $data['state'] ?? null,
-                'gstin'          => $data['gstin'] ?? null,
-                'pan'            => $data['pan'] ?? null,
-                'status'         => $data['status'],
-                'bank_details'   => array_filter([
+                'phone' => $data['phone'] ?? null,
+                'email' => $data['email'] ?? null,
+                'address' => $data['address'] ?? null,
+                'city' => $data['city'] ?? null,
+                'state' => $data['state'] ?? null,
+                'gstin' => $data['gstin'] ?? null,
+                'pan' => $data['pan'] ?? null,
+                'status' => $data['status'],
+                'bank_details' => array_filter([
                     'account_no' => $data['bank_account_no'] ?? null,
-                    'ifsc'       => $data['bank_ifsc'] ?? null,
-                    'bank_name'  => $data['bank_name'] ?? null,
+                    'ifsc' => $data['bank_ifsc'] ?? null,
+                    'bank_name' => $data['bank_name'] ?? null,
                 ]) ?: null,
             ], fn ($v) => $v !== null);
 
@@ -112,6 +113,7 @@ class VendorsController extends Controller
     {
         Gate::authorize('manage-vendors');
         $vendor->load(['user', 'approvedBy', 'products' => fn ($q) => $q->latest()->limit(10)]);
+
         return view('admin.store.vendors.show', compact('vendor'));
     }
 
@@ -119,6 +121,7 @@ class VendorsController extends Controller
     {
         Gate::authorize('manage-vendors');
         $vendor->load('user');
+
         return view('admin.store.vendors.edit', compact('vendor'));
     }
 
@@ -127,21 +130,21 @@ class VendorsController extends Controller
         Gate::authorize('manage-vendors');
 
         $data = $request->validate([
-            'business_name'  => ['required', 'string', 'max:200'],
+            'business_name' => ['required', 'string', 'max:200'],
             'contact_person' => ['nullable', 'string', 'max:150'],
-            'phone'          => ['nullable', 'string', 'max:20'],
-            'email'          => ['nullable', 'email', 'max:150'],
-            'address'        => ['nullable', 'string'],
-            'city'           => ['nullable', 'string', 'max:100'],
-            'state'          => ['nullable', 'string', 'max:100'],
-            'gstin'          => ['nullable', 'string', 'max:20'],
-            'pan'            => ['nullable', 'string', 'max:10'],
-            'status'         => ['required', 'in:pending,active,suspended'],
-            'admin_notes'    => ['nullable', 'string', 'max:1000'],
-            'logo'           => ['nullable', 'image', 'max:5120'],
-            'bank_account_no'=> ['nullable', 'string', 'max:25'],
-            'bank_ifsc'      => ['nullable', 'string', 'max:12'],
-            'bank_name'      => ['nullable', 'string', 'max:100'],
+            'phone' => ['nullable', 'string', 'max:20'],
+            'email' => ['nullable', 'email', 'max:150'],
+            'address' => ['nullable', 'string'],
+            'city' => ['nullable', 'string', 'max:100'],
+            'state' => ['nullable', 'string', 'max:100'],
+            'gstin' => ['nullable', 'string', 'max:20'],
+            'pan' => ['nullable', 'string', 'max:10'],
+            'status' => ['required', 'in:pending,active,suspended'],
+            'admin_notes' => ['nullable', 'string', 'max:1000'],
+            'logo' => ['nullable', 'image', 'max:5120'],
+            'bank_account_no' => ['nullable', 'string', 'max:25'],
+            'bank_ifsc' => ['nullable', 'string', 'max:12'],
+            'bank_name' => ['nullable', 'string', 'max:100'],
         ]);
 
         if ($request->hasFile('logo')) {
@@ -153,8 +156,8 @@ class VendorsController extends Controller
 
         $data['bank_details'] = array_filter([
             'account_no' => $data['bank_account_no'] ?? null,
-            'ifsc'       => $data['bank_ifsc'] ?? null,
-            'bank_name'  => $data['bank_name'] ?? null,
+            'ifsc' => $data['bank_ifsc'] ?? null,
+            'bank_name' => $data['bank_name'] ?? null,
         ]) ?: null;
 
         unset($data['bank_account_no'], $data['bank_ifsc'], $data['bank_name']);
@@ -177,6 +180,7 @@ class VendorsController extends Controller
     {
         Gate::authorize('manage-vendors');
         $vendor->update(['status' => 'active', 'approved_at' => now(), 'approved_by' => auth()->id()]);
+
         return back()->with('success', "{$vendor->business_name} approved.");
     }
 
@@ -184,6 +188,7 @@ class VendorsController extends Controller
     {
         Gate::authorize('manage-vendors');
         $vendor->update(['status' => 'suspended']);
+
         return back()->with('success', "{$vendor->business_name} suspended.");
     }
 }

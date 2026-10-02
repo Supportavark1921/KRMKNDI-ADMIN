@@ -12,8 +12,8 @@ class DonationFeeConfig extends Model
     {
         return [
             'handling_charge' => 'float',
-            'gst_rate'        => 'float',
-            'is_active'       => 'boolean',
+            'gst_rate' => 'float',
+            'is_active' => 'boolean',
         ];
     }
 
@@ -28,15 +28,15 @@ class DonationFeeConfig extends Model
     public function calculate(float $donationAmount): array
     {
         $handling = round($this->handling_charge, 2);
-        $gst      = round($handling * $this->gst_rate / 100, 2);
-        $total    = round($donationAmount + $handling + $gst, 2);
+        $gst = round($handling * $this->gst_rate / 100, 2);
+        $total = round($donationAmount + $handling + $gst, 2);
 
         return [
             'donation_amount' => round($donationAmount, 2),
             'handling_charge' => $handling,
-            'gst_rate'        => $this->gst_rate,
-            'gst_amount'      => $gst,
-            'total_amount'    => $total,
+            'gst_rate' => $this->gst_rate,
+            'gst_amount' => $gst,
+            'total_amount' => $total,
         ];
     }
 }

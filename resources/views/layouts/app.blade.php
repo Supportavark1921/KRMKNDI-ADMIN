@@ -49,50 +49,91 @@
                 @php $role = auth()->user()->role; @endphp
 
                 {{-- Admin-only section --}}
+                {{-- Admin section --}}
                 @if($role === 'admin')
                 <span class="sidebar-label" style="margin-top:18px">Admin</span>
                 <nav class="sidebar-nav">
+                    @can('users.view')
+                    <a class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}" href="{{ route('admin.users.index') }}"><span>👤</span> Users</a>
+                    @endcan
+                    @can('roles.view')
+                    <a class="{{ request()->routeIs('admin.roles.*') ? 'active' : '' }}" href="{{ route('admin.roles.index') }}"><span>🔑</span> Roles &amp; Permissions</a>
+                    @endcan
+                    @can('availability.view')
                     <a class="{{ request()->routeIs('availability.*') ? 'active' : '' }}" href="{{ route('availability.index') }}"><span>▦</span> Availability</a>
+                    @endcan
+                    @can('services.view')
                     <a class="{{ request()->routeIs('services.*') ? 'active' : '' }}" href="{{ route('services.index') }}"><span>✦</span> Services</a>
+                    @endcan
+                    @can('gurus.view')
                     <a class="{{ request()->routeIs('gurus.*') ? 'active' : '' }}" href="{{ route('gurus.index') }}"><span>🕉</span> Gurujis</a>
+                    @endcan
+                    @can('donation-categories.view')
                     <a class="{{ request()->routeIs('donation-categories.*') ? 'active' : '' }}" href="{{ route('donation-categories.index') }}"><span>❧</span> Don. Categories</a>
+                    @endcan
+                    @can('donations.view')
                     <a class="{{ request()->routeIs('donations.*') ? 'active' : '' }}" href="{{ route('donations.index') }}"><span>₹</span> Donations</a>
-                    <a class="{{ request()->routeIs('donation-fees.*') ? 'active' : '' }}" href="{{ route('donation-fees.index') }}"><span>⚙</span> Fee Settings</a>
+                    @endcan
+                    @can('locations.view')
                     <a class="{{ request()->routeIs('admin.location.*') ? 'active' : '' }}" href="{{ route('admin.location.sync') }}"><span>📍</span> Location Data</a>
+                    @endcan
+                    @can('panchang.view')
                     <a class="{{ request()->routeIs('admin.panchang.monitor') ? 'active' : '' }}" href="{{ route('admin.panchang.monitor') }}"><span>🌙</span> Panchang Monitor</a>
                     <a class="{{ request()->routeIs('admin.panchang.test') ? 'active' : '' }}" href="{{ route('admin.panchang.test') }}"><span>🧪</span> Panchang Test</a>
+                    @endcan
+                    @can('api-docs.view')
                     <a class="{{ request()->routeIs('api.docs') ? 'active' : '' }}" href="{{ route('api.docs') }}"><span>⎇</span> API Docs</a>
+                    @endcan
+                    @can('audit-log.view')
+                    <a class="{{ request()->routeIs('admin.audit.*') ? 'active' : '' }}" href="{{ route('admin.audit.index') }}"><span>📋</span> Audit Log</a>
+                    @endcan
                 </nav>
                 @endif
 
-                {{-- Vastra Store: admin + active vendor --}}
-                @if($role === 'admin' || ($role === 'vendor' && auth()->user()->vendor?->isActive()))
+                {{-- Vastra Store: anyone with products.view --}}
+                @can('products.view')
                 <span class="sidebar-label" style="margin-top:18px">🛍 Vastra Store</span>
                 <nav class="sidebar-nav">
-                    @if($role === 'admin')
+                    @can('matajis.view')
+                    @if($role === 'admin' || $role === 'manager' || $role === 'support')
                     <a class="{{ request()->routeIs('admin.store.matajis.*') ? 'active' : '' }}" href="{{ route('admin.store.matajis.index') }}"><span>🕉</span> Matajis</a>
+                    @endif
+                    @endcan
+                    @can('categories.view')
+                    @if(in_array($role, ['admin','manager']))
                     <a class="{{ request()->routeIs('admin.store.categories.*') ? 'active' : '' }}" href="{{ route('admin.store.categories.index') }}"><span>📦</span> Categories</a>
+                    @endif
+                    @endcan
+                    @can('vendors.view')
+                    @if(in_array($role, ['admin','manager']))
                     <a class="{{ request()->routeIs('admin.store.vendors.*') ? 'active' : '' }}" href="{{ route('admin.store.vendors.index') }}"><span>🏪</span> Vendors</a>
                     @endif
+                    @endcan
                     <a class="{{ request()->routeIs('admin.store.products.*') ? 'active' : '' }}" href="{{ route('admin.store.products.index') }}"><span>🛒</span> Products</a>
+                    @can('inventory.view')
                     <a class="{{ request()->routeIs('admin.store.inventory.*') ? 'active' : '' }}" href="{{ route('admin.store.inventory.index') }}"><span>📊</span> Inventory</a>
+                    @endcan
                 </nav>
-                @endif
+                @endcan
 
                 {{-- Guruji section --}}
-                @if($role === 'guruji' || $role === 'admin')
+                @can('mataji-orders.view')
+                @if($role === 'guruji')
                 <span class="sidebar-label" style="margin-top:18px">Guruji</span>
                 <nav class="sidebar-nav">
-                    <a class="{{ request()->routeIs('gurus.*') && $role === 'guruji' ? 'active' : '' }}" href="{{ route('donations.index') }}"><span>₹</span> My Donations</a>
+                    <a class="{{ request()->routeIs('donations.*') ? 'active' : '' }}" href="{{ route('donations.index') }}"><span>₹</span> My Donations</a>
                 </nav>
                 @endif
+                @endcan
 
                 @php
                     $roleLabel = match($role) {
-                        'admin'  => 'Administrator',
-                        'guruji' => 'Guruji',
-                        'vendor' => 'Vendor',
-                        default  => 'Member',
+                        'admin'    => 'Administrator',
+                        'manager'  => 'Manager',
+                        'support'  => 'Support',
+                        'guruji'   => 'Guruji',
+                        'vendor'   => 'Vendor',
+                        default    => 'Member',
                     };
                 @endphp
                 <div class="sidebar-user"><div class="avatar">{{ strtoupper(substr(auth()->user()->name, 0, 1)) }}</div><div><b>{{ auth()->user()->name }}</b><small>{{ $roleLabel }}</small></div></div>

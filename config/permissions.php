@@ -1,0 +1,49 @@
+<?php
+
+/**
+ * Permission matrix config.
+ * Keys are menu slugs; values list the actions that exist for that menu.
+ * Convention: <menu>.<action>  e.g. products.create
+ *
+ * Actions:   view | create | update | delete | restore
+ * "view" covers: menu visibility, route access, listing.
+ */
+
+return [
+
+    // ── User & access management ─────────────────────────────────────────────
+    'users' => ['view', 'create', 'update', 'delete', 'restore'],
+    'roles' => ['view', 'create', 'update', 'delete'],
+    'audit-log' => ['view'],
+
+    // ── Appointments & availability ──────────────────────────────────────────
+    'appointments' => ['view', 'create', 'update', 'delete', 'restore'],
+    'availability' => ['view', 'create', 'update', 'delete'],
+    'services' => ['view', 'create', 'update', 'delete', 'restore'],
+    'clients' => ['view', 'create', 'update', 'delete'],
+    'gurus' => ['view', 'create', 'update', 'delete', 'restore'],
+
+    // ── Donations ────────────────────────────────────────────────────────────
+    'donation-categories' => ['view', 'create', 'update', 'delete', 'restore'],
+    'donations' => ['view', 'create', 'update', 'delete'],
+
+    // ── Vastra Store ─────────────────────────────────────────────────────────
+    'matajis' => ['view', 'create', 'update', 'delete', 'restore'],
+    'categories' => ['view', 'create', 'update', 'delete', 'restore'],
+    'products' => ['view', 'create', 'update', 'delete', 'restore'],
+    'inventory' => ['view', 'create', 'update'],
+    'vendors' => ['view', 'create', 'update', 'delete', 'restore'],
+
+    // ── Mataji saree orders (Guruji module) ──────────────────────────────────
+    'mataji-orders' => ['view', 'create', 'update', 'delete', 'restore'],
+
+    // ── Notifications ────────────────────────────────────────────────────────
+    'notifications' => ['view', 'create', 'update', 'delete'],
+
+    // ── Location data ────────────────────────────────────────────────────────
+    'locations' => ['view', 'create', 'update', 'delete'],
+
+    // ── Panchang / API ───────────────────────────────────────────────────────
+    'panchang' => ['view'],
+    'api-docs' => ['view'],
+];
