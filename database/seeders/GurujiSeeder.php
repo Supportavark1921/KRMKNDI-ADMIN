@@ -16,43 +16,28 @@ class GurujiSeeder extends Seeder
         // ── Donation Categories ───────────────────────────────────────────────
         $categories = [
             [
-                'name'        => 'Mataji Poojan',
-                'description' => 'Complete Mataji Poojan with all rituals, offerings and aarti performed by the Guruji at the temple.',
+                'name'        => 'Anna Prasadam Seva',
+                'description' => 'Contribute towards the sacred food offering (Anna Prasadam) served to devotees and the needy at the temple. Your donation feeds hundreds and earns divine blessings.',
                 'status'      => 'active',
             ],
             [
-                'name'        => 'Navratri Anushthan',
-                'description' => 'Nine-day Navratri Anushthan with daily havan, poojan and mantra jap dedicated in your name.',
+                'name'        => 'Bhog Naivedya Seva',
+                'description' => 'Offer a Bhog Naivedya — a sacred food platter — to the deity in the name of you and your family. The Guruji performs the offering ritual with full Vedic procedure.',
                 'status'      => 'active',
             ],
             [
-                'name'        => 'Griha Shanti Poojan',
-                'description' => 'Vedic home peace ceremony to remove Vastu dosha and invite positive energy into your home.',
+                'name'        => 'Vastra Prasadam',
+                'description' => 'Donate sacred cloth (Vastra) to be offered to the deity as part of the daily shringar ritual. Vastra Seva brings prosperity and removes doshas from the family.',
                 'status'      => 'active',
             ],
             [
-                'name'        => 'Kaal Sarp Dosh Nivaran',
-                'description' => 'Special poojan and havan to mitigate the effects of Kaal Sarp Dosh in your kundali.',
+                'name'        => 'Siddh Vastue',
+                'description' => 'Sponsor the preparation and energisation of a Siddh Vastu — a ritually charged item (yantra, rudraksha, or sacred object) blessed by the Guruji for your home or business.',
                 'status'      => 'active',
             ],
             [
-                'name'        => 'Satyanarayan Katha',
-                'description' => 'Full Satyanarayan Katha poojan for family well-being, prosperity and fulfillment of wishes.',
-                'status'      => 'active',
-            ],
-            [
-                'name'        => 'Sundarkand Path',
-                'description' => 'Recitation of Sundarkand from Ramcharitmanas for protection, strength and removal of obstacles.',
-                'status'      => 'active',
-            ],
-            [
-                'name'        => 'Mangal Dosh Poojan',
-                'description' => 'Remedial poojan to reduce the malefic effects of Mangal Dosh for marriage and health.',
-                'status'      => 'active',
-            ],
-            [
-                'name'        => 'Rudrabhishek',
-                'description' => 'Sacred Rudrabhishek of Shivalinga with Panchamrit, Gangajal and Bilva patra for Shiva\'s blessings.',
+                'name'        => 'Other Seva',
+                'description' => 'Contribute to the general seva fund of the Guruji. Donations are used for temple maintenance, community programmes and charitable activities conducted in your name.',
                 'status'      => 'active',
             ],
         ];
@@ -84,31 +69,31 @@ class GurujiSeeder extends Seeder
                 'description' => 'Pandit Mayank is a devoted Mataji poojan specialist known for his deep knowledge of Shakti traditions and Navratri rituals. With years of experience conducting Shobhagya Laxmi Poojan and Mahavrat Kalp Anushthan, he brings sincerity and devotion to every ceremony he performs.',
                 'status'      => 'active',
                 'user_id'     => $mayankUser->id,
-                'categories'  => ['Mataji Poojan', 'Navratri Anushthan', 'Griha Shanti Poojan'],
+                'categories'  => ['Anna Prasadam Seva', 'Bhog Naivedya Seva', 'Vastra Prasadam', 'Siddh Vastue', 'Other Seva'],
             ],
             [
                 'name'        => 'Pt. Ramesh Sharma',
                 'description' => 'Pandit Ramesh Sharma is a renowned Vedic astrologer and poojan specialist with over 25 years of experience. He has performed thousands of poojan ceremonies across India and is an expert in Navratri Anushthan, Griha Shanti and Kaal Sarp Dosh Nivaran rituals.',
                 'status'      => 'active',
-                'categories'  => ['Mataji Poojan', 'Navratri Anushthan', 'Griha Shanti Poojan', 'Kaal Sarp Dosh Nivaran'],
+                'categories'  => ['Anna Prasadam Seva', 'Bhog Naivedya Seva', 'Vastra Prasadam', 'Siddh Vastue', 'Other Seva'],
             ],
             [
                 'name'        => 'Acharya Suresh Joshi',
                 'description' => 'Acharya Suresh Joshi is a learned scholar of Sanskrit and Vedic tradition from Kashi. He specialises in Rudrabhishek, Satyanarayan Katha and Sundarkand recitation. His calm and devotional approach creates a deeply spiritual atmosphere for every ceremony.',
                 'status'      => 'active',
-                'categories'  => ['Satyanarayan Katha', 'Sundarkand Path', 'Rudrabhishek'],
+                'categories'  => ['Anna Prasadam Seva', 'Bhog Naivedya Seva', 'Vastra Prasadam', 'Siddh Vastue', 'Other Seva'],
             ],
             [
                 'name'        => 'Pt. Dinesh Trivedi',
                 'description' => 'Pandit Dinesh Trivedi is a certified Jyotishacharya with deep expertise in kundali analysis and Mangal Dosh remedies. He performs personalised poojan based on your birth chart to bring harmony in relationships, career and health.',
                 'status'      => 'active',
-                'categories'  => ['Mangal Dosh Poojan', 'Kaal Sarp Dosh Nivaran', 'Griha Shanti Poojan'],
+                'categories'  => ['Anna Prasadam Seva', 'Bhog Naivedya Seva', 'Vastra Prasadam', 'Siddh Vastue', 'Other Seva'],
             ],
             [
                 'name'        => 'Pt. Gopal Das',
                 'description' => 'Pandit Gopal Das comes from a family of temple priests with a lineage spanning four generations. He is well versed in Mataji poojan traditions and conducts all ceremonies with strict adherence to Vedic procedure and devotion.',
                 'status'      => 'active',
-                'categories'  => ['Mataji Poojan', 'Navratri Anushthan', 'Satyanarayan Katha', 'Sundarkand Path'],
+                'categories'  => ['Anna Prasadam Seva', 'Bhog Naivedya Seva', 'Vastra Prasadam', 'Siddh Vastue', 'Other Seva'],
             ],
         ];
 

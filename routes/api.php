@@ -52,4 +52,7 @@ Route::get('/gurus', [GuruController::class, 'index']);
 Route::get('/gurus/{guru}', [GuruController::class, 'show']);
 Route::get('/gurus/{guru}/donation-categories', [GuruController::class, 'categories']);
 Route::get('/donation/fee-config', [DonationController::class, 'feeConfig']);
-Route::post('/donations', [DonationController::class, 'store']);
+Route::get('/donation-categories/{category}', [DonationController::class, 'category']);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/donations', [DonationController::class, 'store']);
+});

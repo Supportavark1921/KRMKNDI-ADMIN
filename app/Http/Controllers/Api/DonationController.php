@@ -4,12 +4,30 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Donation;
+use App\Models\DonationCategory;
 use App\Models\DonationFeeConfig;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class DonationController extends Controller
 {
+    /** GET /api/donation-categories/{category} */
+    public function category(DonationCategory $category): JsonResponse
+    {
+        return response()->json([
+            'success' => true,
+            'data'    => [
+                'id'          => $category->id,
+                'name'        => $category->name,
+                'description' => $category->description,
+                'image'       => $category->image
+                    ? \Illuminate\Support\Facades\Storage::disk('public')->url($category->image)
+                    : null,
+                'status'      => $category->status,
+            ],
+        ]);
+    }
+
     /** GET /api/donation/fee-config */
     public function feeConfig(): JsonResponse
     {
@@ -38,14 +56,13 @@ class DonationController extends Controller
     public function store(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'guru_id' => ['required', 'integer', 'exists:gurus,id'],
-            'category_id' => ['required', 'integer', 'exists:donation_categories,id'],
+            'guru_id'         => ['required', 'integer', 'exists:gurus,id'],
+            'category_id'     => ['required', 'integer', 'exists:donation_categories,id'],
             'donation_amount' => ['required', 'numeric', 'min:1', 'max:9999999'],
-            'user_id' => ['nullable', 'integer', 'exists:users,id'],
-            'payment_status' => ['required', 'in:pending,success,failed,cancelled'],
-            'payment_id' => ['nullable', 'string', 'max:200'],
-            'transaction_id' => ['nullable', 'string', 'max:200'],
-            'payment_method' => ['nullable', 'string', 'max:50'],
+            'payment_status'  => ['required', 'in:pending,success,failed,cancelled'],
+            'payment_id'      => ['nullable', 'string', 'max:200'],
+            'transaction_id'  => ['nullable', 'string', 'max:200'],
+            'payment_method'  => ['nullable', 'string', 'max:50'],
         ]);
 
         // Idempotency: return existing record if same transaction_id
@@ -64,7 +81,7 @@ class DonationController extends Controller
         $amounts = $fee->calculate((float) $data['donation_amount']);
 
         $donation = Donation::create([
-            'user_id' => $data['user_id'] ?? null,
+            'user_id' => $request->user()?->id,
             'guru_id' => $data['guru_id'],
             'category_id' => $data['category_id'],
             'donation_amount' => $amounts['donation_amount'],

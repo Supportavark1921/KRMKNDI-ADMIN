@@ -27,6 +27,7 @@ class VerifyAppSignature
         'api/availability',
         'api/donations',
         'api/donation',
+        'api/donation-categories',
         'api/openapi.json',
     ];
 
