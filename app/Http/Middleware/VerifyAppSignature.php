@@ -15,15 +15,18 @@ class VerifyAppSignature
     // Keep nonces in cache for 2× the window to cover edge cases.
     private const NONCE_TTL_SECONDS = 600;
 
-    // Routes that are fully public — no token or signature required.
+    // Routes that skip HMAC signature check (auth:sanctum still enforces tokens where needed).
     private const PUBLIC_PREFIXES = [
         'api/auth',
         'api/booking/charges',
+        'api/appointments',
         'api/gurus',
         'api/v1/panchang',
         'api/v1/promotions',
         'api/services',
         'api/availability',
+        'api/donations',
+        'api/donation',
         'api/openapi.json',
     ];
 
