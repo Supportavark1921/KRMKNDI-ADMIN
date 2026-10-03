@@ -48,20 +48,22 @@ class OpenApiController extends Controller
 
                 '/api/gurus' => [
                     'get' => [
-                        'tags' => ['Gurujis'],
-                        'summary' => 'List all active Gurujis',
-                        'description' => 'Returns all Gurujis with status = active. Used by the APK to populate the Guruji selection screen.',
+                        'tags'        => ['Gurujis'],
+                        'summary'     => 'List all active Gurujis',
+                        'description' => "Returns all Gurujis with `status = active`, ordered by name.\n\n"
+                            ."**Mobile usage:** Displayed in the **Karma Consultations** section on the Home screen as a horizontal scroll of avatar cards (photo + name). "
+                            .'Tap a card to open the Guruji detail screen.',
                         'operationId' => 'listGurus',
-                        'responses' => [
+                        'responses'   => [
                             '200' => [
                                 'description' => 'Success',
                                 'content' => [
                                     'application/json' => [
-                                        'schema' => ['$ref' => '#/components/schemas/GuruListResponse'],
+                                        'schema'  => ['$ref' => '#/components/schemas/GuruListResponse'],
                                         'example' => [
                                             'data' => [
-                                                ['id' => 1, 'name' => 'Shri XYZ Maharaj', 'description' => 'Renowned spiritual guide.', 'image' => null, 'status' => 'active'],
-                                                ['id' => 2, 'name' => 'Shri ABC Swami',   'description' => 'Vedic scholar.',            'image' => null, 'status' => 'active'],
+                                                ['id' => 1, 'name' => 'Shri XYZ Maharaj', 'description' => 'Renowned spiritual guide.', 'image' => 'https://krmknd.avark.biz/storage/gurus/1.jpg', 'status' => 'active'],
+                                                ['id' => 2, 'name' => 'Shri ABC Swami',   'description' => 'Vedic scholar.',            'image' => null,                                              'status' => 'active'],
                                             ],
                                         ],
                                     ],
@@ -73,10 +75,13 @@ class OpenApiController extends Controller
 
                 '/api/gurus/{id}' => [
                     'get' => [
-                        'tags' => ['Gurujis'],
-                        'summary' => 'Get a single Guruji with stats',
+                        'tags'        => ['Gurujis'],
+                        'summary'     => 'Get a single Guruji with stats',
+                        'description' => "Returns full Guruji profile including lifetime donation stats.\n\n"
+                            ."**Mobile usage:** Displayed on the **Guruji Detail screen** — shows the photo, name, total donations, total donors, and an about section. "
+                            .'Also provides the "Book Consultation" CTA that navigates to the Pooja booking flow.',
                         'operationId' => 'getGuru',
-                        'parameters' => [
+                        'parameters'  => [
                             ['name' => 'id', 'in' => 'path', 'required' => true, 'schema' => ['type' => 'integer'], 'example' => 1],
                         ],
                         'responses' => [
@@ -84,11 +89,19 @@ class OpenApiController extends Controller
                                 'description' => 'Success',
                                 'content' => [
                                     'application/json' => [
-                                        'schema' => ['$ref' => '#/components/schemas/GuruSingleResponse'],
+                                        'schema'  => ['$ref' => '#/components/schemas/GuruSingleResponse'],
                                         'example' => [
                                             'data' => [
-                                                'id' => 1, 'name' => 'Shri XYZ Maharaj', 'description' => '...', 'image' => null, 'status' => 'active',
-                                                'stats' => ['total_donations' => 52500.00, 'total_donors' => 120, 'total_transactions' => 145],
+                                                'id'          => 1,
+                                                'name'        => 'Shri XYZ Maharaj',
+                                                'description' => 'A renowned spiritual guide with 30 years of experience in Vedic rituals.',
+                                                'image'       => 'https://krmknd.avark.biz/storage/gurus/1.jpg',
+                                                'status'      => 'active',
+                                                'stats'       => [
+                                                    'total_donations'    => 52500.00,
+                                                    'total_donors'       => 120,
+                                                    'total_transactions' => 145,
+                                                ],
                                             ],
                                         ],
                                     ],
@@ -103,8 +116,10 @@ class OpenApiController extends Controller
                     'get' => [
                         'tags' => ['Gurujis'],
                         'summary' => 'Get donation categories for a Guruji',
-                        'description' => "Returns the Guruji's active donation categories together with the current fee config. "
-                            .'Use this endpoint to populate the APK donation screen — it provides everything needed to build the payment breakdown.',
+                        'description' => "Returns the Guruji's active donation categories together with the current fee config.\n\n"
+                            ."**Mobile usage:** Called when the user taps **Book Consultation** on the Guruji Detail screen. "
+                            .'Populates the category picker and builds the payment breakdown (donation + handling charge + GST). '
+                            .'Never hardcode fee values — always fetch from this endpoint.',
                         'operationId' => 'getGuruCategories',
                         'parameters' => [
                             ['name' => 'id', 'in' => 'path', 'required' => true, 'schema' => ['type' => 'integer'], 'example' => 1],
