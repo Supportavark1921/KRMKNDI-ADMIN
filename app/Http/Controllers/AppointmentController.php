@@ -17,9 +17,24 @@ class AppointmentController extends Controller
 {
     public function index(): View
     {
-        $appointments = auth()->user()->role === 'admin'
-            ? Appointment::with('user')->orderBy('appointment_date')->orderBy('appointment_time')->get()
-            : auth()->user()->appointments()->orderByDesc('appointment_date')->orderByDesc('appointment_time')->get();
+        $user = auth()->user();
+
+        $appointments = match ($user->role) {
+            'admin', 'manager', 'support' => Appointment::with('user', 'guru')
+                ->orderBy('appointment_date')
+                ->orderBy('appointment_time')
+                ->get(),
+            'guruji' => Appointment::with('user', 'guru')
+                ->whereHas('guru', fn ($q) => $q->where('gurus.user_id', $user->id))
+                ->orderBy('appointment_date')
+                ->orderBy('appointment_time')
+                ->get(),
+            default => $user->appointments()
+                ->with('guru')
+                ->orderByDesc('appointment_date')
+                ->orderByDesc('appointment_time')
+                ->get(),
+        };
 
         return view('appointments.index', compact('appointments'));
     }
