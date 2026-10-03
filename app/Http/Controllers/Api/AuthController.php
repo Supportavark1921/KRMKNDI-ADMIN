@@ -80,16 +80,40 @@ class AuthController extends Controller
         // Revoke any previous mobile tokens for this user.
         $user->tokens()->where('name', 'mobile')->delete();
 
-        $token = $user->createToken('mobile')->plainTextToken;
+        $newToken  = $user->createToken('mobile');
+        $expiresAt = $newToken->accessToken->expires_at;
 
         return response()->json([
-            'success' => true,
-            'token'   => $token,
-            'user'    => [
+            'success'   => true,
+            'token'     => $newToken->plainTextToken,
+            'expiresAt' => $expiresAt?->toIso8601String(),
+            'user'      => [
                 'id'    => $user->id,
                 'name'  => $user->name,
                 'phone' => $user->phone,
             ],
+        ]);
+    }
+
+    /**
+     * POST /api/auth/refresh
+     * Issues a new token and revokes the current one — no re-login required.
+     * Requires: Bearer token (auth:sanctum)
+     */
+    public function refresh(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        // Revoke the token used for this request.
+        $user->currentAccessToken()->delete();
+
+        $newToken  = $user->createToken('mobile');
+        $expiresAt = $newToken->accessToken->expires_at;
+
+        return response()->json([
+            'success'   => true,
+            'token'     => $newToken->plainTextToken,
+            'expiresAt' => $expiresAt?->toIso8601String(),
         ]);
     }
 

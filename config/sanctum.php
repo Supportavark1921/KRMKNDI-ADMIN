@@ -10,7 +10,8 @@ return [
 
     'guard' => ['web'],
 
-    'expiration' => null,
+    // 525600 minutes = 365 days. Refresh tokens extend this without re-login.
+    'expiration' => env('SANCTUM_TOKEN_EXPIRY_MINUTES', 525600),
 
     'token_prefix' => env('SANCTUM_TOKEN_PREFIX', ''),
 
