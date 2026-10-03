@@ -5,7 +5,9 @@ namespace Database\Seeders;
 use App\Models\DonationCategory;
 use App\Models\Guru;
 use App\Models\Service;
+use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class GurujiSeeder extends Seeder
 {
@@ -63,8 +65,27 @@ class GurujiSeeder extends Seeder
             );
         }
 
+        // ── Create/link user accounts for Gurujis ────────────────────────────
+        $mayankUser = User::updateOrCreate(
+            ['email' => 'mayank@krmkndi.com'],
+            [
+                'name'     => 'Pt. Mayank',
+                'password' => Hash::make('Mayank@1234'),
+                'role'     => 'guruji',
+                'status'   => 'active',
+            ]
+        );
+        $mayankUser->syncRoles(['guruji']);
+
         // ── Gurujis ───────────────────────────────────────────────────────────
         $gurujis = [
+            [
+                'name'        => 'Pt. Mayank',
+                'description' => 'Pandit Mayank is a devoted Mataji poojan specialist known for his deep knowledge of Shakti traditions and Navratri rituals. With years of experience conducting Shobhagya Laxmi Poojan and Mahavrat Kalp Anushthan, he brings sincerity and devotion to every ceremony he performs.',
+                'status'      => 'active',
+                'user_id'     => $mayankUser->id,
+                'categories'  => ['Mataji Poojan', 'Navratri Anushthan', 'Griha Shanti Poojan'],
+            ],
             [
                 'name'        => 'Pt. Ramesh Sharma',
                 'description' => 'Pandit Ramesh Sharma is a renowned Vedic astrologer and poojan specialist with over 25 years of experience. He has performed thousands of poojan ceremonies across India and is an expert in Navratri Anushthan, Griha Shanti and Kaal Sarp Dosh Nivaran rituals.',
@@ -97,7 +118,7 @@ class GurujiSeeder extends Seeder
 
             $guru = Guru::updateOrCreate(
                 ['name' => $guruData['name']],
-                $guruData
+                array_filter($guruData, fn ($v) => $v !== null)
             );
 
             // Sync donation categories
