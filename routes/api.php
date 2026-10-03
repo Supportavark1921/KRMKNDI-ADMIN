@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AppointmentController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BookingController;
 use App\Http\Controllers\Api\AvailabilityController;
@@ -37,8 +38,12 @@ Route::get('/availability/{date}/slots', [AvailabilityController::class, 'slots'
 Route::get('/services', [ServiceController::class, 'index']);
 Route::get('/services/{service}', [ServiceController::class, 'show']);
 
-// Booking charges
+// Booking charges (public) + appointments (auth required)
 Route::get('/booking/charges', [BookingController::class, 'charges']);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/appointments', [AppointmentController::class, 'store']);
+    Route::get('/appointments',  [AppointmentController::class, 'index']);
+});
 
 // Gurus & donations
 Route::get('/gurus', [GuruController::class, 'index']);
