@@ -23,6 +23,9 @@ class DatabaseSeeder extends Seeder
         // Services
         $this->call(ServicesSeeder::class);
 
+        // Promotions
+        $this->call(PromotionSeeder::class);
+
         // Location master data — safe to re-run (all use firstOrCreate)
         $this->call([
             IndiaLocationSeeder::class,           // Country + 36 States/UTs
