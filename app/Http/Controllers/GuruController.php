@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\DonationCategory;
 use App\Models\Guru;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -86,9 +87,10 @@ class GuruController extends Controller
         $guru->load('donationCategories');
 
         return view('gurus.edit', [
-            'guru' => $guru,
+            'guru'       => $guru,
             'categories' => DonationCategory::active()->orderBy('name')->get(),
-            'assigned' => $guru->donationCategories->pluck('id')->toArray(),
+            'assigned'   => $guru->donationCategories->pluck('id')->toArray(),
+            'gurujiUsers' => User::whereIn('role', ['guruji'])->orderBy('name')->get(['id', 'name', 'email']),
         ]);
     }
 
@@ -97,12 +99,13 @@ class GuruController extends Controller
         Gate::authorize('manage-appointments');
 
         $data = $request->validate([
-            'name' => ['required', 'string', 'max:150'],
+            'name'        => ['required', 'string', 'max:150'],
             'description' => ['nullable', 'string', 'max:2000'],
-            'status' => ['required', 'in:active,inactive'],
-            'categories' => ['nullable', 'array'],
+            'status'      => ['required', 'in:active,inactive'],
+            'user_id'     => ['nullable', 'exists:users,id'],
+            'categories'  => ['nullable', 'array'],
             'categories.*' => ['integer', 'exists:donation_categories,id'],
-            'image' => ['nullable', 'image', 'max:5120'],
+            'image'       => ['nullable', 'image', 'max:5120'],
         ]);
 
         if ($request->hasFile('image')) {
@@ -111,6 +114,9 @@ class GuruController extends Controller
             }
             $data['image'] = $request->file('image')->store('gurus', 'public');
         }
+
+        // Allow explicitly clearing the user link when "None" is selected.
+        $data['user_id'] = $data['user_id'] ?? null;
 
         $guru->update($data);
         $guru->donationCategories()->sync($data['categories'] ?? []);

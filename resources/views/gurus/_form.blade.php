@@ -59,10 +59,25 @@
                 <input type="text" name="name" class="gf-input" value="{{ old('name', $guru->name ?? '') }}" required placeholder="e.g. Shri XYZ Maharaj">
                 @error('name')<span class="gf-error">{{ $message }}</span>@enderror
             </div>
-            <div>
+            <div style="margin-bottom:16px">
                 <label class="gf-label">Description</label>
                 <textarea name="description" class="gf-textarea" rows="3" placeholder="Brief introduction…">{{ old('description', $guru->description ?? '') }}</textarea>
             </div>
+            @isset($gurujiUsers)
+            <div>
+                <label class="gf-label">Linked Admin Account</label>
+                <select name="user_id" class="gf-select">
+                    <option value="">— None —</option>
+                    @foreach($gurujiUsers as $u)
+                        <option value="{{ $u->id }}" {{ old('user_id', $guru->user_id ?? '') == $u->id ? 'selected' : '' }}>
+                            {{ $u->name }} ({{ $u->email }})
+                        </option>
+                    @endforeach
+                </select>
+                <span class="gf-help">Link to the guruji's admin login so they can see their appointments.</span>
+                @error('user_id')<span class="gf-error">{{ $message }}</span>@enderror
+            </div>
+            @endisset
         </div>
 
         {{-- Photo --}}
