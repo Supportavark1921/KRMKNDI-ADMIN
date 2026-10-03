@@ -71,6 +71,7 @@ class ServiceController extends Controller
                     ? '₹'.number_format($service->amount())
                     : null,
             ],
+            'pooja_samagri' => $service->samagri(),
             'status' => $service->status,
             'created_at' => $service->created_at?->toISOString(),
             'updated_at' => $service->updated_at?->toISOString(),

@@ -21,7 +21,7 @@ class Service extends Model
 
     public const DEFAULT_LANGUAGE = 'en';
 
-    protected $fillable = ['guru_id', 'translations', 'images', 'pricing', 'status'];
+    protected $fillable = ['guru_id', 'translations', 'images', 'pricing', 'pooja_samagri', 'status'];
 
     // ── Relationships ────────────────────────────────────────────────────────
 
@@ -33,10 +33,16 @@ class Service extends Model
     protected function casts(): array
     {
         return [
-            'translations' => 'array',
-            'images' => 'array',
-            'pricing' => 'array',
+            'translations'  => 'array',
+            'images'        => 'array',
+            'pricing'       => 'array',
+            'pooja_samagri' => 'array',
         ];
+    }
+
+    public function samagri(): array
+    {
+        return $this->pooja_samagri ?? [];
     }
 
     // ── Helpers ─────────────────────────────────────────────────────────────
