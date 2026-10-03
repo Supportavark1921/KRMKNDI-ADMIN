@@ -111,6 +111,9 @@ class GurujiSeeder extends Seeder
         }
 
         // ── Link services to Gurujis ─────────────────────────────────────────
+        // Detect whether the services table uses 'name' or 'title'.
+        $nameCol = \Illuminate\Support\Facades\Schema::hasColumn('services', 'name') ? 'name' : 'title';
+
         $serviceMap = [
             'Pt. Mayank'           => ['Shobhagya Laxmi Poojan', 'Mahavrat Kalp Anushthan'],
             'Acharya Suresh Joshi' => ['Lalita Sahastrachan', 'Lalita Astottar Pooja'],
@@ -124,9 +127,7 @@ class GurujiSeeder extends Seeder
                 continue;
             }
             foreach ($serviceNames as $serviceName) {
-                Service::where('name', $serviceName)
-                    ->orWhereRaw("JSON_EXTRACT(translations, '$.en.name') = ?", ['"'.$serviceName.'"'])
-                    ->update(['guru_id' => $guru->id]);
+                Service::where($nameCol, $serviceName)->update(['guru_id' => $guru->id]);
             }
         }
 
