@@ -138,12 +138,37 @@ class AuthController extends Controller
 
         return response()->json([
             'success' => true,
-            'user'    => [
-                'id'                => $user->id,
-                'name'              => $user->name,
-                'phone'             => $user->phone,
-                'phone_verified_at' => $user->phone_verified_at?->toIso8601String(),
-            ],
+            'user'    => $this->formatUser($user),
         ]);
+    }
+
+    /**
+     * PATCH /api/auth/profile
+     * Updates the authenticated end-user's editable fields (name only for now).
+     * Requires: Bearer token (auth:sanctum)
+     */
+    public function updateProfile(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'min:2', 'max:100'],
+        ]);
+
+        $user = $request->user();
+        $user->update(['name' => $data['name']]);
+
+        return response()->json([
+            'success' => true,
+            'user'    => $this->formatUser($user),
+        ]);
+    }
+
+    private function formatUser(User $user): array
+    {
+        return [
+            'id'                => $user->id,
+            'name'              => $user->name,
+            'phone'             => $user->phone,
+            'phone_verified_at' => $user->phone_verified_at?->toIso8601String(),
+        ];
     }
 }
