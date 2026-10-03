@@ -15,11 +15,27 @@ class VerifyAppSignature
     // Keep nonces in cache for 2× the window to cover edge cases.
     private const NONCE_TTL_SECONDS = 600;
 
+    // Routes that are fully public — no token or signature required.
+    private const PUBLIC_PREFIXES = [
+        'api/gurus',
+        'api/v1/panchang',
+        'api/v1/promotions',
+        'api/services',
+        'api/openapi.json',
+    ];
+
     public function handle(Request $request, Closure $next): Response
     {
         // Laravel admin panel — already authenticated via session; skip APK signature check.
         if ($request->hasSession() && $request->user('web')) {
             return $next($request);
+        }
+
+        // Fully public endpoints — no signature needed.
+        foreach (self::PUBLIC_PREFIXES as $prefix) {
+            if (str_starts_with($request->path(), $prefix)) {
+                return $next($request);
+            }
         }
 
         $appId = $request->header('X-App-Id');
