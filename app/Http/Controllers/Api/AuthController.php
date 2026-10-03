@@ -66,10 +66,11 @@ class AuthController extends Controller
         $user = User::firstOrCreate(
             ['phone' => $phone],
             [
-                'name'   => 'User',
-                'email'  => $phone.'@placeholder.krmkndi',
-                'role'   => 'user',
-                'status' => 'active',
+                'name'     => 'User',
+                'email'    => $phone.'@placeholder.krmkndi',
+                'password' => \Illuminate\Support\Str::random(32),
+                'role'     => 'user',
+                'status'   => 'active',
             ]
         );
 
