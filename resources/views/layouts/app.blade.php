@@ -32,6 +32,7 @@
         .store-sub { margin:0; color:var(--muted); font-size:14px; }
         .store-card { padding:24px; border:1px solid #e6e9f0; border-radius:18px; background:#fff; box-shadow:0 4px 18px #1b2c5508; margin-bottom:20px; }
         .store-card + .store-card { margin-top:0; }
+        .detail-list { display:grid; grid-template-columns:140px 1fr; gap:10px 16px; margin:0; font-size:13px; } .detail-list dt { color:#8290b3; font-weight:700; padding-top:2px; } .detail-list dd { margin:0; color:var(--ink); }
         .store-table { width:100%; border-collapse:collapse; font-size:14px; }
         .store-table thead tr { border-bottom:2px solid #ebedf5; }
         .store-table th { padding:10px 12px; color:#8290b3; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; text-align:left; white-space:nowrap; }
