@@ -11,6 +11,29 @@ use Illuminate\Http\Request;
 
 class DonationController extends Controller
 {
+    /** GET /api/donations — authenticated user's donation history */
+    public function index(\Illuminate\Http\Request $request): JsonResponse
+    {
+        $user   = $request->user();
+        $userId = $user->id;
+
+        \Illuminate\Support\Facades\Log::info('GET /api/donations', [
+            'user_id' => $userId,
+            'total_in_db' => Donation::count(),
+            'for_user'    => Donation::where('user_id', $userId)->count(),
+            'null_user_id' => Donation::whereNull('user_id')->count(),
+        ]);
+
+        $donations = Donation::with(['guru', 'category'])
+            ->where('user_id', $userId)
+            ->latest()
+            ->get()
+            ->map(fn (Donation $d) => $this->formatDonation($d))
+            ->values();
+
+        return response()->json(['data' => $donations]);
+    }
+
     /** GET /api/donation-categories/{category} */
     public function category(DonationCategory $category): JsonResponse
     {

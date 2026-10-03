@@ -54,5 +54,6 @@ Route::get('/gurus/{guru}/donation-categories', [GuruController::class, 'categor
 Route::get('/donation/fee-config', [DonationController::class, 'feeConfig']);
 Route::get('/donation-categories/{category}', [DonationController::class, 'category']);
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/donations',  [DonationController::class, 'index']);
     Route::post('/donations', [DonationController::class, 'store']);
 });
