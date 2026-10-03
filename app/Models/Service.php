@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Service extends Model
 {
@@ -20,7 +21,14 @@ class Service extends Model
 
     public const DEFAULT_LANGUAGE = 'en';
 
-    protected $fillable = ['translations', 'images', 'pricing', 'status'];
+    protected $fillable = ['guru_id', 'translations', 'images', 'pricing', 'status'];
+
+    // ── Relationships ────────────────────────────────────────────────────────
+
+    public function guru(): BelongsTo
+    {
+        return $this->belongsTo(Guru::class);
+    }
 
     protected function casts(): array
     {

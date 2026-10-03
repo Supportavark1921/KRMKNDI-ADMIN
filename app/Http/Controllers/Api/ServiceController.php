@@ -18,7 +18,10 @@ class ServiceController extends Controller
         $lang = $request->query('language', Service::DEFAULT_LANGUAGE);
         $status = $request->query('status', 'active');
 
+        $guruId = $request->query('guru_id');
+
         $services = Service::when($status !== 'all', fn ($q) => $q->where('status', $status))
+            ->when($guruId, fn ($q) => $q->where('guru_id', $guruId))
             ->latest()
             ->get()
             ->map(fn ($s) => $this->format($s, $lang));
@@ -46,6 +49,7 @@ class ServiceController extends Controller
 
         return [
             'id' => $service->id,
+            'guru_id' => $service->guru_id,
             'name' => $langData['name'] ?? null,
             'title' => $langData['title'] ?? null,
             'description' => $langData['description'] ?? null,

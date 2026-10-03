@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\DonationCategory;
 use App\Models\Guru;
+use App\Models\Service;
 use Illuminate\Database\Seeder;
 
 class GurujiSeeder extends Seeder
@@ -107,6 +108,26 @@ class GurujiSeeder extends Seeder
                 ->toArray();
 
             $guru->donationCategories()->sync($catIds);
+        }
+
+        // ── Link services to Gurujis ─────────────────────────────────────────
+        $serviceMap = [
+            'Pt. Mayank'           => ['Shobhagya Laxmi Poojan', 'Mahavrat Kalp Anushthan'],
+            'Acharya Suresh Joshi' => ['Lalita Sahastrachan', 'Lalita Astottar Pooja'],
+            'Pt. Dinesh Trivedi'   => ['Shree Yantra Abhishek'],
+            'Pt. Gopal Das'        => ['Shobhagya Laxmi Poojan', 'Lalita Astottar Pooja'],
+        ];
+
+        foreach ($serviceMap as $guruName => $serviceNames) {
+            $guru = Guru::where('name', $guruName)->first();
+            if (! $guru) {
+                continue;
+            }
+            foreach ($serviceNames as $serviceName) {
+                Service::where('name', $serviceName)
+                    ->orWhereRaw("JSON_EXTRACT(translations, '$.en.name') = ?", ['"'.$serviceName.'"'])
+                    ->update(['guru_id' => $guru->id]);
+            }
         }
 
         $this->command->info('GurujiSeeder: ' . count($gurujis) . ' gurujis and ' . count($categories) . ' donation categories inserted/updated.');
