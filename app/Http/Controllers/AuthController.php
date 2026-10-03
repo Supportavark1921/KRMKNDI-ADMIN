@@ -60,9 +60,17 @@ class AuthController extends Controller
     public function dashboard(): View
     {
         $user = auth()->user();
-        $appointments = $user->role === 'admin'
-            ? Appointment::query()
-            : $user->appointments();
+
+        if (in_array($user->role, ['admin', 'manager', 'support'])) {
+            $appointments = Appointment::query();
+        } elseif ($user->role === 'guruji') {
+            $guru = \App\Models\Guru::where('user_id', $user->id)->first();
+            $appointments = $guru
+                ? Appointment::where('guru_id', $guru->id)
+                : Appointment::whereRaw('0=1'); // no linked guru — empty set
+        } else {
+            $appointments = $user->appointments();
+        }
 
         $nextAppointment = (clone $appointments)
             ->whereIn('status', ['pending', 'confirmed'])
