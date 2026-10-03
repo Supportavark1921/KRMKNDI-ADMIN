@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\DonationController;
 use App\Http\Controllers\Api\GuruController;
 use App\Http\Controllers\Api\OpenApiController;
 use App\Http\Controllers\Api\PanchangController;
+use App\Http\Controllers\Api\PromotionsApiController;
 use App\Http\Controllers\Api\ServiceController;
 use Illuminate\Support\Facades\Route;
 
@@ -11,6 +12,9 @@ Route::get('/openapi.json', [OpenApiController::class, 'spec']);
 
 // Panchang
 Route::get('/v1/panchang', [PanchangController::class, 'show']);
+
+// Promotions
+Route::get('/v1/promotions', [PromotionsApiController::class, 'index']);
 
 // Services
 Route::get('/services', [ServiceController::class, 'index']);

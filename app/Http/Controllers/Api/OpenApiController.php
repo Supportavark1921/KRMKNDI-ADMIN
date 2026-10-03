@@ -24,7 +24,8 @@ class OpenApiController extends Controller
                     ."- 🕉 **Gurujis** — list and fetch Guruji profiles with donation categories\n"
                     ."- ₹ **Donations** — fee config and create donation transactions\n"
                     ."- ✦ **Services** — multilingual service catalogue\n"
-                    .'- 🌙 **Panchang** — daily Vedic Panchang data (Tithi, Nakshatra, Yoga, Karana, Choghadiya, Hora, Rahu Kaal, Abhijit) via Navamsha API with location-aware caching',
+                    ."- 🌙 **Panchang** — daily Vedic Panchang data (Tithi, Nakshatra, Yoga, Karana, Choghadiya, Hora, Rahu Kaal, Abhijit) via Navamsha API with location-aware caching\n"
+                    .'- 🎯 **Promotions** — active promotional banners and offers, filterable by placement, audience, and language',
                 'version' => '1.0.0',
                 'contact' => ['name' => 'ARK Jyotish Admin', 'url' => $base],
             ],
@@ -32,10 +33,11 @@ class OpenApiController extends Controller
                 ['url' => $base, 'description' => 'Current server ('.$base.')'],
             ],
             'tags' => [
-                ['name' => 'Gurujis',   'description' => 'Guruji profiles, donation categories, and per-Guruji stats'],
-                ['name' => 'Donations', 'description' => 'App handling fee configuration and donation transactions'],
-                ['name' => 'Services',  'description' => 'Multilingual booking services'],
-                ['name' => 'Location',  'description' => 'Cascading location master — countries, states, districts, cities, PIN codes'],
+                ['name' => 'Gurujis',     'description' => 'Guruji profiles, donation categories, and per-Guruji stats'],
+                ['name' => 'Donations',   'description' => 'App handling fee configuration and donation transactions'],
+                ['name' => 'Services',    'description' => 'Multilingual booking services'],
+                ['name' => 'Promotions',  'description' => 'Active promotional banners and offers shown in the app'],
+                ['name' => 'Location',    'description' => 'Cascading location master — countries, states, districts, cities, PIN codes'],
                 ['name' => 'Panchang',  'description' => 'Daily Vedic Panchang data — Tithi, Nakshatra, Yoga, Karana, Choghadiya, Hora, Rahu Kaal, Abhijit. Served from cache; Navamsha API key is server-side only.'],
             ],
 
@@ -592,6 +594,67 @@ class OpenApiController extends Controller
                     ],
                 ],
 
+                // ── PROMOTIONS ───────────────────────────────────────────────
+
+                '/api/v1/promotions' => [
+                    'get' => [
+                        'tags'        => ['Promotions'],
+                        'summary'     => 'List active promotions',
+                        'description' => 'Returns active promotions filtered by placement, audience, and language. Used by the mobile app to display offer banners on the home screen.',
+                        'operationId' => 'listPromotions',
+                        'parameters'  => [
+                            [
+                                'name'        => 'placement',
+                                'in'          => 'query',
+                                'required'    => false,
+                                'description' => 'Screen placement to filter by (e.g. `home`, `pooja`, `shop`).',
+                                'schema'      => ['type' => 'string', 'example' => 'home'],
+                            ],
+                            [
+                                'name'        => 'lang',
+                                'in'          => 'query',
+                                'required'    => false,
+                                'description' => 'Language code for translated fields (`en`, `hi`). Defaults to `en`.',
+                                'schema'      => ['type' => 'string', 'example' => 'en', 'default' => 'en'],
+                            ],
+                            [
+                                'name'        => 'audience',
+                                'in'          => 'query',
+                                'required'    => false,
+                                'description' => 'Audience segment: `all`, `guest`, or `user`. Defaults to `all`.',
+                                'schema'      => ['type' => 'string', 'enum' => ['all', 'guest', 'user'], 'default' => 'all'],
+                            ],
+                        ],
+                        'responses' => [
+                            '200' => [
+                                'description' => 'Success',
+                                'content' => [
+                                    'application/json' => [
+                                        'schema'  => ['$ref' => '#/components/schemas/PromotionsResponse'],
+                                        'example' => [
+                                            'success' => true,
+                                            'data' => [
+                                                [
+                                                    'id'          => 1,
+                                                    'title'       => 'Navratri Special Pooja',
+                                                    'description' => 'Book your Navratri Pooja at 20% off. Limited slots available.',
+                                                    'image'       => 'https://krmknd.avark.biz/storage/promotions/navratri.jpg',
+                                                    'type'        => 'banner',
+                                                    'placement'   => 'home',
+                                                    'audience'    => 'all',
+                                                    'cta'         => ['type' => 'screen', 'value' => 'Pooja'],
+                                                    'starts_at'   => '2026-10-01T00:00:00+05:30',
+                                                    'ends_at'     => '2026-10-15T23:59:59+05:30',
+                                                ],
+                                            ],
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+
             ],
 
             // ── Components ───────────────────────────────────────────────────
@@ -812,6 +875,37 @@ class OpenApiController extends Controller
                                     'message' => ['type' => 'string', 'example' => 'Navamsha API returned HTTP 500'],
                                 ],
                             ],
+                        ],
+                    ],
+
+                    // ── Promotions ───────────────────────────────────────────
+                    'PromotionCta' => [
+                        'type' => 'object',
+                        'properties' => [
+                            'type'  => ['type' => 'string', 'description' => 'CTA action type: `url`, `screen`, or `none`', 'example' => 'screen'],
+                            'value' => ['type' => 'string', 'description' => 'URL or screen name depending on type', 'example' => 'Pooja'],
+                        ],
+                    ],
+                    'Promotion' => [
+                        'type' => 'object',
+                        'properties' => [
+                            'id'          => ['type' => 'integer', 'example' => 1],
+                            'title'       => ['type' => 'string',  'example' => 'Navratri Special Pooja'],
+                            'description' => ['type' => 'string',  'example' => 'Book at 20% off. Limited slots.'],
+                            'image'       => ['type' => 'string',  'format' => 'uri', 'nullable' => true, 'example' => 'https://krmknd.avark.biz/storage/promotions/navratri.jpg'],
+                            'type'        => ['type' => 'string',  'example' => 'banner'],
+                            'placement'   => ['type' => 'string',  'example' => 'home'],
+                            'audience'    => ['type' => 'string',  'example' => 'all'],
+                            'cta'         => ['$ref' => '#/components/schemas/PromotionCta'],
+                            'starts_at'   => ['type' => 'string', 'format' => 'date-time', 'nullable' => true],
+                            'ends_at'     => ['type' => 'string', 'format' => 'date-time', 'nullable' => true],
+                        ],
+                    ],
+                    'PromotionsResponse' => [
+                        'type' => 'object',
+                        'properties' => [
+                            'success' => ['type' => 'boolean', 'example' => true],
+                            'data'    => ['type' => 'array', 'items' => ['$ref' => '#/components/schemas/Promotion']],
                         ],
                     ],
 
