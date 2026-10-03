@@ -26,6 +26,9 @@ class DatabaseSeeder extends Seeder
         // Promotions
         $this->call(PromotionSeeder::class);
 
+        // Gurujis & donation categories
+        $this->call(GurujiSeeder::class);
+
         // Location master data — safe to re-run (all use firstOrCreate)
         $this->call([
             IndiaLocationSeeder::class,           // Country + 36 States/UTs
