@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\BookingController;
 use App\Http\Controllers\Api\AvailabilityController;
 use App\Http\Controllers\Api\DonationController;
 use App\Http\Controllers\Api\GuruController;
@@ -35,6 +36,9 @@ Route::get('/availability/{date}/slots', [AvailabilityController::class, 'slots'
 // Services
 Route::get('/services', [ServiceController::class, 'index']);
 Route::get('/services/{service}', [ServiceController::class, 'show']);
+
+// Booking charges
+Route::get('/booking/charges', [BookingController::class, 'charges']);
 
 // Gurus & donations
 Route::get('/gurus', [GuruController::class, 'index']);
