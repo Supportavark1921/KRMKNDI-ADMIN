@@ -111,28 +111,24 @@ class GurujiSeeder extends Seeder
         }
 
         // ── Link services to Gurujis ─────────────────────────────────────────
-        // Services were rebuilt for multilingual — name/title no longer exist
-        // as plain columns. Skip linking if neither column is present.
-        $nameCol = \Illuminate\Support\Facades\Schema::hasColumn('services', 'name')
-            ? 'name'
-            : (\Illuminate\Support\Facades\Schema::hasColumn('services', 'title') ? 'title' : null);
+        // Services store names in JSON translations column — match via JSON_EXTRACT.
+        $serviceMap = [
+            'Pt. Mayank'           => ['Shobhagya Laxmi Poojan', 'Mahavrat Kalp Anushthan'],
+            'Acharya Suresh Joshi' => ['Lalita Sahastrachan', 'Lalita Astottar Pooja'],
+            'Pt. Dinesh Trivedi'   => ['Shree Yantra Abhishek'],
+            'Pt. Gopal Das'        => ['Shobhagya Laxmi Poojan', 'Lalita Astottar Pooja'],
+        ];
 
-        if ($nameCol) {
-            $serviceMap = [
-                'Pt. Mayank'           => ['Shobhagya Laxmi Poojan', 'Mahavrat Kalp Anushthan'],
-                'Acharya Suresh Joshi' => ['Lalita Sahastrachan', 'Lalita Astottar Pooja'],
-                'Pt. Dinesh Trivedi'   => ['Shree Yantra Abhishek'],
-                'Pt. Gopal Das'        => ['Shobhagya Laxmi Poojan', 'Lalita Astottar Pooja'],
-            ];
-
-            foreach ($serviceMap as $guruName => $serviceNames) {
-                $guru = Guru::where('name', $guruName)->first();
-                if (! $guru) {
-                    continue;
-                }
-                foreach ($serviceNames as $serviceName) {
-                    Service::where($nameCol, $serviceName)->update(['guru_id' => $guru->id]);
-                }
+        foreach ($serviceMap as $guruName => $serviceNames) {
+            $guru = Guru::where('name', $guruName)->first();
+            if (! $guru) {
+                continue;
+            }
+            foreach ($serviceNames as $serviceName) {
+                Service::whereRaw(
+                    "JSON_UNQUOTE(JSON_EXTRACT(translations, '$.en.name')) = ?",
+                    [$serviceName]
+                )->update(['guru_id' => $guru->id]);
             }
         }
 
