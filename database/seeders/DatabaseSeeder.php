@@ -29,6 +29,9 @@ class DatabaseSeeder extends Seeder
         // Gurujis & donation categories
         $this->call(GurujiSeeder::class);
 
+        // Availability slots
+        $this->call(AvailabilitySeeder::class);
+
         // Location master data — safe to re-run (all use firstOrCreate)
         $this->call([
             IndiaLocationSeeder::class,           // Country + 36 States/UTs

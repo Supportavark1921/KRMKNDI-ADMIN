@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AvailabilityController;
 use App\Http\Controllers\Api\DonationController;
 use App\Http\Controllers\Api\GuruController;
 use App\Http\Controllers\Api\OpenApiController;
@@ -15,6 +16,10 @@ Route::get('/v1/panchang', [PanchangController::class, 'show']);
 
 // Promotions
 Route::get('/v1/promotions', [PromotionsApiController::class, 'index']);
+
+// Availability
+Route::get('/availability/{month}', [AvailabilityController::class, 'month']);
+Route::get('/availability/{date}/slots', [AvailabilityController::class, 'slots']);
 
 // Services
 Route::get('/services', [ServiceController::class, 'index']);

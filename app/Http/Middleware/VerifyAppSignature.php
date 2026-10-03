@@ -21,6 +21,7 @@ class VerifyAppSignature
         'api/v1/panchang',
         'api/v1/promotions',
         'api/services',
+        'api/availability',
         'api/openapi.json',
     ];
 
