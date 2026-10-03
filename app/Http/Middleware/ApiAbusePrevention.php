@@ -17,7 +17,7 @@ class ApiAbusePrevention
      * The first match wins; order matters.
      */
     private const LIMITS = [
-        'api/v1/auth'      => [10,  300],  // 10 per 5 min  (OTP / auth flows)
+        'api/auth'         => [10,  300],  // 10 per 5 min  (OTP / auth flows)
         'api/v1/donations' => [5,   60],   // 5  per min    (payment mutations)
         'api/v1/panchang'  => [20,  60],   // 20 per min    (astro lookups)
     ];

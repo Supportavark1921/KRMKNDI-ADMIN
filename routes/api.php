@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\AvailabilityController;
 use App\Http\Controllers\Api\DonationController;
 use App\Http\Controllers\Api\GuruController;
@@ -10,6 +11,16 @@ use App\Http\Controllers\Api\ServiceController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/openapi.json', [OpenApiController::class, 'spec']);
+
+// Auth — OTP send/verify are public; logout + me require a valid token
+Route::prefix('auth')->group(function () {
+    Route::post('/otp/send',   [AuthController::class, 'sendOtp']);
+    Route::post('/otp/verify', [AuthController::class, 'verifyOtp']);
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/logout', [AuthController::class, 'logout']);
+        Route::get('/me',      [AuthController::class, 'me']);
+    });
+});
 
 // Panchang
 Route::get('/v1/panchang', [PanchangController::class, 'show']);

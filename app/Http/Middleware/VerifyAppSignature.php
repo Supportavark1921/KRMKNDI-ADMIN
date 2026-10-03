@@ -17,6 +17,7 @@ class VerifyAppSignature
 
     // Routes that are fully public — no token or signature required.
     private const PUBLIC_PREFIXES = [
+        'api/auth',
         'api/gurus',
         'api/v1/panchang',
         'api/v1/promotions',
