@@ -95,6 +95,9 @@
                     <a class="{{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}"><span>⌂</span> Dashboard</a>
                     <a class="{{ request()->routeIs('appointments.*') ? 'active' : '' }}" href="{{ route('appointments.index') }}"><span>◷</span> Appointments</a>
                     <a class="notification-nav {{ request()->routeIs('notifications.*') ? 'active' : '' }}" href="{{ route('notifications.index') }}"><span>♢</span> Notifications @if(auth()->user()->unreadNotifications()->count())<b>{{ auth()->user()->unreadNotifications()->count() }}</b>@endif</a>
+                    @if(auth()->user()->role === 'admin')
+                    <a class="{{ request()->routeIs('push-notifications.*') ? 'active' : '' }}" href="{{ route('push-notifications.create') }}"><span>🔔</span> Send Push</a>
+                    @endif
                     @if(auth()->user()->role !== 'admin')
                         <a class="{{ request()->routeIs('appointments.create') ? 'active' : '' }}" href="{{ route('appointments.create') }}"><span>＋</span> Book a session</a>
                         <a class="{{ request()->routeIs('profile.*') ? 'active' : '' }}" href="{{ route('profile.edit') }}"><span>◉</span> My Profile</a>

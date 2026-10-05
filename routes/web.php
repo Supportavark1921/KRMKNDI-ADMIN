@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AuditLogController as AdminAuditLogController;
+use App\Http\Controllers\Admin\PushNotificationController;
 use App\Http\Controllers\Admin\Location\CityAdminController;
 use App\Http\Controllers\Admin\Location\CountryAdminController;
 use App\Http\Controllers\Admin\Location\DistrictAdminController;
@@ -57,6 +58,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::patch('/notifications/{notification}/read', [NotificationController::class, 'read'])->name('notifications.read');
     Route::post('/notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.read-all');
+    Route::get('/push-notifications', [PushNotificationController::class, 'create'])->name('push-notifications.create');
+    Route::post('/push-notifications/send', [PushNotificationController::class, 'send'])->name('push-notifications.send');
     Route::get('/profile', [ClientProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ClientProfileController::class, 'update'])->name('profile.update');
     Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
