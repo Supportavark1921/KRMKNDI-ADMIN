@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\User;
+use App\Models\DeviceToken;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -11,87 +11,118 @@ class FcmService
     private const FCM_ENDPOINT = 'https://fcm.googleapis.com/v1/projects/{project_id}/messages:send';
 
     /**
-     * Send a push notification to a single user by their FCM token.
+     * Send a notification to all devices belonging to the given user ids.
+     *
+     * @param  int[]                 $userIds
+     * @param  array<string,string>  $data
+     * @return array{sent: int, failed: int}
      */
-    public function sendToUser(User $user, string $title, string $body, array $data = []): bool
+    public function sendToUsers(array $userIds, string $title, string $body, array $data = []): array
     {
-        if (! $user->fcm_token) {
-            return false;
-        }
+        $tokens = DeviceToken::whereIn('user_id', $userIds)->pluck('token')->all();
 
-        return $this->sendToToken($user->fcm_token, $title, $body, $data);
+        return $this->sendToTokens($tokens, $title, $body, $data);
     }
 
     /**
-     * Send to multiple users (skips users without a token).
+     * Send a notification to every registered device.
+     *
+     * @param  array<string,string>  $data
+     * @return array{sent: int, failed: int}
      */
-    public function sendToUsers(iterable $users, string $title, string $body, array $data = []): void
+    public function sendToAll(string $title, string $body, array $data = []): array
     {
-        foreach ($users as $user) {
-            $this->sendToUser($user, $title, $body, $data);
-        }
+        $tokens = DeviceToken::pluck('token')->all();
+
+        return $this->sendToTokens($tokens, $title, $body, $data);
     }
 
     /**
-     * Send directly to an FCM registration token.
+     * @param  string[]              $tokens
+     * @param  array<string,string>  $data
+     * @return array{sent: int, failed: int}
      */
-    public function sendToToken(string $token, string $title, string $body, array $data = []): bool
+    public function sendToTokens(array $tokens, string $title, string $body, array $data = []): array
+    {
+        $sent        = 0;
+        $failed      = 0;
+        $staleTokens = [];
+
+        foreach ($tokens as $token) {
+            $result = $this->sendOne($token, $title, $body, $data);
+
+            if ($result === 'ok') {
+                $sent++;
+            } elseif ($result === 'stale') {
+                $staleTokens[] = $token;
+                $failed++;
+            } else {
+                $failed++;
+            }
+        }
+
+        // Remove tokens FCM says are no longer valid.
+        if ($staleTokens) {
+            DeviceToken::whereIn('token', $staleTokens)->delete();
+        }
+
+        return compact('sent', 'failed');
+    }
+
+    /** @return 'ok'|'stale'|'error' */
+    private function sendOne(string $token, string $title, string $body, array $data): string
     {
         $projectId = config('firebase.project_id');
-        $serverKey  = config('firebase.server_key');
 
-        if (! $projectId || ! $serverKey) {
-            Log::warning('FcmService: FIREBASE_PROJECT_ID or FIREBASE_SERVER_KEY not set.');
-            return false;
+        if (! $projectId) {
+            Log::warning('[FCM] FIREBASE_PROJECT_ID not set.');
+            return 'error';
+        }
+
+        $accessToken = $this->accessToken();
+        if (! $accessToken) {
+            return 'error';
         }
 
         $payload = [
             'message' => [
                 'token'        => $token,
-                'notification' => [
-                    'title' => $title,
-                    'body'  => $body,
-                ],
-                'data' => array_map('strval', $data),
-                'android' => [
-                    'priority' => 'high',
-                ],
-                'apns' => [
-                    'headers' => ['apns-priority' => '10'],
-                ],
+                'notification' => ['title' => $title, 'body' => $body],
+                'data'         => array_map('strval', $data),
+                'android'      => ['priority' => 'high'],
             ],
         ];
 
-        $url = str_replace('{project_id}', $projectId, self::FCM_ENDPOINT);
+        $url      = str_replace('{project_id}', $projectId, self::FCM_ENDPOINT);
+        $response = Http::withToken($accessToken)->post($url, $payload);
 
-        $response = Http::withToken($this->getAccessToken())
-            ->post($url, $payload);
-
-        if (! $response->successful()) {
-            Log::error('FcmService: failed to send notification', [
-                'status'  => $response->status(),
-                'body'    => $response->body(),
-                'token'   => substr($token, 0, 20).'...',
-            ]);
-            return false;
+        if ($response->successful()) {
+            return 'ok';
         }
 
-        return true;
+        $errorCode = $response->json('error.details.0.errorCode')
+            ?? $response->json('error.status')
+            ?? '';
+
+        if ($response->status() === 404 || in_array($errorCode, ['UNREGISTERED', 'INVALID_ARGUMENT'], true)) {
+            Log::info('[FCM] stale token removed', ['token' => substr($token, 0, 20)]);
+            return 'stale';
+        }
+
+        Log::error('[FCM] send failed', ['status' => $response->status(), 'body' => $response->body()]);
+        return 'error';
     }
 
-    /**
-     * Get a short-lived OAuth2 access token using the service account JSON.
-     * Requires the kreait/laravel-firebase package and a service account file.
-     */
-    private function getAccessToken(): string
+    private function accessToken(): string
     {
         $credentialsPath = config('firebase.credentials.file');
 
         if (! $credentialsPath || ! file_exists($credentialsPath)) {
-            // Fall back to legacy server key (for older projects still on V1 legacy API)
-            return config('firebase.server_key', '');
+            Log::warning('[FCM] service account file not found: '.$credentialsPath);
+            return '';
         }
 
+        // google/auth is a transitive dependency of kreait/laravel-firebase.
         $credentials = \Google\Auth\ApplicationDefaultCredentials::getCredentials(
             'https://www.googleapis.com/auth/firebase.messaging'
         );

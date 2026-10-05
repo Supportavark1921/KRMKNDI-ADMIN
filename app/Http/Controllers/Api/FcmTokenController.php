@@ -3,36 +3,37 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\DeviceToken;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class FcmTokenController extends Controller
 {
     /**
-     * Store or update the FCM device token for the authenticated user.
+     * Register or update an FCM device token.
      *
      * POST /api/v1/fcm-token
-     * Body: { "token": "..." }
+     * Body: { "token": "...", "platform": "android" }
+     *
+     * Works for anonymous and authenticated users.
+     * Upserts by token value; links user_id when a bearer token is present.
      */
     public function store(Request $request): JsonResponse
     {
         $data = $request->validate([
-            'token' => ['required', 'string', 'max:500'],
+            'token'    => ['required', 'string', 'max:500'],
+            'platform' => ['sometimes', 'string', 'in:android,ios'],
         ]);
 
-        $request->user()->update(['fcm_token' => $data['token']]);
+        $userId = $request->user('sanctum')?->id;
 
-        return response()->json(['success' => true]);
-    }
-
-    /**
-     * Remove the FCM token (user logged out from device).
-     *
-     * DELETE /api/v1/fcm-token
-     */
-    public function destroy(Request $request): JsonResponse
-    {
-        $request->user()->update(['fcm_token' => null]);
+        DeviceToken::updateOrCreate(
+            ['token' => $data['token']],
+            [
+                'user_id'  => $userId,
+                'platform' => $data['platform'] ?? 'android',
+            ],
+        );
 
         return response()->json(['success' => true]);
     }

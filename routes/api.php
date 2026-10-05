@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\AvailabilityController;
 use App\Http\Controllers\Api\DonationController;
 use App\Http\Controllers\Api\FcmTokenController;
 use App\Http\Controllers\Api\GuruController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OpenApiController;
 use App\Http\Controllers\Api\PanchangController;
 use App\Http\Controllers\Api\PromotionsApiController;
@@ -59,8 +60,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/donations', [DonationController::class, 'store']);
 });
 
-// FCM device token registration
+// FCM device token — public POST so anonymous (pre-login) devices can register.
+// user_id is linked when a bearer token is present; null otherwise.
+Route::post('/v1/fcm-token', [FcmTokenController::class, 'store']);
+
+// Admin: send push notifications (role-gated on controller/policy level)
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/v1/fcm-token',   [FcmTokenController::class, 'store']);
-    Route::delete('/v1/fcm-token', [FcmTokenController::class, 'destroy']);
+    Route::post('/admin/notifications/send', [NotificationController::class, 'send']);
 });
