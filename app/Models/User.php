@@ -30,6 +30,7 @@ class User extends Authenticatable
         'phone_verified_at',
         'role',
         'status', // active | suspended
+        'fcm_token',
     ];
 
     protected $hidden = [

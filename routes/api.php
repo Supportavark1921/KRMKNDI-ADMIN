@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BookingController;
 use App\Http\Controllers\Api\AvailabilityController;
 use App\Http\Controllers\Api\DonationController;
+use App\Http\Controllers\Api\FcmTokenController;
 use App\Http\Controllers\Api\GuruController;
 use App\Http\Controllers\Api\OpenApiController;
 use App\Http\Controllers\Api\PanchangController;
@@ -56,4 +57,10 @@ Route::get('/donation-categories/{category}', [DonationController::class, 'categ
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/donations',  [DonationController::class, 'index']);
     Route::post('/donations', [DonationController::class, 'store']);
+});
+
+// FCM device token registration
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/v1/fcm-token',   [FcmTokenController::class, 'store']);
+    Route::delete('/v1/fcm-token', [FcmTokenController::class, 'destroy']);
 });
