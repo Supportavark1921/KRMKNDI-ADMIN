@@ -11,10 +11,11 @@ class ProductCategoryResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'    => $this->id,
-            'name'  => $this->name,
-            'slug'  => $this->slug,
-            'image' => $this->image ? Storage::url($this->image) : null,
+            'id'        => $this->id,
+            'name'      => $this->name,
+            'slug'      => $this->slug,
+            'parent_id' => $this->parent_id,
+            'image'     => $this->image ? Storage::url($this->image) : null,
         ];
     }
 }

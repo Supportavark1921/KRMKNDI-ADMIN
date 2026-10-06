@@ -16,10 +16,10 @@ class SamagriController extends Controller
     public function categories(): AnonymousResourceCollection
     {
         $categories = ProductCategory::active()
-            ->roots()
+            ->orderBy('parent_id')
             ->orderBy('sort_order')
             ->orderBy('name')
-            ->get(['id', 'name', 'slug', 'image']);
+            ->get(['id', 'name', 'slug', 'parent_id', 'image']);
 
         return ProductCategoryResource::collection($categories);
     }
