@@ -53,7 +53,7 @@ class OrderController extends Controller
         // Verify all products are available
         foreach ($validated['items'] as $line) {
             $product = $products->get($line['product_id']);
-            if (! $product || ! $product->is_active) {
+            if (! $product || ! $product->isAvailable()) {
                 return response()->json([
                     'message' => 'One or more products are unavailable.',
                 ], 422);
@@ -105,9 +105,6 @@ class OrderController extends Controller
             return $order;
         });
 
-        return response()->json(
-            new OrderResource($order->load('items')),
-            201,
-        );
+        return (new OrderResource($order->load('items')))->response()->setStatusCode(201);
     }
 }
