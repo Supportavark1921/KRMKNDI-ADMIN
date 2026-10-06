@@ -30,6 +30,7 @@ class VerifyAppSignature
         'api/donation-categories',
         'api/openapi.json',
         'api/v1/fcm-token',
+        'api/v1/samagri',
     ];
 
     public function handle(Request $request, Closure $next): Response

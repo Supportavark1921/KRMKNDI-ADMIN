@@ -26,15 +26,21 @@ class Product extends Model
     protected $fillable = [
         'product_code', 'sku', 'category_id', 'mataji_id', 'vendor_id',
         'name', 'short_description', 'description', 'brand_source',
+        'unit', 'badge', 'rating', 'reviews_count',
+        'uses', 'contents',
         'product_type', 'price', 'compare_at_price', 'status',
         'offering_eligible', 'resale_eligible',
     ];
 
     protected $casts = [
-        'price' => 'decimal:2',
+        'price'            => 'decimal:2',
         'compare_at_price' => 'decimal:2',
+        'rating'           => 'decimal:2',
+        'reviews_count'    => 'integer',
         'offering_eligible' => 'boolean',
-        'resale_eligible' => 'boolean',
+        'resale_eligible'  => 'boolean',
+        'uses'             => 'array',
+        'contents'         => 'array',
     ];
 
     protected static function booted(): void

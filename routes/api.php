@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AppointmentController;
+use App\Http\Controllers\Api\SamagriController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BookingController;
 use App\Http\Controllers\Api\AvailabilityController;
@@ -33,6 +34,13 @@ Route::get('/v1/panchang', [PanchangController::class, 'show']);
 
 // Promotions
 Route::get('/v1/promotions', [PromotionsApiController::class, 'index']);
+
+// Samagri (shop)
+Route::prefix('v1/samagri')->name('samagri.')->group(function () {
+    Route::get('/categories',  [SamagriController::class, 'categories'])->name('categories');
+    Route::get('/products',    [SamagriController::class, 'index'])->name('index');
+    Route::get('/products/{product}', [SamagriController::class, 'show'])->name('show');
+});
 
 // Availability
 Route::get('/availability/{month}', [AvailabilityController::class, 'month']);
