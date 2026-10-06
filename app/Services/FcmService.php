@@ -122,9 +122,11 @@ class FcmService
             return '';
         }
 
-        // google/auth is a transitive dependency of kreait/laravel-firebase.
-        $credentials = \Google\Auth\ApplicationDefaultCredentials::getCredentials(
-            'https://www.googleapis.com/auth/firebase.messaging'
+        // Load service account JSON directly — avoids needing GOOGLE_APPLICATION_CREDENTIALS env var.
+        $json        = json_decode(file_get_contents($credentialsPath), true);
+        $credentials = new \Google\Auth\Credentials\ServiceAccountCredentials(
+            'https://www.googleapis.com/auth/firebase.messaging',
+            $json,
         );
 
         return $credentials->fetchAuthToken()['access_token'] ?? '';
