@@ -37,6 +37,9 @@ return [
     // ── Mataji saree orders (Guruji module) ──────────────────────────────────
     'mataji-orders' => ['view', 'create', 'update', 'delete', 'restore'],
 
+    // ── Samagri shop orders (customer orders from app) ───────────────────────
+    'samagri-orders' => ['view', 'update', 'delete', 'restore'],
+
     // ── Notifications ────────────────────────────────────────────────────────
     'notifications' => ['view', 'create', 'update', 'delete'],
 
