@@ -43,6 +43,10 @@ return [
             'root' => env('PUBLIC_DISK_ROOT', storage_path('app/public')),
             'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
             'visibility' => 'public',
+            'permissions' => [
+                'file' => ['public' => 0644],
+                'dir'  => ['public' => 0755],
+            ],
             'throw' => false,
             'report' => false,
         ],
