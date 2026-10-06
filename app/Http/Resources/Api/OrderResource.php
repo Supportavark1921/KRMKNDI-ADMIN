@@ -15,8 +15,11 @@ class OrderResource extends JsonResource
             'name'         => $this->name,
             'phone'        => $this->phone,
             'address'      => $this->address,
-            'subtotal'     => (float) $this->subtotal,
-            'total_amount' => (float) $this->total_amount,
+            'subtotal'       => (float) $this->subtotal,
+            'platform_fee'   => (float) $this->platform_fee,
+            'gst_amount'     => (float) $this->gst_amount,
+            'total_amount'   => (float) $this->total_amount,
+            'payment_method' => $this->payment_method,
             'notes'        => $this->notes,
             'items'        => $this->whenLoaded('items', fn () =>
                 $this->items->map(fn ($item) => [

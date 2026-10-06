@@ -39,6 +39,9 @@ class OrderController extends Controller
             'phone'             => ['required', 'string', 'min:10', 'max:30'],
             'address'           => ['nullable', 'string', 'max:500'],
             'notes'             => ['nullable', 'string', 'max:500'],
+            'payment_method'    => ['required', 'in:cod,online'],
+            'platform_fee'      => ['required', 'numeric', 'min:0'],
+            'gst_amount'        => ['required', 'numeric', 'min:0'],
             'items'             => ['required', 'array', 'min:1'],
             'items.*.product_id'=> ['required', 'integer', 'exists:products,id'],
             'items.*.quantity'  => ['required', 'integer', 'min:1', 'max:100'],
@@ -78,18 +81,23 @@ class OrderController extends Controller
                 ];
             }
 
-            $subtotal     = round($subtotal, 2);
-            $totalAmount  = $subtotal; // Phase 5 can add delivery fee / GST
+            $subtotal    = round($subtotal, 2);
+            $platformFee = round((float) $validated['platform_fee'], 2);
+            $gstAmount   = round((float) $validated['gst_amount'], 2);
+            $totalAmount = round($subtotal + $platformFee + $gstAmount, 2);
 
             $order = Order::create([
-                'user_id'      => $request->user()->id,
-                'name'         => $validated['name'],
-                'phone'        => $validated['phone'],
-                'address'      => $validated['address'] ?? null,
-                'notes'        => $validated['notes'] ?? null,
-                'status'       => 'pending',
-                'subtotal'     => $subtotal,
-                'total_amount' => $totalAmount,
+                'user_id'        => $request->user()->id,
+                'name'           => $validated['name'],
+                'phone'          => $validated['phone'],
+                'address'        => $validated['address'] ?? null,
+                'notes'          => $validated['notes'] ?? null,
+                'status'         => 'pending',
+                'subtotal'       => $subtotal,
+                'platform_fee'   => $platformFee,
+                'gst_amount'     => $gstAmount,
+                'total_amount'   => $totalAmount,
+                'payment_method' => $validated['payment_method'],
             ]);
 
             $order->items()->createMany($lines);

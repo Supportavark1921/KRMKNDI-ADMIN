@@ -14,14 +14,16 @@ class Order extends Model
 
     protected $fillable = [
         'user_id', 'name', 'phone', 'address',
-        'status', 'subtotal', 'total_amount',
-        'notes', 'payment_id',
+        'status', 'subtotal', 'platform_fee', 'gst_amount', 'total_amount',
+        'notes', 'payment_id', 'payment_method',
     ];
 
     protected function casts(): array
     {
         return [
             'subtotal'     => 'decimal:2',
+            'platform_fee' => 'decimal:2',
+            'gst_amount'   => 'decimal:2',
             'total_amount' => 'decimal:2',
         ];
     }
