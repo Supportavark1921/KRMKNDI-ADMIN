@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\Product;
+use App\Models\ProductCategory;
 use App\Models\Promotion;
 use Illuminate\Database\Seeder;
 
@@ -9,6 +11,16 @@ class PromotionSeeder extends Seeder
 {
     public function run(): void
     {
+        // Resolve real IDs so cta_value points to actual DB records
+        $sareesCatId   = ProductCategory::where('slug', 'sarees-vastras')->value('id');
+        $shringarCatId = ProductCategory::where('slug', 'shringar-items')->value('id');
+        $prasadCatId   = ProductCategory::where('slug', 'prasad-offerings')->value('id');
+        $pujaCatId     = ProductCategory::where('slug', 'puja-accessories')->value('id');
+
+        $prasadProductId = Product::where('name', 'Panchamrit Pack')->value('id');
+        $kalashProductId = Product::where('name', 'Kalash with Lid (Brass)')->value('id');
+        $sareesProductId = Product::where('name', 'Red Silk Saree (Navratri Special)')->value('id');
+
         $promotions = [
             [
                 'title'       => 'Mataji Navratri Poojan',
@@ -34,7 +46,7 @@ class PromotionSeeder extends Seeder
                 'placement'   => 'shop',
                 'status'      => 'active',
                 'cta_type'    => 'category',
-                'cta_value'   => 'mataji-shringar',
+                'cta_value'   => (string) ($shringarCatId ?? ''),
                 'audience'    => 'all',
                 'sort_order'  => 2,
                 'translations' => [
@@ -68,7 +80,7 @@ class PromotionSeeder extends Seeder
                 'placement'   => 'pooja',
                 'status'      => 'active',
                 'cta_type'    => 'product',
-                'cta_value'   => 'mataji-prasad',
+                'cta_value'   => (string) ($prasadProductId ?? ''),
                 'audience'    => 'user',
                 'sort_order'  => 4,
                 'translations' => [
@@ -84,8 +96,8 @@ class PromotionSeeder extends Seeder
                 'type'        => 'banner',
                 'placement'   => 'popup',
                 'status'      => 'active',
-                'cta_type'    => 'mataji',
-                'cta_value'   => '',
+                'cta_type'    => 'product',
+                'cta_value'   => (string) ($kalashProductId ?? ''),
                 'audience'    => 'all',
                 'sort_order'  => 5,
                 'translations' => [
@@ -101,8 +113,8 @@ class PromotionSeeder extends Seeder
                 'type'        => 'offer',
                 'placement'   => 'home_top',
                 'status'      => 'active',
-                'cta_type'    => 'product',
-                'cta_value'   => 'chunri-arpan',
+                'cta_type'    => 'category',
+                'cta_value'   => (string) ($sareesCatId ?? ''),
                 'audience'    => 'all',
                 'sort_order'  => 6,
                 'translations' => [
@@ -121,6 +133,6 @@ class PromotionSeeder extends Seeder
             );
         }
 
-        $this->command->info('Promotion seeder: '.count($promotions).' records inserted/updated.');
+        $this->command->info('PromotionSeeder: '.count($promotions).' records inserted/updated.');
     }
 }

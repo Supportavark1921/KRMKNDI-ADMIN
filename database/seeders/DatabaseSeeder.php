@@ -23,7 +23,10 @@ class DatabaseSeeder extends Seeder
         // Services
         $this->call(ServicesSeeder::class);
 
-        // Promotions
+        // Products & categories
+        $this->call(ProductSeeder::class);
+
+        // Promotions (links to products/categories above)
         $this->call(PromotionSeeder::class);
 
         // Pooja samagri per service
