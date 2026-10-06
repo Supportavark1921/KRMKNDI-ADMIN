@@ -31,6 +31,8 @@ class VerifyAppSignature
         'api/openapi.json',
         'api/v1/fcm-token',
         'api/v1/samagri',
+        'api/v1/cart',
+        'api/v1/orders',
     ];
 
     public function handle(Request $request, Closure $next): Response
