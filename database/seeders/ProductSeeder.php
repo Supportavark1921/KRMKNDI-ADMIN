@@ -11,71 +11,142 @@ class ProductSeeder extends Seeder
 {
     public function run(): void
     {
-        $categories = [
-            ['name' => 'Sarees & Vastras',    'description' => 'Silk and cotton sarees for Mataji offerings'],
-            ['name' => 'Shringar Items',       'description' => 'Jewellery and adornments for deity'],
-            ['name' => 'Puja Accessories',     'description' => 'Diyas, incense, camphor and puja essentials'],
-            ['name' => 'Prasad & Offerings',   'description' => 'Sweets, fruits and offering items'],
-            ['name' => 'Devotional Books',     'description' => 'Chalisa, aarti sangrah and scriptures'],
+        // Structure: parent category => [ subcategories => [ products ] ]
+        $tree = [
+            'Sarees & Vastras' => [
+                'description' => 'Traditional sarees and fabrics for Mataji offerings',
+                'subcategories' => [
+                    'Silk Sarees' => [
+                        ['name' => 'Red Silk Saree (Navratri Special)', 'price' => 1499, 'compare_at_price' => 1999, 'product_type' => 'MATAJI_OFFERING', 'offering_eligible' => true],
+                        ['name' => 'Kanchipuram Silk Saree',            'price' => 3499, 'compare_at_price' => 4500, 'product_type' => 'MATAJI_OFFERING', 'offering_eligible' => true],
+                        ['name' => 'Banarasi Silk Saree',               'price' => 2799, 'compare_at_price' => 3500, 'product_type' => 'MATAJI_OFFERING', 'offering_eligible' => true],
+                    ],
+                    'Cotton & Chanderi Sarees' => [
+                        ['name' => 'Yellow Cotton Saree',  'price' => 799,  'compare_at_price' => 999,  'product_type' => 'MATAJI_OFFERING', 'offering_eligible' => true],
+                        ['name' => 'Pink Chanderi Saree',  'price' => 999,  'compare_at_price' => 1299, 'product_type' => 'MATAJI_OFFERING', 'offering_eligible' => true],
+                        ['name' => 'Orange Georgette Saree','price' => 1199,'compare_at_price' => 1499, 'product_type' => 'MATAJI_OFFERING', 'offering_eligible' => true],
+                    ],
+                    'Chunri & Dupatta' => [
+                        ['name' => 'Red Chunri (Small)',   'price' => 299,  'compare_at_price' => null, 'product_type' => 'MATAJI_OFFERING', 'offering_eligible' => true],
+                        ['name' => 'Printed Chunri Set',   'price' => 499,  'compare_at_price' => 599,  'product_type' => 'MATAJI_OFFERING', 'offering_eligible' => true],
+                    ],
+                ],
+            ],
+            'Shringar Items' => [
+                'description' => 'Jewellery and adornments for deity',
+                'subcategories' => [
+                    'Jewellery' => [
+                        ['name' => 'Maang Tikka (Gold Plated)',   'price' => 350, 'compare_at_price' => 499,  'product_type' => 'NORMAL', 'offering_eligible' => true],
+                        ['name' => 'Silver Payal (Anklet)',        'price' => 599, 'compare_at_price' => 799,  'product_type' => 'NORMAL', 'offering_eligible' => true],
+                        ['name' => 'Necklace Set (Deity Size)',    'price' => 799, 'compare_at_price' => 999,  'product_type' => 'NORMAL', 'offering_eligible' => true],
+                    ],
+                    'Flower Garlands' => [
+                        ['name' => 'Fresh Marigold Garland',  'price' => 99,  'compare_at_price' => null, 'product_type' => 'NORMAL', 'offering_eligible' => true],
+                        ['name' => 'Rose Petal Garland',      'price' => 149, 'compare_at_price' => null, 'product_type' => 'NORMAL', 'offering_eligible' => true],
+                        ['name' => 'Flower Garland Set (5pc)','price' => 299, 'compare_at_price' => 350,  'product_type' => 'NORMAL', 'offering_eligible' => true],
+                    ],
+                ],
+            ],
+            'Puja Accessories' => [
+                'description' => 'Diyas, incense, camphor and puja essentials',
+                'subcategories' => [
+                    'Diyas & Lamps' => [
+                        ['name' => 'Brass Diya Set (12 pcs)',      'price' => 249, 'compare_at_price' => 350,  'product_type' => 'NORMAL', 'offering_eligible' => false],
+                        ['name' => 'Silver Diya (Single)',          'price' => 199, 'compare_at_price' => null, 'product_type' => 'NORMAL', 'offering_eligible' => false],
+                        ['name' => 'Kalash with Lid (Brass)',       'price' => 450, 'compare_at_price' => 599,  'product_type' => 'NORMAL', 'offering_eligible' => true],
+                    ],
+                    'Incense & Camphor' => [
+                        ['name' => 'Premium Agarbatti Box',   'price' => 99,  'compare_at_price' => null, 'product_type' => 'NORMAL', 'offering_eligible' => false],
+                        ['name' => 'Camphor Tablets (100g)',  'price' => 79,  'compare_at_price' => null, 'product_type' => 'NORMAL', 'offering_eligible' => false],
+                        ['name' => 'Dhoop Cones Pack',        'price' => 59,  'compare_at_price' => null, 'product_type' => 'NORMAL', 'offering_eligible' => false],
+                    ],
+                ],
+            ],
+            'Prasad & Offerings' => [
+                'description' => 'Sweets, fruits and offering items',
+                'subcategories' => [
+                    'Panchamrit & Naivedya' => [
+                        ['name' => 'Panchamrit Pack',            'price' => 199, 'compare_at_price' => null, 'product_type' => 'NORMAL', 'offering_eligible' => true],
+                        ['name' => 'Mishri & Batasha Box',       'price' => 149, 'compare_at_price' => null, 'product_type' => 'NORMAL', 'offering_eligible' => true],
+                        ['name' => 'Dry Fruit Prasad Box (250g)','price' => 399, 'compare_at_price' => 499,  'product_type' => 'NORMAL', 'offering_eligible' => true],
+                    ],
+                    'Sindoor & Kumkum' => [
+                        ['name' => 'Natural Sindoor Pack',   'price' => 49,  'compare_at_price' => null, 'product_type' => 'NORMAL', 'offering_eligible' => true],
+                        ['name' => 'Kumkum Powder (50g)',    'price' => 39,  'compare_at_price' => null, 'product_type' => 'NORMAL', 'offering_eligible' => true],
+                    ],
+                ],
+            ],
+            'Devotional Books' => [
+                'description' => 'Chalisa, aarti sangrah and scriptures',
+                'subcategories' => [
+                    'Chalisa & Aarti' => [
+                        ['name' => 'Durga Chalisa & Aarti Sangrah', 'price' => 49, 'compare_at_price' => null, 'product_type' => 'NORMAL', 'offering_eligible' => false],
+                        ['name' => 'Navratri Vrat Katha',           'price' => 39, 'compare_at_price' => null, 'product_type' => 'NORMAL', 'offering_eligible' => false],
+                    ],
+                    'Scriptures' => [
+                        ['name' => 'Devi Mahatmyam (Hindi)',   'price' => 149, 'compare_at_price' => null, 'product_type' => 'NORMAL', 'offering_eligible' => false],
+                        ['name' => 'Shrimad Devi Bhagwat',     'price' => 299, 'compare_at_price' => 399,  'product_type' => 'NORMAL', 'offering_eligible' => false],
+                    ],
+                ],
+            ],
         ];
 
-        $catMap = [];
-        foreach ($categories as $cat) {
-            $record = ProductCategory::firstOrCreate(
-                ['slug' => Str::slug($cat['name'])],
-                array_merge($cat, ['status' => 'active', 'sort_order' => 0])
-            );
-            $catMap[$cat['name']] = $record->id;
-        }
+        // Archive seed-generated products; use withTrashed to catch already-archived runs
+        Product::withTrashed()->where('product_code', 'like', 'KRMK-%')->each(function ($p) {
+            // Randomise unique fields so new inserts don't collide with archived rows
+            $p->forceFill(['sku' => 'DEL-'.uniqid(), 'product_code' => 'DEL-'.uniqid()])->save();
+            $p->delete();
+        });
 
-        $products = [
-            // Sarees & Vastras
-            ['name' => 'Red Silk Saree (Navratri Special)',   'category' => 'Sarees & Vastras',  'price' => 1499, 'compare_at_price' => 1999, 'product_type' => 'MATAJI_OFFERING', 'offering_eligible' => true],
-            ['name' => 'Yellow Cotton Saree',                 'category' => 'Sarees & Vastras',  'price' => 799,  'compare_at_price' => 999,  'product_type' => 'MATAJI_OFFERING', 'offering_eligible' => true],
-            ['name' => 'Kanchipuram Silk Saree',              'category' => 'Sarees & Vastras',  'price' => 3499, 'compare_at_price' => 4500, 'product_type' => 'MATAJI_OFFERING', 'offering_eligible' => true],
-            ['name' => 'Pink Chanderi Saree',                 'category' => 'Sarees & Vastras',  'price' => 999,  'compare_at_price' => 1299, 'product_type' => 'MATAJI_OFFERING', 'offering_eligible' => true],
+        $productCount = 0;
+        $catCount     = 0;
+        $code         = 1;
 
-            // Shringar Items
-            ['name' => 'Maang Tikka (Gold Plated)',           'category' => 'Shringar Items',    'price' => 350,  'compare_at_price' => 499,  'product_type' => 'NORMAL', 'offering_eligible' => true],
-            ['name' => 'Flower Garland Set',                  'category' => 'Shringar Items',    'price' => 150,  'compare_at_price' => null,  'product_type' => 'NORMAL', 'offering_eligible' => true],
-            ['name' => 'Silver Payal (Anklet)',               'category' => 'Shringar Items',    'price' => 599,  'compare_at_price' => 799,  'product_type' => 'NORMAL', 'offering_eligible' => true],
-
-            // Puja Accessories
-            ['name' => 'Brass Diya Set (12 pcs)',             'category' => 'Puja Accessories',  'price' => 249,  'compare_at_price' => 350,  'product_type' => 'NORMAL', 'offering_eligible' => false],
-            ['name' => 'Premium Agarbatti Box',               'category' => 'Puja Accessories',  'price' => 99,   'compare_at_price' => null,  'product_type' => 'NORMAL', 'offering_eligible' => false],
-            ['name' => 'Camphor Tablets (100g)',              'category' => 'Puja Accessories',  'price' => 79,   'compare_at_price' => null,  'product_type' => 'NORMAL', 'offering_eligible' => false],
-            ['name' => 'Kalash with Lid (Brass)',             'category' => 'Puja Accessories',  'price' => 450,  'compare_at_price' => 599,  'product_type' => 'NORMAL', 'offering_eligible' => true],
-
-            // Prasad & Offerings
-            ['name' => 'Panchamrit Pack',                     'category' => 'Prasad & Offerings','price' => 199,  'compare_at_price' => null,  'product_type' => 'NORMAL', 'offering_eligible' => true],
-            ['name' => 'Mishri & Batasha Box',                'category' => 'Prasad & Offerings','price' => 149,  'compare_at_price' => null,  'product_type' => 'NORMAL', 'offering_eligible' => true],
-            ['name' => 'Dry Fruit Prasad Box (250g)',         'category' => 'Prasad & Offerings','price' => 399,  'compare_at_price' => 499,  'product_type' => 'NORMAL', 'offering_eligible' => true],
-
-            // Devotional Books
-            ['name' => 'Durga Chalisa & Aarti Sangrah',       'category' => 'Devotional Books',  'price' => 49,   'compare_at_price' => null,  'product_type' => 'NORMAL', 'offering_eligible' => false],
-            ['name' => 'Navratri Vrat Katha',                 'category' => 'Devotional Books',  'price' => 39,   'compare_at_price' => null,  'product_type' => 'NORMAL', 'offering_eligible' => false],
-        ];
-
-        $count = 0;
-        foreach ($products as $i => $p) {
-            $catId = $catMap[$p['category']];
-            Product::firstOrCreate(
-                ['name' => $p['name']],
+        foreach ($tree as $parentName => $parentData) {
+            $parent = ProductCategory::firstOrCreate(
+                ['slug' => Str::slug($parentName)],
                 [
-                    'product_code'      => 'KRMK-'.str_pad($i + 1, 4, '0', STR_PAD_LEFT),
-                    'sku'               => 'SKU-'.strtoupper(Str::random(6)),
-                    'category_id'       => $catId,
-                    'price'             => $p['price'],
-                    'compare_at_price'  => $p['compare_at_price'],
-                    'product_type'      => $p['product_type'],
-                    'offering_eligible' => $p['offering_eligible'],
-                    'resale_eligible'   => true,
-                    'status'            => 'active',
+                    'parent_id'   => null,
+                    'name'        => $parentName,
+                    'description' => $parentData['description'],
+                    'status'      => 'active',
+                    'sort_order'  => 0,
                 ]
             );
-            $count++;
+            $catCount++;
+
+            foreach ($parentData['subcategories'] as $subName => $products) {
+                $sub = ProductCategory::firstOrCreate(
+                    ['slug' => Str::slug($subName)],
+                    [
+                        'parent_id'   => $parent->id,
+                        'name'        => $subName,
+                        'description' => null,
+                        'status'      => 'active',
+                        'sort_order'  => 0,
+                    ]
+                );
+                $catCount++;
+
+                foreach ($products as $p) {
+                    Product::create([
+                            'name'             => $p['name'],
+                            'product_code'     => 'KRMK-'.str_pad($code, 4, '0', STR_PAD_LEFT),
+                            'sku'              => 'SKU-'.strtoupper(substr(md5($p['name']), 0, 6)),
+                            'category_id'      => $sub->id,
+                            'price'            => $p['price'],
+                            'compare_at_price' => $p['compare_at_price'],
+                            'product_type'     => $p['product_type'],
+                            'offering_eligible'=> $p['offering_eligible'],
+                            'resale_eligible'  => true,
+                            'status'           => 'active',
+                    ]);
+                    $code++;
+                    $productCount++;
+                }
+            }
         }
 
-        $this->command->info("ProductSeeder: {$count} products + ".count($categories)." categories inserted/updated.");
+        $this->command->info("ProductSeeder: {$productCount} products + {$catCount} categories/subcategories inserted/updated.");
     }
 }

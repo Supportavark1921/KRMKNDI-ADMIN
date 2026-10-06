@@ -24,8 +24,16 @@
             <label>Category *</label>
             <select name="category_id" required>
                 <option value="">— Select —</option>
-                @foreach($categories as $cat)
-                    <option value="{{ $cat->id }}" @selected(old('category_id', $product->category_id ?? '') == $cat->id)>{{ $cat->name }}</option>
+                @foreach($categories as $parent)
+                    @if($parent->children->isNotEmpty())
+                        <optgroup label="{{ $parent->name }}">
+                            @foreach($parent->children as $sub)
+                                <option value="{{ $sub->id }}" @selected(old('category_id', $product->category_id ?? '') == $sub->id)>{{ $sub->name }}</option>
+                            @endforeach
+                        </optgroup>
+                    @else
+                        <option value="{{ $parent->id }}" @selected(old('category_id', $product->category_id ?? '') == $parent->id)>{{ $parent->name }}</option>
+                    @endif
                 @endforeach
             </select>
         </div>

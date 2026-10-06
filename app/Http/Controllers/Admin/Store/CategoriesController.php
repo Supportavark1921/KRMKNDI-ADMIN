@@ -17,16 +17,22 @@ class CategoriesController extends Controller
     {
         Gate::authorize('manage-store');
 
-        return view('admin.store.categories.index', [
-            'categories' => ProductCategory::withCount('products')->orderBy('sort_order')->paginate(25),
-        ]);
+        $roots = ProductCategory::with(['children.products', 'products'])
+            ->withCount('products')
+            ->whereNull('parent_id')
+            ->orderBy('sort_order')
+            ->get();
+
+        return view('admin.store.categories.index', compact('roots'));
     }
 
     public function create(): View
     {
         Gate::authorize('manage-store');
 
-        return view('admin.store.categories.create');
+        $parents = ProductCategory::whereNull('parent_id')->orderBy('name')->get();
+
+        return view('admin.store.categories.create', compact('parents'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -34,15 +40,17 @@ class CategoriesController extends Controller
         Gate::authorize('manage-store');
 
         $data = $request->validate([
-            'name' => ['required', 'string', 'max:150'],
-            'slug' => ['nullable', 'string', 'max:150', 'alpha_dash', 'unique:product_categories,slug'],
+            'parent_id'   => ['nullable', 'integer', 'exists:product_categories,id'],
+            'name'        => ['required', 'string', 'max:150'],
+            'slug'        => ['nullable', 'string', 'max:150', 'alpha_dash', 'unique:product_categories,slug'],
             'description' => ['nullable', 'string', 'max:1000'],
-            'sort_order' => ['nullable', 'integer', 'min:0'],
-            'status' => ['required', 'in:active,inactive'],
-            'image' => ['nullable', 'image', 'max:5120'],
+            'sort_order'  => ['nullable', 'integer', 'min:0'],
+            'status'      => ['required', 'in:active,inactive'],
+            'image'       => ['nullable', 'image', 'max:5120'],
         ]);
 
         $data['slug'] = $data['slug'] ?? Str::slug($data['name']);
+        $data['parent_id'] = $data['parent_id'] ?: null;
 
         if ($request->hasFile('image')) {
             $data['image'] = $request->file('image')->store('categories', 'public');
@@ -57,7 +65,13 @@ class CategoriesController extends Controller
     {
         Gate::authorize('manage-store');
 
-        return view('admin.store.categories.edit', compact('category'));
+        // Exclude self and own children from parent options
+        $parents = ProductCategory::whereNull('parent_id')
+            ->where('id', '!=', $category->id)
+            ->orderBy('name')
+            ->get();
+
+        return view('admin.store.categories.edit', compact('category', 'parents'));
     }
 
     public function update(Request $request, ProductCategory $category): RedirectResponse
@@ -65,15 +79,17 @@ class CategoriesController extends Controller
         Gate::authorize('manage-store');
 
         $data = $request->validate([
-            'name' => ['required', 'string', 'max:150'],
-            'slug' => ['nullable', 'string', 'max:150', 'alpha_dash', "unique:product_categories,slug,{$category->id}"],
+            'parent_id'   => ['nullable', 'integer', 'exists:product_categories,id'],
+            'name'        => ['required', 'string', 'max:150'],
+            'slug'        => ['nullable', 'string', 'max:150', 'alpha_dash', "unique:product_categories,slug,{$category->id}"],
             'description' => ['nullable', 'string', 'max:1000'],
-            'sort_order' => ['nullable', 'integer', 'min:0'],
-            'status' => ['required', 'in:active,inactive'],
-            'image' => ['nullable', 'image', 'max:5120'],
+            'sort_order'  => ['nullable', 'integer', 'min:0'],
+            'status'      => ['required', 'in:active,inactive'],
+            'image'       => ['nullable', 'image', 'max:5120'],
         ]);
 
         $data['slug'] = $data['slug'] ?? Str::slug($data['name']);
+        $data['parent_id'] = $data['parent_id'] ?: null;
 
         if ($request->hasFile('image')) {
             if ($category->image) {
@@ -92,11 +108,11 @@ class CategoriesController extends Controller
         Gate::authorize('manage-store');
 
         if ($category->products()->exists()) {
-            return back()->with('error', 'Cannot delete a category with products. Reassign products first.');
+            return back()->with('error', 'Cannot delete: category has products. Reassign them first.');
         }
 
-        if ($category->image) {
-            Storage::disk('public')->delete($category->image);
+        if ($category->children()->exists()) {
+            return back()->with('error', 'Cannot delete: category has subcategories. Delete them first.');
         }
 
         $category->delete();

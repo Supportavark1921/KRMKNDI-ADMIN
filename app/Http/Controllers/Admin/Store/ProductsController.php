@@ -54,7 +54,7 @@ class ProductsController extends Controller
 
         return view('admin.store.products.index', [
             'products' => $query->latest()->paginate(20)->withQueryString(),
-            'categories' => ProductCategory::active()->orderBy('name')->get(),
+            'categories' => ProductCategory::active()->whereNull('parent_id')->with('children')->orderBy('sort_order')->get(),
         ]);
     }
 
@@ -63,7 +63,7 @@ class ProductsController extends Controller
         Gate::authorize('access-store-admin');
 
         return view('admin.store.products.create', [
-            'categories' => ProductCategory::active()->orderBy('sort_order')->get(),
+            'categories' => ProductCategory::active()->whereNull('parent_id')->with('children')->orderBy('sort_order')->get(),
             'matajis' => Mataji::active()->orderBy('name')->get(),
         ]);
     }
@@ -136,7 +136,7 @@ class ProductsController extends Controller
 
         return view('admin.store.products.edit', [
             'product' => $product,
-            'categories' => ProductCategory::active()->orderBy('sort_order')->get(),
+            'categories' => ProductCategory::active()->whereNull('parent_id')->with('children')->orderBy('sort_order')->get(),
             'matajis' => Mataji::active()->orderBy('name')->get(),
         ]);
     }
