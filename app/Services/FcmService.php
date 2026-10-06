@@ -104,6 +104,8 @@ class FcmService
             ?? $response->json('error.status')
             ?? '';
 
+        Log::error('[FCM] response', ['status' => $response->status(), 'body' => $response->body(), 'errorCode' => $errorCode]);
+
         if ($response->status() === 404 || in_array($errorCode, ['UNREGISTERED', 'INVALID_ARGUMENT'], true)) {
             Log::info('[FCM] stale token removed', ['token' => substr($token, 0, 20)]);
             return 'stale';
