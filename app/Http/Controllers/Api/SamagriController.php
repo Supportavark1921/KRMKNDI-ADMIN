@@ -40,7 +40,12 @@ class SamagriController extends Controller
                 $q->where('name', 'like', "%{$s}%")
                   ->orWhere('short_description', 'like', "%{$s}%");
             }))
-            ->when($request->category_id, fn ($q, $id) => $q->where('category_id', $id))
+            ->when($request->category_id, function ($q, $id) {
+                $q->where(function ($q) use ($id) {
+                    $q->where('category_id', $id)
+                      ->orWhereHas('category', fn ($sub) => $sub->where('parent_id', $id));
+                });
+            })
             ->when($request->stock === 'in_stock', fn ($q) => $q->whereHas('inventory', fn ($q) => $q->where('available_stock', '>', 10)))
             ->when($request->stock === 'low_stock', fn ($q) => $q->whereHas('inventory', fn ($q) => $q->whereBetween('available_stock', [1, 10])));
 
