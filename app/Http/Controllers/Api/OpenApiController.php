@@ -25,7 +25,8 @@ class OpenApiController extends Controller
                     ."- ₹ **Donations** — fee config and create donation transactions\n"
                     ."- ✦ **Services** — multilingual service catalogue\n"
                     ."- 🌙 **Panchang** — daily Vedic Panchang data (Tithi, Nakshatra, Yoga, Karana, Choghadiya, Hora, Rahu Kaal, Abhijit) via Navamsha API with location-aware caching\n"
-                    .'- 🎯 **Promotions** — active promotional banners and offers, filterable by placement, audience, and language',
+                    ."- 🎯 **Promotions** — active promotional banners and offers, filterable by placement, audience, and language\n"
+                    .'- 🛕 **Samagri** — poojan samagri product catalogue with categories, search, filter, sort, and paginated listing',
                 'version' => '1.0.0',
                 'contact' => ['name' => 'ARK Jyotish Admin', 'url' => $base],
             ],
@@ -39,6 +40,7 @@ class OpenApiController extends Controller
                 ['name' => 'Promotions',  'description' => 'Active promotional banners and offers shown in the app'],
                 ['name' => 'Location',    'description' => 'Cascading location master — countries, states, districts, cities, PIN codes'],
                 ['name' => 'Panchang',  'description' => 'Daily Vedic Panchang data — Tithi, Nakshatra, Yoga, Karana, Choghadiya, Hora, Rahu Kaal, Abhijit. Served from cache; Navamsha API key is server-side only.'],
+                ['name' => 'Samagri',   'description' => 'Poojan samagri product catalogue — categories, paginated product listing with search/filter/sort, and product detail.'],
             ],
 
             // ── Paths ────────────────────────────────────────────────────────
@@ -670,6 +672,99 @@ class OpenApiController extends Controller
                     ],
                 ],
 
+                // ── SAMAGRI ──────────────────────────────────────────────────
+
+                '/api/v1/samagri/categories' => [
+                    'get' => [
+                        'tags'        => ['Samagri'],
+                        'summary'     => 'List active product categories',
+                        'description' => 'Returns all active root-level samagri categories ordered by sort_order.',
+                        'operationId' => 'listSamagriCategories',
+                        'responses'   => [
+                            '200' => [
+                                'description' => 'Success',
+                                'content' => [
+                                    'application/json' => [
+                                        'schema'  => ['$ref' => '#/components/schemas/SamagriCategoryListResponse'],
+                                        'example' => [
+                                            'data' => [
+                                                ['id' => 1, 'name' => 'Daily Puja',   'slug' => 'daily-puja',   'image' => 'https://krmknd.avark.biz/storage/categories/daily-puja.jpg'],
+                                                ['id' => 2, 'name' => 'Havan',        'slug' => 'havan',        'image' => null],
+                                                ['id' => 3, 'name' => 'Festival',     'slug' => 'festival',     'image' => null],
+                                            ],
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+
+                '/api/v1/samagri/products' => [
+                    'get' => [
+                        'tags'        => ['Samagri'],
+                        'summary'     => 'List products (paginated)',
+                        'description' => "Returns active products with category, primary image, and inventory-derived stock status.\n\n"
+                            ."**Filters:** `category_id`, `search` (name or short description), `stock` (`in_stock` | `low_stock`).\n\n"
+                            .'**Sort:** `popular` (default, by reviews_count desc), `price_asc`, `price_desc`.',
+                        'operationId' => 'listSamagriProducts',
+                        'parameters'  => [
+                            ['name' => 'search',      'in' => 'query', 'required' => false, 'schema' => ['type' => 'string', 'maxLength' => 100], 'example' => 'havan'],
+                            ['name' => 'category_id', 'in' => 'query', 'required' => false, 'schema' => ['type' => 'integer'], 'example' => 2],
+                            ['name' => 'stock',       'in' => 'query', 'required' => false, 'schema' => ['type' => 'string', 'enum' => ['in_stock', 'low_stock']]],
+                            ['name' => 'sort',        'in' => 'query', 'required' => false, 'schema' => ['type' => 'string', 'enum' => ['popular', 'price_asc', 'price_desc'], 'default' => 'popular']],
+                            ['name' => 'per_page',    'in' => 'query', 'required' => false, 'schema' => ['type' => 'integer', 'minimum' => 1, 'maximum' => 50, 'default' => 20]],
+                            ['name' => 'page',        'in' => 'query', 'required' => false, 'schema' => ['type' => 'integer', 'minimum' => 1, 'default' => 1]],
+                        ],
+                        'responses' => [
+                            '200' => [
+                                'description' => 'Paginated product list',
+                                'content' => [
+                                    'application/json' => [
+                                        'schema'  => ['$ref' => '#/components/schemas/SamagriProductListResponse'],
+                                        'example' => [
+                                            'data' => [
+                                                [
+                                                    'id' => 1, 'name' => 'Complete Daily Puja Kit', 'category' => 'Daily Puja', 'category_id' => 1,
+                                                    'description' => 'Essential poojan samagri for daily worship at home.',
+                                                    'price' => 499.00, 'mrp' => 699.00, 'unit' => '1 kit', 'badge' => 'Best Seller',
+                                                    'rating' => 4.8, 'reviews' => 384, 'stock' => 'In stock',
+                                                    'uses' => ['Daily puja', 'Home mandir'], 'contents' => ['Roli', 'Akshat'],
+                                                    'image' => 'https://krmknd.avark.biz/storage/products/puja-kit.jpg',
+                                                ],
+                                            ],
+                                            'meta' => ['current_page' => 1, 'last_page' => 3, 'total' => 52],
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+
+                '/api/v1/samagri/products/{product}' => [
+                    'get' => [
+                        'tags'        => ['Samagri'],
+                        'summary'     => 'Get a single product',
+                        'description' => 'Returns full product detail including all images.',
+                        'operationId' => 'getSamagriProduct',
+                        'parameters'  => [
+                            ['name' => 'product', 'in' => 'path', 'required' => true, 'schema' => ['type' => 'integer'], 'example' => 1],
+                        ],
+                        'responses' => [
+                            '200' => [
+                                'description' => 'Product detail',
+                                'content' => [
+                                    'application/json' => [
+                                        'schema' => ['$ref' => '#/components/schemas/SamagriProductDetailResponse'],
+                                    ],
+                                ],
+                            ],
+                            '404' => ['$ref' => '#/components/responses/NotFound'],
+                        ],
+                    ],
+                ],
+
             ],
 
             // ── Components ───────────────────────────────────────────────────
@@ -922,6 +1017,68 @@ class OpenApiController extends Controller
                             'success' => ['type' => 'boolean', 'example' => true],
                             'data'    => ['type' => 'array', 'items' => ['$ref' => '#/components/schemas/Promotion']],
                         ],
+                    ],
+
+                    // ── Samagri ──────────────────────────────────────────────
+                    'SamagriCategory' => [
+                        'type' => 'object',
+                        'properties' => [
+                            'id'    => ['type' => 'integer', 'example' => 1],
+                            'name'  => ['type' => 'string',  'example' => 'Daily Puja'],
+                            'slug'  => ['type' => 'string',  'example' => 'daily-puja'],
+                            'image' => ['type' => 'string',  'nullable' => true, 'format' => 'uri'],
+                        ],
+                    ],
+                    'SamagriCategoryListResponse' => [
+                        'type' => 'object',
+                        'properties' => ['data' => ['type' => 'array', 'items' => ['$ref' => '#/components/schemas/SamagriCategory']]],
+                    ],
+                    'SamagriProduct' => [
+                        'type' => 'object',
+                        'properties' => [
+                            'id'          => ['type' => 'integer', 'example' => 1],
+                            'name'        => ['type' => 'string',  'example' => 'Complete Daily Puja Kit'],
+                            'category'    => ['type' => 'string',  'nullable' => true, 'example' => 'Daily Puja'],
+                            'category_id' => ['type' => 'integer', 'example' => 1],
+                            'description' => ['type' => 'string',  'nullable' => true, 'example' => 'Essential poojan samagri for daily worship.'],
+                            'detail'      => ['type' => 'string',  'nullable' => true, 'example' => 'A neatly packed daily puja kit...'],
+                            'price'       => ['type' => 'number',  'format' => 'float', 'example' => 499.00],
+                            'mrp'         => ['type' => 'number',  'format' => 'float', 'nullable' => true, 'example' => 699.00],
+                            'unit'        => ['type' => 'string',  'nullable' => true, 'example' => '1 kit'],
+                            'badge'       => ['type' => 'string',  'nullable' => true, 'example' => 'Best Seller'],
+                            'rating'      => ['type' => 'number',  'format' => 'float', 'example' => 4.8],
+                            'reviews'     => ['type' => 'integer', 'example' => 384],
+                            'stock'       => ['type' => 'string',  'enum' => ['In stock', 'Low stock', 'Out of stock'], 'example' => 'In stock', 'description' => 'Derived from inventory.available_stock: >10 = In stock, 1-10 = Low stock, 0 = Out of stock'],
+                            'uses'        => ['type' => 'array',   'items' => ['type' => 'string'], 'example' => ['Daily puja', 'Home mandir']],
+                            'contents'    => ['type' => 'array',   'items' => ['type' => 'string'], 'example' => ['Roli', 'Akshat', 'Camphor']],
+                            'image'       => ['type' => 'string',  'nullable' => true, 'format' => 'uri', 'description' => 'Primary image URL'],
+                        ],
+                    ],
+                    'SamagriProductWithImages' => [
+                        'allOf' => [
+                            ['$ref' => '#/components/schemas/SamagriProduct'],
+                            ['type' => 'object', 'properties' => [
+                                'images' => ['type' => 'array', 'items' => ['type' => 'string', 'format' => 'uri'], 'description' => 'All product images (only in detail response)'],
+                            ]],
+                        ],
+                    ],
+                    'SamagriProductListResponse' => [
+                        'type' => 'object',
+                        'properties' => [
+                            'data' => ['type' => 'array', 'items' => ['$ref' => '#/components/schemas/SamagriProduct']],
+                            'meta' => [
+                                'type' => 'object',
+                                'properties' => [
+                                    'current_page' => ['type' => 'integer', 'example' => 1],
+                                    'last_page'    => ['type' => 'integer', 'example' => 3],
+                                    'total'        => ['type' => 'integer', 'example' => 52],
+                                ],
+                            ],
+                        ],
+                    ],
+                    'SamagriProductDetailResponse' => [
+                        'type' => 'object',
+                        'properties' => ['data' => ['$ref' => '#/components/schemas/SamagriProductWithImages']],
                     ],
 
                     // ── Errors ───────────────────────────────────────────────
