@@ -35,7 +35,7 @@ class CartController extends Controller
         ]);
 
         $product = Product::findOrFail($validated['product_id']);
-        if (! $product->is_active) {
+        if (! $product->isAvailable()) {
             return response()->json(['message' => 'Product is unavailable.'], 422);
         }
 
