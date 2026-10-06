@@ -131,10 +131,13 @@ class GurujiSeeder extends Seeder
                 continue;
             }
             foreach ($serviceNames as $serviceName) {
-                Service::whereRaw(
-                    "JSON_UNQUOTE(JSON_EXTRACT(translations, '$.en.name')) = ?",
-                    [$serviceName]
-                )->update(['guru_id' => $guru->id]);
+                // JSON_UNQUOTE is MySQL-only; PHP-side filter for SQLite compatibility
+                Service::all()
+                    ->filter(function ($s) use ($serviceName) {
+                        $t = is_array($s->translations) ? $s->translations : json_decode($s->translations ?? '{}', true);
+                        return ($t['en']['name'] ?? null) === $serviceName;
+                    })
+                    ->each(fn ($s) => $s->update(['guru_id' => $guru->id]));
             }
         }
 

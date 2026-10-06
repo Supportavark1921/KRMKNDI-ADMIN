@@ -46,10 +46,11 @@ class SamagriSeeder extends Seeder
 
         $updated = 0;
         foreach ($samagriMap as $serviceName => $items) {
-            $rows = Service::whereRaw(
-                "JSON_UNQUOTE(JSON_EXTRACT(translations, '$.en.name')) = ?",
-                [$serviceName]
-            )->get();
+            // JSON_UNQUOTE is MySQL-only; use a PHP-side filter for SQLite compatibility
+            $rows = Service::all()->filter(function ($s) use ($serviceName) {
+                $t = is_array($s->translations) ? $s->translations : json_decode($s->translations ?? '{}', true);
+                return ($t['en']['name'] ?? null) === $serviceName;
+            });
 
             foreach ($rows as $service) {
                 $service->update(['pooja_samagri' => $items]);
