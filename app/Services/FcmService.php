@@ -88,7 +88,7 @@ class FcmService
             'message' => [
                 'token'        => $token,
                 'notification' => ['title' => $title, 'body' => $body],
-                'data'         => array_map('strval', $data),
+                'data'         => (object) array_map('strval', $data),
                 'android'      => ['priority' => 'high'],
             ],
         ];
@@ -106,7 +106,7 @@ class FcmService
 
         Log::error('[FCM] response', ['status' => $response->status(), 'body' => $response->body(), 'errorCode' => $errorCode]);
 
-        if ($response->status() === 404 || in_array($errorCode, ['UNREGISTERED', 'INVALID_ARGUMENT'], true)) {
+        if ($response->status() === 404 || $errorCode === 'UNREGISTERED') {
             Log::info('[FCM] stale token removed', ['token' => substr($token, 0, 20)]);
             return 'stale';
         }
