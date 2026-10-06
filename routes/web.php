@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\Location\LocationSyncController;
 use App\Http\Controllers\Admin\Location\PincodeAdminController;
 use App\Http\Controllers\Admin\Location\StateAdminController;
 use App\Http\Controllers\Admin\MatajOrderController as AdminMatajOrderController;
+use App\Http\Controllers\Admin\SamagriOrderController as AdminSamagriOrderController;
 use App\Http\Controllers\Admin\PanchangMonitorController;
 use App\Http\Controllers\Admin\PromotionController as AdminPromotionController;
 use App\Http\Controllers\Admin\RoleController as AdminRoleController;
@@ -172,6 +173,15 @@ Route::middleware('auth')->group(function () {
         Route::post('/{id}/restore', [AdminMatajOrderController::class, 'restore'])->name('restore');
         Route::post('/{matajOrder}/confirm', [AdminMatajOrderController::class, 'confirm'])->name('confirm');
         Route::post('/{matajOrder}/cancel', [AdminMatajOrderController::class, 'cancel'])->name('cancel');
+    });
+
+    // ── Samagri orders ───────────────────────────────────────────────────────
+    Route::prefix('admin/samagri-orders')->name('admin.samagri-orders.')->group(function () {
+        Route::get('/', [AdminSamagriOrderController::class, 'index'])->name('index');
+        Route::get('/{samagriOrder}', [AdminSamagriOrderController::class, 'show'])->name('show');
+        Route::post('/{samagriOrder}/status', [AdminSamagriOrderController::class, 'updateStatus'])->name('status');
+        Route::delete('/{samagriOrder}', [AdminSamagriOrderController::class, 'destroy'])->name('destroy');
+        Route::post('/{id}/restore', [AdminSamagriOrderController::class, 'restore'])->name('restore');
     });
 
     // ── Audit log ────────────────────────────────────────────────────────────

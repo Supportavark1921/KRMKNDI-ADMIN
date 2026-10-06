@@ -96,6 +96,8 @@ class PermissionSeeder extends Seeder
             'locations.view', 'locations.create', 'locations.update',
             // Mataji orders
             'mataji-orders.view', 'mataji-orders.create', 'mataji-orders.update', 'mataji-orders.delete', 'mataji-orders.restore',
+            // Samagri orders
+            'samagri-orders.view', 'samagri-orders.update', 'samagri-orders.delete', 'samagri-orders.restore',
         ];
     }
 
@@ -118,6 +120,7 @@ class PermissionSeeder extends Seeder
             'audit-log.view',
             'panchang.view',
             'mataji-orders.view',
+            'samagri-orders.view',
         ];
     }
 

@@ -180,6 +180,9 @@
                     @can('inventory.view')
                     <a class="{{ request()->routeIs('admin.store.inventory.*') ? 'active' : '' }}" href="{{ route('admin.store.inventory.index') }}"><span>📊</span> Inventory</a>
                     @endcan
+                    @can('samagri-orders.view')
+                    <a class="{{ request()->routeIs('admin.samagri-orders.*') ? 'active' : '' }}" href="{{ route('admin.samagri-orders.index') }}"><span>🧾</span> Samagri Orders</a>
+                    @endcan
                 </nav>
                 @endcan
 
