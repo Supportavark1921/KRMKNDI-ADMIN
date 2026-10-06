@@ -30,10 +30,10 @@ class ProductSeeder extends Seeder
 
         $products = [
             // Sarees & Vastras
-            ['name' => 'Red Silk Saree (Navratri Special)',   'category' => 'Sarees & Vastras',  'price' => 1499, 'compare_at_price' => 1999, 'product_type' => 'SAREE',  'offering_eligible' => true],
-            ['name' => 'Yellow Cotton Saree',                 'category' => 'Sarees & Vastras',  'price' => 799,  'compare_at_price' => 999,  'product_type' => 'SAREE',  'offering_eligible' => true],
-            ['name' => 'Kanchipuram Silk Saree',              'category' => 'Sarees & Vastras',  'price' => 3499, 'compare_at_price' => 4500, 'product_type' => 'SAREE',  'offering_eligible' => true],
-            ['name' => 'Pink Chanderi Saree',                 'category' => 'Sarees & Vastras',  'price' => 999,  'compare_at_price' => 1299, 'product_type' => 'SAREE',  'offering_eligible' => true],
+            ['name' => 'Red Silk Saree (Navratri Special)',   'category' => 'Sarees & Vastras',  'price' => 1499, 'compare_at_price' => 1999, 'product_type' => 'MATAJI_OFFERING', 'offering_eligible' => true],
+            ['name' => 'Yellow Cotton Saree',                 'category' => 'Sarees & Vastras',  'price' => 799,  'compare_at_price' => 999,  'product_type' => 'MATAJI_OFFERING', 'offering_eligible' => true],
+            ['name' => 'Kanchipuram Silk Saree',              'category' => 'Sarees & Vastras',  'price' => 3499, 'compare_at_price' => 4500, 'product_type' => 'MATAJI_OFFERING', 'offering_eligible' => true],
+            ['name' => 'Pink Chanderi Saree',                 'category' => 'Sarees & Vastras',  'price' => 999,  'compare_at_price' => 1299, 'product_type' => 'MATAJI_OFFERING', 'offering_eligible' => true],
 
             // Shringar Items
             ['name' => 'Maang Tikka (Gold Plated)',           'category' => 'Shringar Items',    'price' => 350,  'compare_at_price' => 499,  'product_type' => 'NORMAL', 'offering_eligible' => true],
