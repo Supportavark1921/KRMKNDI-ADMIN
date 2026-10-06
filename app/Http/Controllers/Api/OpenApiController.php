@@ -26,7 +26,9 @@ class OpenApiController extends Controller
                     ."- ✦ **Services** — multilingual service catalogue\n"
                     ."- 🌙 **Panchang** — daily Vedic Panchang data (Tithi, Nakshatra, Yoga, Karana, Choghadiya, Hora, Rahu Kaal, Abhijit) via Navamsha API with location-aware caching\n"
                     ."- 🎯 **Promotions** — active promotional banners and offers, filterable by placement, audience, and language\n"
-                    .'- 🛕 **Samagri** — poojan samagri product catalogue with categories, search, filter, sort, and paginated listing',
+                    ."- 🛕 **Samagri** — poojan samagri product catalogue with categories, search, filter, sort, and paginated listing\n"
+                    ."- 🛒 **Cart** — authenticated per-user cart (add, update quantity, remove, clear). Requires Bearer token.\n"
+                    .'- 📦 **Orders** — place and view samagri orders with COD / online payment method, platform fee, and GST. Requires Bearer token.',
                 'version' => '1.0.0',
                 'contact' => ['name' => 'ARK Jyotish Admin', 'url' => $base],
             ],
@@ -41,6 +43,8 @@ class OpenApiController extends Controller
                 ['name' => 'Location',    'description' => 'Cascading location master — countries, states, districts, cities, PIN codes'],
                 ['name' => 'Panchang',  'description' => 'Daily Vedic Panchang data — Tithi, Nakshatra, Yoga, Karana, Choghadiya, Hora, Rahu Kaal, Abhijit. Served from cache; Navamsha API key is server-side only.'],
                 ['name' => 'Samagri',   'description' => 'Poojan samagri product catalogue — categories, paginated product listing with search/filter/sort, and product detail.'],
+                ['name' => 'Cart',     'description' => 'Per-user cart stored server-side. All endpoints require a valid Bearer token (auth:sanctum).'],
+                ['name' => 'Orders',   'description' => 'Samagri orders with line items, delivery details, payment method, platform fee, and GST. All endpoints require a valid Bearer token.'],
             ],
 
             // ── Paths ────────────────────────────────────────────────────────
@@ -765,6 +769,189 @@ class OpenApiController extends Controller
                     ],
                 ],
 
+                // ── CART ─────────────────────────────────────────────────────
+
+                '/api/v1/cart' => [
+                    'get' => [
+                        'tags'        => ['Cart'],
+                        'summary'     => 'Get current user\'s cart',
+                        'operationId' => 'getCart',
+                        'security'    => [['BearerAuth' => []]],
+                        'responses'   => [
+                            '200' => [
+                                'description' => 'Cart items',
+                                'content' => [
+                                    'application/json' => [
+                                        'schema' => ['$ref' => '#/components/schemas/CartListResponse'],
+                                    ],
+                                ],
+                            ],
+                            '401' => ['description' => 'Unauthenticated'],
+                        ],
+                    ],
+                    'post' => [
+                        'tags'        => ['Cart'],
+                        'summary'     => 'Add item to cart',
+                        'description' => 'Adds a product to the cart. If the product already exists, increments the quantity.',
+                        'operationId' => 'addToCart',
+                        'security'    => [['BearerAuth' => []]],
+                        'requestBody' => [
+                            'required' => true,
+                            'content'  => [
+                                'application/json' => [
+                                    'schema'  => ['$ref' => '#/components/schemas/AddToCartRequest'],
+                                    'example' => ['product_id' => 1, 'quantity' => 2],
+                                ],
+                            ],
+                        ],
+                        'responses' => [
+                            '200' => [
+                                'description' => 'Cart item (created or updated)',
+                                'content' => [
+                                    'application/json' => [
+                                        'schema' => ['$ref' => '#/components/schemas/CartItemResponse'],
+                                    ],
+                                ],
+                            ],
+                            '401' => ['description' => 'Unauthenticated'],
+                            '404' => ['$ref' => '#/components/responses/NotFound'],
+                            '422' => ['$ref' => '#/components/responses/ValidationError'],
+                        ],
+                    ],
+                    'delete' => [
+                        'tags'        => ['Cart'],
+                        'summary'     => 'Clear entire cart',
+                        'operationId' => 'clearCart',
+                        'security'    => [['BearerAuth' => []]],
+                        'responses'   => [
+                            '200' => ['description' => 'Cart cleared', 'content' => ['application/json' => ['schema' => ['type' => 'object', 'properties' => ['message' => ['type' => 'string', 'example' => 'Cart cleared.']]]]]],
+                            '401' => ['description' => 'Unauthenticated'],
+                        ],
+                    ],
+                ],
+
+                '/api/v1/cart/{cartItem}' => [
+                    'put' => [
+                        'tags'        => ['Cart'],
+                        'summary'     => 'Update cart item quantity',
+                        'description' => 'Sets the exact quantity of a cart item. Sending `quantity: 0` removes the item.',
+                        'operationId' => 'updateCartItem',
+                        'security'    => [['BearerAuth' => []]],
+                        'parameters'  => [
+                            ['name' => 'cartItem', 'in' => 'path', 'required' => true, 'schema' => ['type' => 'integer'], 'example' => 3],
+                        ],
+                        'requestBody' => [
+                            'required' => true,
+                            'content'  => [
+                                'application/json' => [
+                                    'schema'  => ['$ref' => '#/components/schemas/UpdateCartItemRequest'],
+                                    'example' => ['quantity' => 3],
+                                ],
+                            ],
+                        ],
+                        'responses' => [
+                            '200' => [
+                                'description' => 'Updated cart item (null data when quantity was 0 and item was removed)',
+                                'content' => ['application/json' => ['schema' => ['$ref' => '#/components/schemas/CartItemNullableResponse']]],
+                            ],
+                            '401' => ['description' => 'Unauthenticated'],
+                            '403' => ['description' => 'Forbidden — not your cart item'],
+                            '404' => ['$ref' => '#/components/responses/NotFound'],
+                            '422' => ['$ref' => '#/components/responses/ValidationError'],
+                        ],
+                    ],
+                    'delete' => [
+                        'tags'        => ['Cart'],
+                        'summary'     => 'Remove a single cart item',
+                        'operationId' => 'removeCartItem',
+                        'security'    => [['BearerAuth' => []]],
+                        'parameters'  => [
+                            ['name' => 'cartItem', 'in' => 'path', 'required' => true, 'schema' => ['type' => 'integer'], 'example' => 3],
+                        ],
+                        'responses' => [
+                            '200' => ['description' => 'Item removed', 'content' => ['application/json' => ['schema' => ['type' => 'object', 'properties' => ['message' => ['type' => 'string', 'example' => 'Item removed.']]]]]],
+                            '401' => ['description' => 'Unauthenticated'],
+                            '403' => ['description' => 'Forbidden — not your cart item'],
+                            '404' => ['$ref' => '#/components/responses/NotFound'],
+                        ],
+                    ],
+                ],
+
+                // ── ORDERS ───────────────────────────────────────────────────
+
+                '/api/v1/orders' => [
+                    'get' => [
+                        'tags'        => ['Orders'],
+                        'summary'     => 'List current user\'s orders',
+                        'description' => 'Returns orders for the authenticated user, newest first, paginated at 20/page.',
+                        'operationId' => 'listOrders',
+                        'security'    => [['BearerAuth' => []]],
+                        'parameters'  => [
+                            ['name' => 'page', 'in' => 'query', 'required' => false, 'schema' => ['type' => 'integer', 'minimum' => 1, 'default' => 1]],
+                        ],
+                        'responses' => [
+                            '200' => [
+                                'description' => 'Paginated order list',
+                                'content' => ['application/json' => ['schema' => ['$ref' => '#/components/schemas/OrderListResponse']]],
+                            ],
+                            '401' => ['description' => 'Unauthenticated'],
+                        ],
+                    ],
+                    'post' => [
+                        'tags'        => ['Orders'],
+                        'summary'     => 'Place a new order',
+                        'description' => "Creates an order from the provided items. The server computes `total_amount = subtotal + platform_fee + gst_amount`.\n\n"
+                            .'Fetch `platform_fee` and `gst_rate` from `GET /api/booking/charges` and compute `gst_amount` client-side before sending.',
+                        'operationId' => 'createOrder',
+                        'security'    => [['BearerAuth' => []]],
+                        'requestBody' => [
+                            'required' => true,
+                            'content'  => [
+                                'application/json' => [
+                                    'schema'  => ['$ref' => '#/components/schemas/CreateOrderRequest'],
+                                    'example' => [
+                                        'name' => 'Rahul Sharma', 'phone' => '9876543210',
+                                        'address' => '12 MG Road, Indore, MP', 'notes' => null,
+                                        'payment_method' => 'cod',
+                                        'platform_fee' => 10.00, 'gst_amount' => 1.80,
+                                        'items' => [['product_id' => 1, 'quantity' => 2], ['product_id' => 5, 'quantity' => 1]],
+                                    ],
+                                ],
+                            ],
+                        ],
+                        'responses' => [
+                            '201' => [
+                                'description' => 'Order placed',
+                                'content' => ['application/json' => ['schema' => ['$ref' => '#/components/schemas/OrderResponse']]],
+                            ],
+                            '401' => ['description' => 'Unauthenticated'],
+                            '422' => ['$ref' => '#/components/responses/ValidationError'],
+                        ],
+                    ],
+                ],
+
+                '/api/v1/orders/{order}' => [
+                    'get' => [
+                        'tags'        => ['Orders'],
+                        'summary'     => 'Get order detail',
+                        'description' => 'Returns a single order with all line items. Users can only access their own orders.',
+                        'operationId' => 'getOrder',
+                        'security'    => [['BearerAuth' => []]],
+                        'parameters'  => [
+                            ['name' => 'order', 'in' => 'path', 'required' => true, 'schema' => ['type' => 'integer'], 'example' => 42],
+                        ],
+                        'responses' => [
+                            '200' => [
+                                'description' => 'Order detail',
+                                'content' => ['application/json' => ['schema' => ['$ref' => '#/components/schemas/OrderResponse']]],
+                            ],
+                            '401' => ['description' => 'Unauthenticated'],
+                            '403' => ['description' => 'Forbidden — not your order'],
+                            '404' => ['$ref' => '#/components/responses/NotFound'],
+                        ],
+                    ],
+                ],
+
             ],
 
             // ── Components ───────────────────────────────────────────────────
@@ -1081,6 +1268,117 @@ class OpenApiController extends Controller
                         'properties' => ['data' => ['$ref' => '#/components/schemas/SamagriProductWithImages']],
                     ],
 
+                    // ── Cart ─────────────────────────────────────────────────
+                    'CartItem' => [
+                        'type' => 'object',
+                        'properties' => [
+                            'id'       => ['type' => 'integer', 'example' => 3, 'description' => 'cart_items.id'],
+                            'quantity' => ['type' => 'integer', 'example' => 2],
+                            'product'  => ['$ref' => '#/components/schemas/SamagriProduct'],
+                        ],
+                    ],
+                    'CartListResponse' => [
+                        'type' => 'object',
+                        'properties' => ['data' => ['type' => 'array', 'items' => ['$ref' => '#/components/schemas/CartItem']]],
+                    ],
+                    'CartItemResponse' => [
+                        'type' => 'object',
+                        'properties' => ['data' => ['$ref' => '#/components/schemas/CartItem']],
+                    ],
+                    'CartItemNullableResponse' => [
+                        'type' => 'object',
+                        'properties' => ['data' => ['nullable' => true, 'oneOf' => [['$ref' => '#/components/schemas/CartItem'], ['type' => 'null']]]],
+                    ],
+                    'AddToCartRequest' => [
+                        'type' => 'object',
+                        'required' => ['product_id'],
+                        'properties' => [
+                            'product_id' => ['type' => 'integer', 'example' => 1],
+                            'quantity'   => ['type' => 'integer', 'minimum' => 1, 'default' => 1, 'example' => 2],
+                        ],
+                    ],
+                    'UpdateCartItemRequest' => [
+                        'type' => 'object',
+                        'required' => ['quantity'],
+                        'properties' => [
+                            'quantity' => ['type' => 'integer', 'minimum' => 0, 'example' => 3, 'description' => '0 removes the item'],
+                        ],
+                    ],
+
+                    // ── Orders ────────────────────────────────────────────────
+                    'OrderItem' => [
+                        'type' => 'object',
+                        'properties' => [
+                            'id'         => ['type' => 'integer', 'example' => 7],
+                            'product_id' => ['type' => 'integer', 'example' => 1],
+                            'name'       => ['type' => 'string',  'example' => 'Complete Daily Puja Kit'],
+                            'price'      => ['type' => 'number',  'format' => 'float', 'example' => 499.00],
+                            'quantity'   => ['type' => 'integer', 'example' => 2],
+                            'subtotal'   => ['type' => 'number',  'format' => 'float', 'example' => 998.00],
+                        ],
+                    ],
+                    'Order' => [
+                        'type' => 'object',
+                        'properties' => [
+                            'id'             => ['type' => 'integer', 'example' => 42],
+                            'status'         => ['type' => 'string',  'enum' => ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'], 'example' => 'pending'],
+                            'name'           => ['type' => 'string',  'example' => 'Rahul Sharma'],
+                            'phone'          => ['type' => 'string',  'example' => '9876543210'],
+                            'address'        => ['type' => 'string',  'nullable' => true, 'example' => '12 MG Road, Indore'],
+                            'notes'          => ['type' => 'string',  'nullable' => true],
+                            'payment_method' => ['type' => 'string',  'enum' => ['cod', 'online'], 'example' => 'cod'],
+                            'subtotal'       => ['type' => 'number',  'format' => 'float', 'example' => 998.00],
+                            'platform_fee'   => ['type' => 'number',  'format' => 'float', 'example' => 10.00],
+                            'gst_amount'     => ['type' => 'number',  'format' => 'float', 'example' => 1.80],
+                            'total_amount'   => ['type' => 'number',  'format' => 'float', 'example' => 1009.80],
+                            'items'          => ['type' => 'array',   'items' => ['$ref' => '#/components/schemas/OrderItem']],
+                            'created_at'     => ['type' => 'string',  'format' => 'date-time'],
+                        ],
+                    ],
+                    'OrderResponse' => [
+                        'type' => 'object',
+                        'properties' => ['data' => ['$ref' => '#/components/schemas/Order']],
+                    ],
+                    'OrderListResponse' => [
+                        'type' => 'object',
+                        'properties' => [
+                            'data' => ['type' => 'array', 'items' => ['$ref' => '#/components/schemas/Order']],
+                            'meta' => [
+                                'type' => 'object',
+                                'properties' => [
+                                    'current_page' => ['type' => 'integer', 'example' => 1],
+                                    'last_page'    => ['type' => 'integer', 'example' => 2],
+                                    'total'        => ['type' => 'integer', 'example' => 31],
+                                ],
+                            ],
+                        ],
+                    ],
+                    'CreateOrderRequest' => [
+                        'type' => 'object',
+                        'required' => ['name', 'phone', 'payment_method', 'platform_fee', 'gst_amount', 'items'],
+                        'properties' => [
+                            'name'           => ['type' => 'string', 'maxLength' => 100, 'example' => 'Rahul Sharma'],
+                            'phone'          => ['type' => 'string', 'maxLength' => 15, 'example' => '9876543210'],
+                            'address'        => ['type' => 'string', 'maxLength' => 500, 'nullable' => true, 'example' => '12 MG Road, Indore, MP'],
+                            'notes'          => ['type' => 'string', 'maxLength' => 1000, 'nullable' => true],
+                            'payment_method' => ['type' => 'string', 'enum' => ['cod', 'online'], 'example' => 'cod'],
+                            'platform_fee'   => ['type' => 'number', 'format' => 'float', 'minimum' => 0, 'example' => 10.00],
+                            'gst_amount'     => ['type' => 'number', 'format' => 'float', 'minimum' => 0, 'example' => 1.80],
+                            'items'          => [
+                                'type' => 'array',
+                                'minItems' => 1,
+                                'items' => [
+                                    'type' => 'object',
+                                    'required' => ['product_id', 'quantity'],
+                                    'properties' => [
+                                        'product_id' => ['type' => 'integer', 'example' => 1],
+                                        'quantity'   => ['type' => 'integer', 'minimum' => 1, 'example' => 2],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+
                     // ── Errors ───────────────────────────────────────────────
                     'ErrorMessage' => [
                         'type' => 'object',
@@ -1092,6 +1390,13 @@ class OpenApiController extends Controller
                             'message' => ['type' => 'string'],
                             'errors' => ['type' => 'object', 'additionalProperties' => ['type' => 'array', 'items' => ['type' => 'string']]],
                         ],
+                    ],
+                ],
+                'securitySchemes' => [
+                    'BearerAuth' => [
+                        'type'         => 'http',
+                        'scheme'       => 'bearer',
+                        'bearerFormat' => 'Sanctum personal access token',
                     ],
                 ],
             ],
