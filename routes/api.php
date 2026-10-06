@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OpenApiController;
 use App\Http\Controllers\Api\PanchangController;
 use App\Http\Controllers\Api\PromotionsApiController;
+use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ServiceController;
 use Illuminate\Support\Facades\Route;
@@ -56,6 +57,15 @@ Route::get('/booking/charges', [BookingController::class, 'charges']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/appointments', [AppointmentController::class, 'store']);
     Route::get('/appointments',  [AppointmentController::class, 'index']);
+});
+
+// Cart (samagri shop — auth required)
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/v1/cart',               [CartController::class, 'index']);
+    Route::post('/v1/cart',              [CartController::class, 'add']);
+    Route::put('/v1/cart/{cartItem}',    [CartController::class, 'update']);
+    Route::delete('/v1/cart/{cartItem}', [CartController::class, 'remove']);
+    Route::delete('/v1/cart',            [CartController::class, 'clear']);
 });
 
 // Orders (samagri shop)
