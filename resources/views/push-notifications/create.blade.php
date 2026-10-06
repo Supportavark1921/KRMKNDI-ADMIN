@@ -34,6 +34,10 @@
 .flash-success{display:flex;align-items:center;gap:10px;max-width:860px;margin:0 auto 14px;padding:12px 16px;border-radius:12px;background:#e2f7ed;color:#1e5e42;font-size:14px;font-weight:600}
 .flash-error{display:flex;align-items:center;gap:10px;max-width:860px;margin:0 auto 14px;padding:12px 16px;border-radius:12px;background:#fdeaea;color:#8b2a2a;font-size:14px;font-weight:600}
 .pn-deep-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.pn-color-row{display:flex;align-items:center;gap:10px}
+.pn-color-row input[type=color]{width:44px;height:38px;padding:2px;border:1px solid #e2e6f0;border-radius:8px;cursor:pointer;background:#fff}
+.pn-color-row input[type=text]{flex:1}
+.pn-preview-image{width:100%;max-height:120px;object-fit:cover;border-radius:8px;margin-top:8px;display:none}
 @media(max-width:600px){.pn-radios,.pn-deep-grid{grid-template-columns:1fr;flex-direction:column}.pn-card{padding:24px 20px}}
 </style>
 <div class="dashboard pn-page">
@@ -104,18 +108,39 @@
                     oninput="updatePreview()">{{ old('body') }}</textarea>
             </div>
 
+            <div class="pn-deep-grid">
+                <div class="pn-field">
+                    <label>Accent Colour</label>
+                    <div class="pn-color-row">
+                        <input type="color" id="pnColorPicker" value="{{ old('color', '#5c4bb7') }}" oninput="syncColor(this.value)">
+                        <input type="text" name="color" id="pnColor" maxlength="7"
+                            value="{{ old('color', '#5c4bb7') }}"
+                            placeholder="#5c4bb7"
+                            oninput="syncColorText(this.value)">
+                    </div>
+                </div>
+                <div class="pn-field">
+                    <label>Image URL <span style="font-weight:400;color:#aab">(optional)</span></label>
+                    <input type="text" name="image" id="pnImage"
+                        value="{{ old('image') }}"
+                        placeholder="https://…/image.jpg"
+                        oninput="updatePreview()">
+                </div>
+            </div>
+
             <div class="pn-field">
                 <label>Preview</label>
                 <div class="pn-preview">
                     <div class="pn-preview-label">Device notification</div>
-                    <div class="pn-preview-notif">
-                        <div class="pn-preview-icon">🪔</div>
+                    <div class="pn-preview-notif" id="previewNotif">
+                        <div class="pn-preview-icon" id="previewIcon">🪔</div>
                         <div class="pn-preview-copy">
                             <b id="previewTitle">Notification title</b>
                             <span id="previewBody">Notification body will appear here…</span>
                             <small>ARK Guruji · now</small>
                         </div>
                     </div>
+                    <img id="previewImg" class="pn-preview-image" src="" alt="preview">
                 </div>
             </div>
 
@@ -152,10 +177,35 @@ function toggleUsers(radio) {
     document.getElementById('userSelectWrap').classList.toggle('visible', radio.value === 'users');
 }
 function updatePreview() {
-    const t = document.getElementById('pnTitle').value;
-    const b = document.getElementById('pnBody').value;
+    const t     = document.getElementById('pnTitle').value;
+    const b     = document.getElementById('pnBody').value;
+    const color = document.getElementById('pnColor').value;
+    const img   = document.getElementById('pnImage').value;
     document.getElementById('previewTitle').textContent = t || 'Notification title';
     document.getElementById('previewBody').textContent  = b || 'Notification body will appear here…';
+    // accent colour on icon background
+    const icon = document.getElementById('previewIcon');
+    if (/^#[0-9a-fA-F]{6}$/.test(color)) {
+        icon.style.background = color + '22';
+    }
+    // image preview
+    const previewImg = document.getElementById('previewImg');
+    if (img) {
+        previewImg.src   = img;
+        previewImg.style.display = 'block';
+    } else {
+        previewImg.style.display = 'none';
+    }
+}
+function syncColor(val) {
+    document.getElementById('pnColor').value = val;
+    updatePreview();
+}
+function syncColorText(val) {
+    if (/^#[0-9a-fA-F]{6}$/.test(val)) {
+        document.getElementById('pnColorPicker').value = val;
+    }
+    updatePreview();
 }
 function toggleTab() {
     const screen = document.getElementById('pnScreen').value;

@@ -30,6 +30,8 @@ class PushNotificationController extends Controller
             'body'       => ['required', 'string', 'max:200'],
             'screen'     => ['nullable', 'string', 'in:History,Home'],
             'tab'        => ['nullable', 'string', 'in:bookings,donations'],
+            'color'      => ['nullable', 'string', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'image'      => ['nullable', 'url', 'max:500'],
         ]);
 
         $payload = array_filter([
@@ -37,9 +39,14 @@ class PushNotificationController extends Controller
             'tab'    => $data['tab']    ?? null,
         ]);
 
+        $options = array_filter([
+            'color' => $data['color'] ?? null,
+            'image' => $data['image'] ?? null,
+        ]);
+
         $result = $data['target'] === 'all'
-            ? $this->fcm->sendToAll($data['title'], $data['body'], $payload)
-            : $this->fcm->sendToUsers($data['user_ids'], $data['title'], $data['body'], $payload);
+            ? $this->fcm->sendToAll($data['title'], $data['body'], $payload, $options)
+            : $this->fcm->sendToUsers($data['user_ids'], $data['title'], $data['body'], $payload, $options);
 
         $msg = "Sent to {$result['sent']} device(s).";
         if ($result['failed']) {

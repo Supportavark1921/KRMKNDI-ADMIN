@@ -17,39 +17,41 @@ class FcmService
      * @param  array<string,string>  $data
      * @return array{sent: int, failed: int}
      */
-    public function sendToUsers(array $userIds, string $title, string $body, array $data = []): array
+    public function sendToUsers(array $userIds, string $title, string $body, array $data = [], array $options = []): array
     {
         $tokens = DeviceToken::whereIn('user_id', $userIds)->pluck('token')->all();
 
-        return $this->sendToTokens($tokens, $title, $body, $data);
+        return $this->sendToTokens($tokens, $title, $body, $data, $options);
     }
 
     /**
      * Send a notification to every registered device.
      *
      * @param  array<string,string>  $data
+     * @param  array{color?:string,image?:string}  $options
      * @return array{sent: int, failed: int}
      */
-    public function sendToAll(string $title, string $body, array $data = []): array
+    public function sendToAll(string $title, string $body, array $data = [], array $options = []): array
     {
         $tokens = DeviceToken::pluck('token')->all();
 
-        return $this->sendToTokens($tokens, $title, $body, $data);
+        return $this->sendToTokens($tokens, $title, $body, $data, $options);
     }
 
     /**
      * @param  string[]              $tokens
      * @param  array<string,string>  $data
+     * @param  array{color?:string,image?:string}  $options
      * @return array{sent: int, failed: int}
      */
-    public function sendToTokens(array $tokens, string $title, string $body, array $data = []): array
+    public function sendToTokens(array $tokens, string $title, string $body, array $data = [], array $options = []): array
     {
         $sent        = 0;
         $failed      = 0;
         $staleTokens = [];
 
         foreach ($tokens as $token) {
-            $result = $this->sendOne($token, $title, $body, $data);
+            $result = $this->sendOne($token, $title, $body, $data, $options);
 
             if ($result === 'ok') {
                 $sent++;
@@ -70,7 +72,7 @@ class FcmService
     }
 
     /** @return 'ok'|'stale'|'error' */
-    private function sendOne(string $token, string $title, string $body, array $data): string
+    private function sendOne(string $token, string $title, string $body, array $data, array $options = []): string
     {
         $projectId = config('firebase.project_id');
 
@@ -84,12 +86,25 @@ class FcmService
             return 'error';
         }
 
+        $notification = ['title' => $title, 'body' => $body];
+        if (! empty($options['image'])) {
+            $notification['image'] = $options['image'];
+        }
+
+        $androidNotification = ['priority' => 'high'];
+        if (! empty($options['color'])) {
+            $androidNotification['notification'] = ['color' => $options['color']];
+        }
+        if (! empty($options['image'])) {
+            $androidNotification['notification']['image'] = $options['image'];
+        }
+
         $payload = [
             'message' => [
                 'token'        => $token,
-                'notification' => ['title' => $title, 'body' => $body],
+                'notification' => $notification,
                 'data'         => (object) array_map('strval', $data),
-                'android'      => ['priority' => 'high'],
+                'android'      => $androidNotification,
             ],
         ];
 
