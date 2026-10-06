@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OpenApiController;
 use App\Http\Controllers\Api\PanchangController;
 use App\Http\Controllers\Api\PromotionsApiController;
+use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\ServiceController;
 use Illuminate\Support\Facades\Route;
 
@@ -55,6 +56,13 @@ Route::get('/booking/charges', [BookingController::class, 'charges']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/appointments', [AppointmentController::class, 'store']);
     Route::get('/appointments',  [AppointmentController::class, 'index']);
+});
+
+// Orders (samagri shop)
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/v1/orders',        [OrderController::class, 'index']);
+    Route::post('/v1/orders',       [OrderController::class, 'store']);
+    Route::get('/v1/orders/{order}',[OrderController::class, 'show']);
 });
 
 // Gurus & donations
