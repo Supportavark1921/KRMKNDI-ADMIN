@@ -148,6 +148,9 @@ Route::middleware('auth')->group(function () {
         Route::post('/{user}/activate', [AdminUserController::class, 'activate'])->name('activate');
     });
 
+    // ── Admin AJAX helpers ───────────────────────────────────────────────────
+    Route::get('/admin/api/products', [AdminPromotionController::class, 'productSearch'])->name('admin.api.products');
+
     // ── App Content / Promotions ─────────────────────────────────────────────
     Route::prefix('admin/promotions')->name('admin.promotions.')->group(function () {
         Route::get('/', [AdminPromotionController::class, 'index'])->name('index');

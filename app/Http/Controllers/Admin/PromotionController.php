@@ -127,6 +127,35 @@ class PromotionController extends Controller
         return back()->with('success', 'Promotion deactivated.');
     }
 
+    // ── AJAX ─────────────────────────────────────────────────────────────────
+
+    public function productSearch(Request $request): \Illuminate\Http\JsonResponse
+    {
+        Gate::authorize('promotions.create');
+
+        $q          = $request->query('q', '');
+        $categoryId = $request->query('category_id');
+
+        $query = \App\Models\Product::where('status', 'active')
+            ->select('id', 'name', 'product_code', 'category_id');
+
+        if ($categoryId) {
+            // Include products from the category AND any of its children
+            $childIds = \App\Models\ProductCategory::where('parent_id', $categoryId)->pluck('id')->toArray();
+            $ids = array_merge([(int) $categoryId], $childIds);
+            $query->whereIn('category_id', $ids);
+        }
+
+        if ($q) {
+            $query->where(fn ($sq) => $sq->where('name', 'like', "%{$q}%")
+                ->orWhere('product_code', 'like', "%{$q}%"));
+        }
+
+        return response()->json(
+            $query->orderBy('name')->limit(30)->get()
+        );
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
 
     private function formData(): array
@@ -137,7 +166,6 @@ class PromotionController extends Controller
             'ctaTypes'   => Promotion::CTA_TYPES,
             'audiences'  => Promotion::AUDIENCES,
             'statuses'   => Promotion::STATUSES,
-            'ctaProducts'   => \App\Models\Product::where('status', 'active')->orderBy('name')->get(['id', 'name', 'product_code']),
             'ctaCategories' => \App\Models\ProductCategory::where('status', 'active')->orderBy('name')->get(['id', 'name', 'parent_id']),
             'ctaServices'   => \App\Models\Service::where('status', 'active')->orderBy('id')->get(['id', 'translations']),
             'ctaMatajis'    => \App\Models\Mataji::where('status', 'active')->orderBy('name')->get(['id', 'name']),

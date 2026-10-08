@@ -139,15 +139,18 @@ textarea.prm-input{resize:vertical}
                     <div class="prm-field" id="ctaValueField" style="display:none">
                         <label class="prm-label" id="ctaValueLabel">CTA value *</label>
 
-                        {{-- Product --}}
+                        {{-- Product (AJAX search) --}}
                         <div id="cta_wrap_product" class="cta-wrap" style="display:none">
-                            <input type="text" id="productSearch" class="prm-input" placeholder="Search product…" style="margin-bottom:6px" oninput="filterCta('cta_sel_product',this.value)">
-                            <select name="cta_value" id="cta_sel_product" class="prm-input cta-select" size="5" style="height:auto" disabled>
-                                <option value="">— pick a product —</option>
-                                @foreach($ctaProducts as $p)
-                                <option value="{{ $p->id }}" @selected(old('cta_value') == $p->id && old('cta_type') === 'product')>[{{ $p->product_code }}] {{ $p->name }}</option>
+                            <select id="cta_cat_filter" class="prm-input" style="margin-bottom:6px">
+                                <option value="">— All categories —</option>
+                                @foreach($ctaCategories as $cat)
+                                <option value="{{ $cat->id }}">{{ $cat->parent_id ? '└ ' : '' }}{{ $cat->name }}</option>
                                 @endforeach
                             </select>
+                            <input type="text" id="productSearchInput" class="prm-input" placeholder="Type product name or code…" style="margin-bottom:6px" autocomplete="off">
+                            <div id="productResults" style="border:1px solid #e8d0e0;border-radius:10px;max-height:220px;overflow-y:auto;display:none;background:#fff"></div>
+                            <input type="hidden" name="cta_value" id="cta_sel_product" disabled>
+                            <div id="productSelected" style="display:none;margin-top:6px;padding:8px 12px;background:#fdf5fb;border:1px solid #e8d0e0;border-radius:8px;font-size:13px;color:#3d0a2e;font-weight:600"></div>
                         </div>
 
                         {{-- Category --}}
@@ -214,35 +217,74 @@ textarea.prm-input{resize:vertical}
 
 <script>
 (function () {
+    const SEARCH_URL = '{{ route("admin.api.products") }}';
     const CTA_LABELS = { product:'Product', category:'Category', pooja:'Puja / Service', mataji:'Mataji', url:'URL' };
     const CTA_WRAPS  = { product:'cta_wrap_product', category:'cta_sel_category', pooja:'cta_sel_pooja', mataji:'cta_sel_mataji', url:'cta_sel_url' };
     const CTA_SELS   = ['cta_sel_product','cta_sel_category','cta_sel_pooja','cta_sel_mataji','cta_sel_url'];
 
     function switchCta(type) {
-        document.querySelectorAll('.cta-wrap').forEach(el => { el.style.display = 'none'; });
+        document.querySelectorAll('.cta-wrap').forEach(el => el.style.display = 'none');
         CTA_SELS.forEach(id => { const el = document.getElementById(id); if (el) el.disabled = true; });
         const fld = document.getElementById('ctaValueField');
         fld.style.display = type === 'none' ? 'none' : '';
         if (type === 'none') return;
-        const wrapId = CTA_WRAPS[type];
-        if (wrapId) { const w = document.getElementById(wrapId); if (w) w.style.display = ''; }
-        const selEl = document.getElementById('cta_sel_' + type);
-        if (selEl) selEl.disabled = false;
+        const wrap = document.getElementById(CTA_WRAPS[type]);
+        if (wrap) wrap.style.display = '';
+        const sel = document.getElementById('cta_sel_' + type);
+        if (sel) sel.disabled = false;
         const lbl = document.getElementById('ctaValueLabel');
         if (lbl) lbl.textContent = (CTA_LABELS[type] || 'CTA value') + ' *';
     }
 
-    window.filterCta = function(id, q) {
-        const sel = document.getElementById(id);
-        if (!sel) return;
-        q = q.toLowerCase();
-        Array.from(sel.options).forEach(o => { o.hidden = q && !o.text.toLowerCase().includes(q); });
-    };
+    // ── Product AJAX search ──────────────────────────────────────────────────
+    let searchTimer;
+    const searchInput = document.getElementById('productSearchInput');
+    const resultsBox  = document.getElementById('productResults');
+    const catFilter   = document.getElementById('cta_cat_filter');
+    const hiddenInput = document.getElementById('cta_sel_product');
+    const selectedBox = document.getElementById('productSelected');
 
+    function doSearch() {
+        const q   = (searchInput?.value || '').trim();
+        const cat = catFilter?.value || '';
+        if (!q && !cat) { if(resultsBox) resultsBox.style.display = 'none'; return; }
+        fetch(SEARCH_URL + '?q=' + encodeURIComponent(q) + '&category_id=' + encodeURIComponent(cat),
+              { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(r => r.json())
+            .then(products => {
+                resultsBox.innerHTML = '';
+                if (!products.length) {
+                    resultsBox.innerHTML = '<div style="padding:12px 14px;color:#9a7a90;font-size:13px">No products found</div>';
+                } else {
+                    products.forEach(p => {
+                        const d = document.createElement('div');
+                        d.style.cssText = 'padding:10px 14px;cursor:pointer;border-bottom:1px solid #f5e8f0;font-size:13px;transition:.1s';
+                        d.innerHTML = '<span style="color:#9a7a90;font-size:11px;margin-right:6px">[' + p.product_code + ']</span>' + p.name;
+                        d.addEventListener('mouseenter', () => d.style.background = '#fdf5fb');
+                        d.addEventListener('mouseleave', () => d.style.background = '');
+                        d.addEventListener('click', () => {
+                            hiddenInput.value = p.id;
+                            selectedBox.textContent = '✓ ' + p.name + ' [' + p.product_code + ']';
+                            selectedBox.style.display = '';
+                            resultsBox.style.display = 'none';
+                            searchInput.value = '';
+                        });
+                        resultsBox.appendChild(d);
+                    });
+                }
+                resultsBox.style.display = '';
+            });
+    }
+
+    searchInput?.addEventListener('input', () => { clearTimeout(searchTimer); searchTimer = setTimeout(doSearch, 300); });
+    catFilter?.addEventListener('change', () => { clearTimeout(searchTimer); searchTimer = setTimeout(doSearch, 100); });
+
+    // ── CTA type switch ──────────────────────────────────────────────────────
     const cta = document.getElementById('ctaType');
     cta.addEventListener('change', () => switchCta(cta.value));
     switchCta(cta.value);
 
+    // ── Image preview ────────────────────────────────────────────────────────
     document.getElementById('imgInput').addEventListener('change', function () {
         const f = this.files[0]; if (!f) return;
         const prev = document.getElementById('imgPreview');
