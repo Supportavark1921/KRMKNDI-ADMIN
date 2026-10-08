@@ -57,9 +57,59 @@
             </select>
         </div>
 
+        {{-- CTA value — switches based on cta_type selection --}}
         <div class="form-group" id="cta_value_group">
-            <label class="form-label">CTA value <small style="color:#888">(product ID / URL etc.)</small></label>
-            <input type="text" name="cta_value" value="{{ old('cta_value', $promotion->cta_value ?? '') }}" class="form-input" placeholder="e.g. 42 or https://…">
+            <label class="form-label" id="cta_value_label">CTA value</label>
+
+            {{-- Product picker --}}
+            <select name="cta_value" id="cta_val_product" class="form-input cta-val-field" style="display:none">
+                <option value="">— Select product —</option>
+                @foreach($ctaProducts as $p)
+                    <option value="{{ $p->id }}" @selected(old('cta_value', $promotion->cta_value ?? '') == $p->id && old('cta_type', $promotion->cta_type ?? '') === 'product')>
+                        [{{ $p->product_code }}] {{ $p->name }}
+                    </option>
+                @endforeach
+            </select>
+
+            {{-- Category picker --}}
+            <select name="cta_value" id="cta_val_category" class="form-input cta-val-field" style="display:none">
+                <option value="">— Select category —</option>
+                @foreach($ctaCategories as $cat)
+                    <option value="{{ $cat->id }}" @selected(old('cta_value', $promotion->cta_value ?? '') == $cat->id && old('cta_type', $promotion->cta_type ?? '') === 'category')>
+                        {{ $cat->parent_id ? '└ ' : '' }}{{ $cat->name }}
+                    </option>
+                @endforeach
+            </select>
+
+            {{-- Service/Pooja picker --}}
+            <select name="cta_value" id="cta_val_pooja" class="form-input cta-val-field" style="display:none">
+                <option value="">— Select service —</option>
+                @foreach($ctaServices as $svc)
+                @php
+                    $t = is_array($svc->translations) ? $svc->translations : json_decode($svc->translations ?? '{}', true);
+                    $sName = $t['en']['name'] ?? $t['hi']['name'] ?? 'Service #'.$svc->id;
+                @endphp
+                    <option value="{{ $svc->id }}" @selected(old('cta_value', $promotion->cta_value ?? '') == $svc->id && old('cta_type', $promotion->cta_type ?? '') === 'pooja')>
+                        {{ $sName }}
+                    </option>
+                @endforeach
+            </select>
+
+            {{-- Mataji picker --}}
+            <select name="cta_value" id="cta_val_mataji" class="form-input cta-val-field" style="display:none">
+                <option value="">— Select Mataji —</option>
+                @foreach($ctaMatajis as $m)
+                    <option value="{{ $m->id }}" @selected(old('cta_value', $promotion->cta_value ?? '') == $m->id && old('cta_type', $promotion->cta_type ?? '') === 'mataji')>
+                        {{ $m->name }}
+                    </option>
+                @endforeach
+            </select>
+
+            {{-- URL input --}}
+            <input type="url" name="cta_value" id="cta_val_url" class="form-input cta-val-field" style="display:none"
+                value="{{ old('cta_type', $promotion->cta_type ?? '') === 'url' ? old('cta_value', $promotion->cta_value ?? '') : '' }}"
+                placeholder="https://…">
+
         </div>
 
         <div class="form-group">
@@ -117,11 +167,39 @@
 </div>
 
 <script>
+const CTA_LABELS = {
+    product:  'Product',
+    category: 'Category',
+    pooja:    'Puja / Service',
+    mataji:   'Mataji',
+    url:      'URL',
+};
+
+function switchCta(type) {
+    // Hide all value fields first
+    document.querySelectorAll('.cta-val-field').forEach(el => {
+        el.style.display = 'none';
+        el.disabled = true;
+    });
+    document.getElementById('cta_value_group').style.display = type === 'none' ? 'none' : '';
+    if (type === 'none') return;
+
+    const fieldId = 'cta_val_' + type;
+    const field = document.getElementById(fieldId);
+    if (field) {
+        field.style.display = '';
+        field.disabled = false;
+    }
+    const lbl = document.getElementById('cta_value_label');
+    if (lbl) lbl.textContent = (CTA_LABELS[type] || 'Value') + ' *';
+}
+
 document.getElementById('cta_type')?.addEventListener('change', function () {
-    document.getElementById('cta_value_group').style.display = this.value === 'none' ? 'none' : '';
+    switchCta(this.value);
 });
+
 document.addEventListener('DOMContentLoaded', function () {
     const ct = document.getElementById('cta_type');
-    if (ct) document.getElementById('cta_value_group').style.display = ct.value === 'none' ? 'none' : '';
+    if (ct) switchCta(ct.value);
 });
 </script>

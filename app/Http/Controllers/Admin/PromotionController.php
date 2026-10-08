@@ -132,11 +132,15 @@ class PromotionController extends Controller
     private function formData(): array
     {
         return [
-            'types' => Promotion::TYPES,
+            'types'      => Promotion::TYPES,
             'placements' => Promotion::PLACEMENTS,
-            'ctaTypes' => Promotion::CTA_TYPES,
-            'audiences' => Promotion::AUDIENCES,
-            'statuses' => Promotion::STATUSES,
+            'ctaTypes'   => Promotion::CTA_TYPES,
+            'audiences'  => Promotion::AUDIENCES,
+            'statuses'   => Promotion::STATUSES,
+            'ctaProducts'   => \App\Models\Product::where('status', 'active')->orderBy('name')->get(['id', 'name', 'product_code']),
+            'ctaCategories' => \App\Models\ProductCategory::where('status', 'active')->orderBy('name')->get(['id', 'name', 'parent_id']),
+            'ctaServices'   => \App\Models\Service::where('status', 'active')->orderBy('id')->get(['id', 'translations']),
+            'ctaMatajis'    => \App\Models\Mataji::where('status', 'active')->orderBy('name')->get(['id', 'name']),
         ];
     }
 
