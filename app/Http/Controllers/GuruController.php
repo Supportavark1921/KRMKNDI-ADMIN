@@ -63,7 +63,7 @@ class GuruController extends Controller
     {
         Gate::authorize('manage-appointments');
 
-        $guru->load('donationCategories');
+        $guru->load(['donationCategories', 'services']);
         $categoryStats = $guru->donations()
             ->where('payment_status', 'success')
             ->with('category')

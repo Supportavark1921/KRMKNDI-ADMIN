@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\Service;
 
 class Guru extends Model
 {
@@ -29,6 +30,11 @@ class Guru extends Model
     public function activeCategories(): BelongsToMany
     {
         return $this->donationCategories()->wherePivot('status', 'active');
+    }
+
+    public function services(): HasMany
+    {
+        return $this->hasMany(Service::class);
     }
 
     public function donations(): HasMany

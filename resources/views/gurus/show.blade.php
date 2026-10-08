@@ -104,6 +104,45 @@
             @endif
         </div>
 
+        {{-- Linked services --}}
+        <div class="g-panel">
+            <p class="g-panel-title">Linked Services ({{ $guru->services->count() }})</p>
+            @if($guru->services->isEmpty())
+                <p style="color:#9a8070;font-size:14px;margin:0">No services linked to this Guruji.</p>
+            @else
+                <table style="width:100%;border-collapse:collapse;font-size:13px">
+                    <thead>
+                        <tr style="border-bottom:2px solid #f5ece0">
+                            <th style="text-align:left;padding:8px 10px;color:#a08060;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase">Service Name</th>
+                            <th style="text-align:left;padding:8px 10px;color:#a08060;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase">Status</th>
+                            <th style="text-align:right;padding:8px 10px;color:#a08060;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($guru->services as $service)
+                        @php
+                            $t = is_array($service->translations) ? $service->translations : json_decode($service->translations ?? '{}', true);
+                            $sName = $t['en']['name'] ?? $t['hi']['name'] ?? 'Service #'.$service->id;
+                        @endphp
+                        <tr style="border-bottom:1px solid #f8f0e8">
+                            <td style="padding:10px 10px;font-weight:700;color:#2a1810">{{ $sName }}</td>
+                            <td style="padding:10px 10px">
+                                <span style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;
+                                    background:{{ $service->status === 'active' ? '#e2f7ed' : '#fff3e0' }};
+                                    color:{{ $service->status === 'active' ? '#1e6b47' : '#7a4a18' }}">
+                                    {{ ucfirst($service->status) }}
+                                </span>
+                            </td>
+                            <td style="padding:10px 10px;text-align:right">
+                                <a href="{{ route('services.show', $service) }}" style="color:#e8813a;font-weight:700;font-size:12px">View</a>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            @endif
+        </div>
+
         {{-- Assigned categories --}}
         <div class="g-panel">
             <p class="g-panel-title">Assigned Donation Categories ({{ $guru->donationCategories->count() }})</p>
