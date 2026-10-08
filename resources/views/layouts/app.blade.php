@@ -4,6 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $title ?? 'ARK Jyotish' }}</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('favicon.png') }}">
     <style>
         :root { --ink:#15233d; --muted:#69758b; --line:#e6e9f0; --saffron:#f39a31; --gold:#f6c453; --night:#12213b; --violet:#5c4bb7; --paper:#ffffff; }
         * { box-sizing:border-box; } body { margin:0; min-height:100vh; color:var(--ink); font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; background:#f7f7fb; }
