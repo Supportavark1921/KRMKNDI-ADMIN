@@ -62,85 +62,30 @@ class GurujiSeeder extends Seeder
         );
         $mayankUser->syncRoles(['guruji']);
 
-        // ── Gurujis ───────────────────────────────────────────────────────────
-        $gurujis = [
+        // ── Remove any guruji that is not Mayank (seed data only) ───────────
+        Guru::where('name', '!=', 'Pt. Mayank')->each(fn ($g) => $g->delete());
+
+        // ── Upsert Mayank ─────────────────────────────────────────────────────
+        $mayank = Guru::updateOrCreate(
+            ['name' => 'Pt. Mayank'],
             [
-                'name'        => 'Pt. Mayank',
                 'description' => 'Pandit Mayank is a devoted Mataji poojan specialist known for his deep knowledge of Shakti traditions and Navratri rituals. With years of experience conducting Shobhagya Laxmi Poojan and Mahavrat Kalp Anushthan, he brings sincerity and devotion to every ceremony he performs.',
                 'status'      => 'active',
                 'user_id'     => $mayankUser->id,
-                'categories'  => ['Anna Prasadam Seva', 'Bhog Naivedya Seva', 'Vastra Prasadam', 'Siddh Vastue', 'Other Seva'],
-            ],
-            [
-                'name'        => 'Pt. Ramesh Sharma',
-                'description' => 'Pandit Ramesh Sharma is a renowned Vedic astrologer and poojan specialist with over 25 years of experience. He has performed thousands of poojan ceremonies across India and is an expert in Navratri Anushthan, Griha Shanti and Kaal Sarp Dosh Nivaran rituals.',
-                'status'      => 'active',
-                'categories'  => ['Anna Prasadam Seva', 'Bhog Naivedya Seva', 'Vastra Prasadam', 'Siddh Vastue', 'Other Seva'],
-            ],
-            [
-                'name'        => 'Acharya Suresh Joshi',
-                'description' => 'Acharya Suresh Joshi is a learned scholar of Sanskrit and Vedic tradition from Kashi. He specialises in Rudrabhishek, Satyanarayan Katha and Sundarkand recitation. His calm and devotional approach creates a deeply spiritual atmosphere for every ceremony.',
-                'status'      => 'active',
-                'categories'  => ['Anna Prasadam Seva', 'Bhog Naivedya Seva', 'Vastra Prasadam', 'Siddh Vastue', 'Other Seva'],
-            ],
-            [
-                'name'        => 'Pt. Dinesh Trivedi',
-                'description' => 'Pandit Dinesh Trivedi is a certified Jyotishacharya with deep expertise in kundali analysis and Mangal Dosh remedies. He performs personalised poojan based on your birth chart to bring harmony in relationships, career and health.',
-                'status'      => 'active',
-                'categories'  => ['Anna Prasadam Seva', 'Bhog Naivedya Seva', 'Vastra Prasadam', 'Siddh Vastue', 'Other Seva'],
-            ],
-            [
-                'name'        => 'Pt. Gopal Das',
-                'description' => 'Pandit Gopal Das comes from a family of temple priests with a lineage spanning four generations. He is well versed in Mataji poojan traditions and conducts all ceremonies with strict adherence to Vedic procedure and devotion.',
-                'status'      => 'active',
-                'categories'  => ['Anna Prasadam Seva', 'Bhog Naivedya Seva', 'Vastra Prasadam', 'Siddh Vastue', 'Other Seva'],
-            ],
-        ];
+            ]
+        );
 
-        foreach ($gurujis as $guruData) {
-            $cats = $guruData['categories'];
-            unset($guruData['categories']);
+        // Sync all donation categories to Mayank
+        $catIds = collect($categoryModels)
+            ->map(fn ($m) => $m->id)
+            ->mapWithKeys(fn ($id) => [$id => ['status' => 'active']])
+            ->toArray();
 
-            $guru = Guru::updateOrCreate(
-                ['name' => $guruData['name']],
-                array_filter($guruData, fn ($v) => $v !== null)
-            );
+        $mayank->donationCategories()->sync($catIds);
 
-            // Sync donation categories
-            $catIds = collect($cats)
-                ->map(fn ($name) => $categoryModels[$name]->id ?? null)
-                ->filter()
-                ->mapWithKeys(fn ($id) => [$id => ['status' => 'active']])
-                ->toArray();
+        // ── Assign all services to Mayank ─────────────────────────────────────
+        Service::query()->update(['guru_id' => $mayank->id]);
 
-            $guru->donationCategories()->sync($catIds);
-        }
-
-        // ── Link services to Gurujis ─────────────────────────────────────────
-        // Services store names in JSON translations column — match via JSON_EXTRACT.
-        $serviceMap = [
-            'Pt. Mayank'           => ['Shobhagya Laxmi Poojan', 'Mahavrat Kalp Anushthan'],
-            'Acharya Suresh Joshi' => ['Lalita Sahastrachan', 'Lalita Astottar Pooja'],
-            'Pt. Dinesh Trivedi'   => ['Shree Yantra Abhishek'],
-            'Pt. Gopal Das'        => ['Shobhagya Laxmi Poojan', 'Lalita Astottar Pooja'],
-        ];
-
-        foreach ($serviceMap as $guruName => $serviceNames) {
-            $guru = Guru::where('name', $guruName)->first();
-            if (! $guru) {
-                continue;
-            }
-            foreach ($serviceNames as $serviceName) {
-                // JSON_UNQUOTE is MySQL-only; PHP-side filter for SQLite compatibility
-                Service::all()
-                    ->filter(function ($s) use ($serviceName) {
-                        $t = is_array($s->translations) ? $s->translations : json_decode($s->translations ?? '{}', true);
-                        return ($t['en']['name'] ?? null) === $serviceName;
-                    })
-                    ->each(fn ($s) => $s->update(['guru_id' => $guru->id]));
-            }
-        }
-
-        $this->command->info('GurujiSeeder: ' . count($gurujis) . ' gurujis and ' . count($categories) . ' donation categories inserted/updated.');
+        $this->command->info('GurujiSeeder: Mayank set as sole Guruji with all services and donation categories.');
     }
 }
