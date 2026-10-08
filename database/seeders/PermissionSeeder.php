@@ -41,7 +41,7 @@ class PermissionSeeder extends Seeder
         // Support: view most; edit appointments/clients/notifications; no delete; no pricing
         $support->syncPermissions($this->supportPermissions());
 
-        // Guruji: own profile area + mataji orders + limited store view
+        // Guruji: own profile area + mataji orders + limited store view + articles
         $guruji->syncPermissions($this->gurujIPermissions());
 
         // Vendor: own products + inventory (row-level scoping handled in controller)
@@ -92,6 +92,8 @@ class PermissionSeeder extends Seeder
             'panchang.view', 'api-docs.view',
             // App Content
             'promotions.view', 'promotions.create', 'promotions.update', 'promotions.delete', 'promotions.restore',
+            // Articles
+            'articles.view', 'articles.create', 'articles.update', 'articles.delete', 'articles.restore',
             // Locations
             'locations.view', 'locations.create', 'locations.update',
             // Mataji orders
@@ -135,6 +137,8 @@ class PermissionSeeder extends Seeder
             'mataji-orders.view', 'mataji-orders.create', 'mataji-orders.update', 'mataji-orders.delete', 'mataji-orders.restore',
             'donations.view',
             'notifications.view',
+            // Articles (guruji can create their own content)
+            'articles.view', 'articles.create', 'articles.update',
         ];
     }
 }

@@ -52,4 +52,7 @@ return [
 
     // ── App Content / Promotions ─────────────────────────────────────────────
     'promotions' => ['view', 'create', 'update', 'delete', 'restore'],
+
+    // ── Articles / Blog ───────────────────────────────────────────────────────
+    'articles' => ['view', 'create', 'update', 'delete', 'restore'],
 ];

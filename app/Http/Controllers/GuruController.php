@@ -45,11 +45,23 @@ class GuruController extends Controller
             'categories' => ['nullable', 'array'],
             'categories.*' => ['integer', 'exists:donation_categories,id'],
             'image' => ['nullable', 'image', 'max:5120'],
+            'background_image' => ['nullable', 'image', 'max:5120'],
+            'gallery_new.*' => ['nullable', 'image', 'max:5120'],
         ]);
 
         if ($request->hasFile('image')) {
             $data['image'] = $request->file('image')->store('gurus', 'public');
         }
+
+        if ($request->hasFile('background_image')) {
+            $data['background_image'] = $request->file('background_image')->store('gurus/bg', 'public');
+        }
+
+        $gallery = [];
+        foreach ($request->file('gallery_new', []) as $file) {
+            $gallery[] = $file->store('gurus/gallery', 'public');
+        }
+        $data['gallery'] = $gallery ?: null;
 
         $guru = Guru::create($data);
 
@@ -88,11 +100,11 @@ class GuruController extends Controller
         $guru->load('donationCategories');
 
         return view('gurus.edit', [
-            'guru'             => $guru,
-            'categories'       => DonationCategory::active()->orderBy('name')->get(),
-            'assigned'         => $guru->donationCategories->pluck('id')->toArray(),
-            'gurujiUsers'      => User::whereIn('role', ['guruji'])->orderBy('name')->get(['id', 'name', 'email']),
-            'allServices'      => Service::orderBy('id')->get(),
+            'guru' => $guru,
+            'categories' => DonationCategory::active()->orderBy('name')->get(),
+            'assigned' => $guru->donationCategories->pluck('id')->toArray(),
+            'gurujiUsers' => User::whereIn('role', ['guruji'])->orderBy('name')->get(['id', 'name', 'email']),
+            'allServices' => Service::orderBy('id')->get(),
             'assignedServices' => Service::where('guru_id', $guru->id)->pluck('id')->toArray(),
         ]);
     }
@@ -102,13 +114,16 @@ class GuruController extends Controller
         Gate::authorize('manage-appointments');
 
         $data = $request->validate([
-            'name'        => ['required', 'string', 'max:150'],
+            'name' => ['required', 'string', 'max:150'],
             'description' => ['nullable', 'string', 'max:2000'],
-            'status'      => ['required', 'in:active,inactive'],
-            'user_id'     => ['nullable', 'exists:users,id'],
-            'categories'  => ['nullable', 'array'],
+            'status' => ['required', 'in:active,inactive'],
+            'user_id' => ['nullable', 'exists:users,id'],
+            'categories' => ['nullable', 'array'],
             'categories.*' => ['integer', 'exists:donation_categories,id'],
-            'image'       => ['nullable', 'image', 'max:5120'],
+            'image' => ['nullable', 'image', 'max:5120'],
+            'background_image' => ['nullable', 'image', 'max:5120'],
+            'gallery_new.*' => ['nullable', 'image', 'max:5120'],
+            'removed_gallery' => ['nullable', 'string'],
         ]);
 
         if ($request->hasFile('image')) {
@@ -117,6 +132,25 @@ class GuruController extends Controller
             }
             $data['image'] = $request->file('image')->store('gurus', 'public');
         }
+
+        if ($request->hasFile('background_image')) {
+            if ($guru->background_image) {
+                Storage::disk('public')->delete($guru->background_image);
+            }
+            $data['background_image'] = $request->file('background_image')->store('gurus/bg', 'public');
+        }
+
+        // Gallery: start from existing, remove flagged, append new uploads
+        $existing = $guru->gallery ?? [];
+        $removed = array_filter(explode(',', $data['removed_gallery'] ?? ''));
+        foreach ($removed as $path) {
+            Storage::disk('public')->delete($path);
+            $existing = array_values(array_filter($existing, fn ($p) => $p !== $path));
+        }
+        foreach ($request->file('gallery_new', []) as $file) {
+            $existing[] = $file->store('gurus/gallery', 'public');
+        }
+        $data['gallery'] = $existing ?: null;
 
         // Allow explicitly clearing the user link when "None" is selected.
         $data['user_id'] = $data['user_id'] ?? null;

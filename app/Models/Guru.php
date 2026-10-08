@@ -7,11 +7,14 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use App\Models\Service;
 
 class Guru extends Model
 {
-    protected $fillable = ['user_id', 'name', 'description', 'image', 'status'];
+    protected $fillable = ['user_id', 'name', 'description', 'image', 'background_image', 'gallery', 'status'];
+
+    protected $casts = [
+        'gallery' => 'array',
+    ];
 
     // ── Relationships ────────────────────────────────────────────────────────
 

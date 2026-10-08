@@ -97,6 +97,57 @@
             </div>
         </div>
 
+        {{-- Background Photo --}}
+        <div class="gf-section">
+            <h2 class="gf-title"><span>🌅</span> Background / Cover Photo</h2>
+            <p style="color:#9a8070;font-size:13px;margin:0 0 14px">Wide banner image shown at the top of the Guruji's profile page in the app. Recommended: 1200×400 px or wider.</p>
+            @if($isEdit && $guru->background_image)
+            <div id="bg-current" style="margin-bottom:12px">
+                <img src="{{ Storage::disk('public')->url($guru->background_image) }}" style="width:100%;max-height:160px;object-fit:cover;border-radius:10px;border:1px solid #e8ddd0" alt="Background photo">
+                <p style="font-size:12px;color:#9a8070;margin:6px 0 0">Upload a new image below to replace it.</p>
+            </div>
+            @endif
+            <div class="img-drop" id="bg-drop" onclick="document.getElementById('bg-img-input').click()">
+                <span style="font-size:28px;color:#d0a080">🌅</span>
+                <p style="margin:0;color:#9a8070;font-size:13px">Click or drag background image here</p>
+                <small style="color:#c0a888;font-size:11px">JPG, PNG · max 5 MB</small>
+            </div>
+            <img id="bg-preview" src="" style="display:none;width:100%;max-height:160px;object-fit:cover;border-radius:10px;border:1px solid #e8813a;margin-top:10px" alt="">
+            <input type="file" id="bg-img-input" name="background_image" accept="image/*" style="display:none" onchange="previewBg(this)">
+            @error('background_image')<span class="gf-error">{{ $message }}</span>@enderror
+        </div>
+
+        {{-- Gallery --}}
+        <div class="gf-section">
+            <h2 class="gf-title"><span>🖼</span> Photo Gallery</h2>
+            <p style="color:#9a8070;font-size:13px;margin:0 0 14px">Multiple photos shown in the Guruji's gallery carousel in the app. You can add more or remove existing ones.</p>
+
+            {{-- Existing gallery thumbnails --}}
+            @if($isEdit && !empty($guru->gallery))
+            <div id="gallery-existing" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+                @foreach($guru->gallery as $gPath)
+                <div class="gallery-thumb" data-path="{{ $gPath }}" style="position:relative;width:100px;height:100px;border-radius:10px;overflow:hidden;border:2px solid #e8ddd0">
+                    <img src="{{ Storage::disk('public')->url($gPath) }}" style="width:100%;height:100%;object-fit:cover" alt="">
+                    <button type="button" onclick="removeGalleryItem(this)" style="position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;background:#1b2240cc;border:0;color:#fff;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1">×</button>
+                </div>
+                @endforeach
+            </div>
+            @endif
+
+            {{-- Hidden field tracking removed paths --}}
+            <input type="hidden" name="removed_gallery" id="removed-gallery-input" value="">
+
+            {{-- New uploads drop zone --}}
+            <div class="img-drop" id="gallery-drop" onclick="document.getElementById('gallery-new-input').click()">
+                <span style="font-size:28px;color:#d0a080">🖼</span>
+                <p style="margin:0;color:#9a8070;font-size:13px">Click or drag to add gallery photos</p>
+                <small style="color:#c0a888;font-size:11px">Multiple files · JPG, PNG · max 5 MB each</small>
+            </div>
+            <div id="gallery-new-previews" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px"></div>
+            <input type="file" id="gallery-new-input" name="gallery_new[]" accept="image/*" multiple style="display:none" onchange="previewGalleryNew(this)">
+            @error('gallery_new.*')<span class="gf-error">{{ $message }}</span>@enderror
+        </div>
+
         {{-- Donation categories --}}
         <div class="gf-section">
             <h2 class="gf-title"><span>❧</span> Donation Categories</h2>
@@ -180,6 +231,8 @@ function removeImg() {
 function toggleCat(id, checked) {
     document.getElementById('cat-lbl-' + id).classList.toggle('checked', checked);
 }
+
+// ── Profile photo drag-drop ──────────────────────────────────────────────────
 const drop = document.getElementById('guru-drop');
 drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('drag-over'); });
 drop.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
@@ -191,5 +244,84 @@ drop.addEventListener('drop', e => {
         document.getElementById('guru-img').files = dt.files;
         previewImg(document.getElementById('guru-img'));
     }
+});
+
+// ── Background photo preview ─────────────────────────────────────────────────
+function previewBg(input) {
+    if (!input.files[0]) return;
+    const prev = document.getElementById('bg-preview');
+    prev.src = URL.createObjectURL(input.files[0]);
+    prev.style.display = 'block';
+    document.getElementById('bg-drop').style.display = 'none';
+}
+const bgDrop = document.getElementById('bg-drop');
+bgDrop.addEventListener('dragover', e => { e.preventDefault(); bgDrop.classList.add('drag-over'); });
+bgDrop.addEventListener('dragleave', () => bgDrop.classList.remove('drag-over'));
+bgDrop.addEventListener('drop', e => {
+    e.preventDefault(); bgDrop.classList.remove('drag-over');
+    const f = e.dataTransfer.files[0];
+    if (f && f.type.startsWith('image/')) {
+        const dt = new DataTransfer(); dt.items.add(f);
+        const inp = document.getElementById('bg-img-input');
+        inp.files = dt.files;
+        previewBg(inp);
+    }
+});
+
+// ── Gallery: remove existing item ────────────────────────────────────────────
+function removeGalleryItem(btn) {
+    const thumb = btn.closest('.gallery-thumb');
+    const path  = thumb.dataset.path;
+    const hiddenInput = document.getElementById('removed-gallery-input');
+    const current = hiddenInput.value ? hiddenInput.value.split(',') : [];
+    current.push(path);
+    hiddenInput.value = current.join(',');
+    thumb.style.opacity = '0';
+    thumb.style.transition = 'opacity .2s';
+    setTimeout(() => thumb.remove(), 220);
+}
+
+// ── Gallery: preview new uploads ─────────────────────────────────────────────
+let galleryNewFiles = [];
+function previewGalleryNew(input) {
+    const container = document.getElementById('gallery-new-previews');
+    Array.from(input.files).forEach(file => {
+        galleryNewFiles.push(file);
+        const wrap = document.createElement('div');
+        wrap.style.cssText = 'position:relative;width:100px;height:100px;border-radius:10px;overflow:hidden;border:2px solid #e8813a';
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        img.style.cssText = 'width:100%;height:100%;object-fit:cover';
+        const rmBtn = document.createElement('button');
+        rmBtn.type = 'button';
+        rmBtn.textContent = '×';
+        rmBtn.style.cssText = 'position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;background:#1b2240cc;border:0;color:#fff;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center';
+        rmBtn.addEventListener('click', () => {
+            galleryNewFiles = galleryNewFiles.filter(f => f !== file);
+            rebuildGalleryInput();
+            wrap.remove();
+        });
+        wrap.appendChild(img); wrap.appendChild(rmBtn);
+        container.appendChild(wrap);
+    });
+    rebuildGalleryInput();
+}
+function rebuildGalleryInput() {
+    const dt = new DataTransfer();
+    galleryNewFiles.forEach(f => dt.items.add(f));
+    document.getElementById('gallery-new-input').files = dt.files;
+}
+const galleryDrop = document.getElementById('gallery-drop');
+galleryDrop.addEventListener('dragover', e => { e.preventDefault(); galleryDrop.classList.add('drag-over'); });
+galleryDrop.addEventListener('dragleave', () => galleryDrop.classList.remove('drag-over'));
+galleryDrop.addEventListener('drop', e => {
+    e.preventDefault(); galleryDrop.classList.remove('drag-over');
+    const files = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+    if (!files.length) return;
+    const dt = new DataTransfer();
+    files.forEach(f => dt.items.add(f));
+    const inp = document.getElementById('gallery-new-input');
+    inp.files = dt.files;
+    previewGalleryNew(inp);
 });
 </script>

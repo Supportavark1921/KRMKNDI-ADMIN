@@ -156,12 +156,17 @@
                 @endcanany
 
                 {{-- App Content --}}
-                @can('promotions.view')
+                @canany(['promotions.view','articles.view'])
                 <span class="sidebar-label" style="margin-top:18px">App Content</span>
                 <nav class="sidebar-nav">
+                    @can('promotions.view')
                     <a class="{{ request()->routeIs('admin.promotions.*') ? 'active' : '' }}" href="{{ route('admin.promotions.index') }}"><span>📣</span> Promotions</a>
+                    @endcan
+                    @can('articles.view')
+                    <a class="{{ request()->routeIs('admin.articles.*') ? 'active' : '' }}" href="{{ route('admin.articles.index') }}"><span>📰</span> Articles</a>
+                    @endcan
                 </nav>
-                @endcan
+                @endcanany
 
                 {{-- Vastra Store --}}
                 @can('products.view')

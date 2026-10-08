@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\GuruController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OpenApiController;
 use App\Http\Controllers\Api\PanchangController;
+use App\Http\Controllers\Api\ArticleApiController;
 use App\Http\Controllers\Api\PromotionsApiController;
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\OrderController;
@@ -36,6 +37,10 @@ Route::get('/v1/panchang', [PanchangController::class, 'show']);
 
 // Promotions
 Route::get('/v1/promotions', [PromotionsApiController::class, 'index']);
+
+// Articles / Blog
+Route::get('/v1/articles', [ArticleApiController::class, 'index']);
+Route::get('/v1/articles/{article}', [ArticleApiController::class, 'show']);
 
 // Samagri (shop)
 Route::prefix('v1/samagri')->name('samagri.')->group(function () {
