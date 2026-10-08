@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\DeviceToken;
 use App\Models\OtpCode;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -50,6 +51,7 @@ class AuthController extends Controller
             'phoneNumber' => ['required', 'string'],
             'otp'         => ['required', 'string', 'size:6'],
             'challengeId' => ['required', 'string'],
+            'fcm_token'   => ['sometimes', 'nullable', 'string', 'max:500'],
         ]);
 
         $phone = $request->input('phoneNumber');
@@ -76,6 +78,14 @@ class AuthController extends Controller
 
         $user->phone_verified_at = now();
         $user->save();
+
+        // Link FCM device token to this user if provided.
+        if ($fcmToken = $request->input('fcm_token')) {
+            DeviceToken::updateOrCreate(
+                ['token' => $fcmToken],
+                ['user_id' => $user->id, 'platform' => 'android'],
+            );
+        }
 
         // Revoke any previous mobile tokens for this user.
         $user->tokens()->where('name', 'mobile')->delete();
