@@ -62,17 +62,21 @@
             <label class="form-label" id="cta_value_label">CTA value</label>
 
             {{-- Product picker --}}
-            <select name="cta_value" id="cta_val_product" class="form-input cta-val-field" style="display:none">
-                <option value="">— Select product —</option>
-                @foreach($ctaProducts as $p)
-                    <option value="{{ $p->id }}" @selected(old('cta_value', $promotion->cta_value ?? '') == $p->id && old('cta_type', $promotion->cta_type ?? '') === 'product')>
-                        [{{ $p->product_code }}] {{ $p->name }}
-                    </option>
-                @endforeach
-            </select>
+            <div id="cta_val_product_wrap" class="cta-val-field" style="display:none">
+                <input type="text" id="product_search" class="form-input" placeholder="Search product…"
+                    style="margin-bottom:6px" oninput="filterOptions('cta_val_product', this.value)">
+                <select name="cta_value" id="cta_val_product" class="form-input" size="6" style="height:auto">
+                    <option value="">— Select product —</option>
+                    @foreach($ctaProducts as $p)
+                        <option value="{{ $p->id }}" @selected(old('cta_value', $promotion->cta_value ?? '') == $p->id && old('cta_type', $promotion->cta_type ?? '') === 'product')>
+                            [{{ $p->product_code }}] {{ $p->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
 
             {{-- Category picker --}}
-            <select name="cta_value" id="cta_val_category" class="form-input cta-val-field" style="display:none">
+            <select name="cta_value" id="cta_val_category" class="form-input cta-val-field" size="6" style="display:none;height:auto">
                 <option value="">— Select category —</option>
                 @foreach($ctaCategories as $cat)
                     <option value="{{ $cat->id }}" @selected(old('cta_value', $promotion->cta_value ?? '') == $cat->id && old('cta_type', $promotion->cta_type ?? '') === 'category')>
@@ -82,7 +86,7 @@
             </select>
 
             {{-- Service/Pooja picker --}}
-            <select name="cta_value" id="cta_val_pooja" class="form-input cta-val-field" style="display:none">
+            <select name="cta_value" id="cta_val_pooja" class="form-input cta-val-field" size="5" style="display:none;height:auto">
                 <option value="">— Select service —</option>
                 @foreach($ctaServices as $svc)
                 @php
@@ -96,7 +100,7 @@
             </select>
 
             {{-- Mataji picker --}}
-            <select name="cta_value" id="cta_val_mataji" class="form-input cta-val-field" style="display:none">
+            <select name="cta_value" id="cta_val_mataji" class="form-input cta-val-field" style="display:none;height:auto">
                 <option value="">— Select Mataji —</option>
                 @foreach($ctaMatajis as $m)
                     <option value="{{ $m->id }}" @selected(old('cta_value', $promotion->cta_value ?? '') == $m->id && old('cta_type', $promotion->cta_type ?? '') === 'mataji')>
@@ -106,7 +110,7 @@
             </select>
 
             {{-- URL input --}}
-            <input type="url" name="cta_value" id="cta_val_url" class="form-input cta-val-field" style="display:none"
+            <input type="url" name="cta_value" id="cta_val_url" class="form-input cta-val-field" disabled style="display:none"
                 value="{{ old('cta_type', $promotion->cta_type ?? '') === 'url' ? old('cta_value', $promotion->cta_value ?? '') : '' }}"
                 placeholder="https://…">
 
@@ -175,23 +179,47 @@ const CTA_LABELS = {
     url:      'URL',
 };
 
+// Maps cta_type → the element id to show (wrapper div or input)
+const CTA_FIELD_MAP = {
+    product:  'cta_val_product_wrap',
+    category: 'cta_val_category',
+    pooja:    'cta_val_pooja',
+    mataji:   'cta_val_mataji',
+    url:      'cta_val_url',
+};
+
+// All selects/inputs that carry name="cta_value" — disable the hidden ones so they don't submit
+const CTA_SUBMIT_IDS = ['cta_val_product', 'cta_val_category', 'cta_val_pooja', 'cta_val_mataji', 'cta_val_url'];
+
 function switchCta(type) {
-    // Hide all value fields first
-    document.querySelectorAll('.cta-val-field').forEach(el => {
-        el.style.display = 'none';
-        el.disabled = true;
-    });
+    // Hide all wrapper elements
+    document.querySelectorAll('.cta-val-field').forEach(el => el.style.display = 'none');
+    // Disable all submittable fields
+    CTA_SUBMIT_IDS.forEach(id => { const el = document.getElementById(id); if (el) el.disabled = true; });
+
     document.getElementById('cta_value_group').style.display = type === 'none' ? 'none' : '';
     if (type === 'none') return;
 
-    const fieldId = 'cta_val_' + type;
-    const field = document.getElementById(fieldId);
-    if (field) {
-        field.style.display = '';
-        field.disabled = false;
+    const wrapperId = CTA_FIELD_MAP[type];
+    if (wrapperId) {
+        const wrapper = document.getElementById(wrapperId);
+        if (wrapper) wrapper.style.display = '';
     }
+    // Enable just the submit field for this type
+    const submitEl = document.getElementById('cta_val_' + type);
+    if (submitEl) submitEl.disabled = false;
+
     const lbl = document.getElementById('cta_value_label');
     if (lbl) lbl.textContent = (CTA_LABELS[type] || 'Value') + ' *';
+}
+
+function filterOptions(selectId, query) {
+    const sel = document.getElementById(selectId);
+    if (!sel) return;
+    const q = query.toLowerCase();
+    Array.from(sel.options).forEach(opt => {
+        opt.hidden = q && !opt.text.toLowerCase().includes(q);
+    });
 }
 
 document.getElementById('cta_type')?.addEventListener('change', function () {
