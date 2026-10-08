@@ -14,7 +14,7 @@ class Appointment extends Model
         'user_id', 'guru_id', 'service_id', 'service',
         'name', 'appointment_date', 'appointment_time',
         'phone', 'notes', 'status',
-        'total_amount', 'payment_id', 'samagri',
+        'total_amount', 'payment_id', 'payment_status', 'payment_screenshot', 'samagri',
     ];
 
     protected function casts(): array

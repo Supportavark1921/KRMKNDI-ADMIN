@@ -11,7 +11,7 @@ class Donation extends Model
     protected $fillable = [
         'donation_id', 'user_id', 'guru_id', 'category_id',
         'donation_amount', 'handling_charge', 'gst_rate', 'gst_amount', 'total_amount',
-        'currency', 'payment_status', 'payment_id', 'transaction_id', 'payment_method',
+        'currency', 'payment_status', 'payment_id', 'transaction_id', 'payment_method', 'payment_screenshot',
     ];
 
     const STATUSES = ['pending', 'success', 'failed', 'cancelled', 'refunded'];

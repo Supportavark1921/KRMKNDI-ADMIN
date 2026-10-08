@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\OpenApiController;
 use App\Http\Controllers\Api\PanchangController;
 use App\Http\Controllers\Api\ArticleApiController;
+use App\Http\Controllers\Api\PaymentScreenshotController;
 use App\Http\Controllers\Api\PromotionsApiController;
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\OrderController;
@@ -89,6 +90,13 @@ Route::get('/donation-categories/{category}', [DonationController::class, 'categ
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/donations',  [DonationController::class, 'index']);
     Route::post('/donations', [DonationController::class, 'store']);
+});
+
+// Payment screenshot uploads (auth required)
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/v1/appointments/{appointment}/payment-screenshot', [PaymentScreenshotController::class, 'appointment']);
+    Route::post('/v1/donations/{donation}/payment-screenshot',       [PaymentScreenshotController::class, 'donation']);
+    Route::post('/v1/orders/{order}/payment-screenshot',             [PaymentScreenshotController::class, 'order']);
 });
 
 // FCM device token — public POST so anonymous (pre-login) devices can register.
