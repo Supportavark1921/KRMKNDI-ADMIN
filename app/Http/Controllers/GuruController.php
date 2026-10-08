@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\DonationCategory;
 use App\Models\Guru;
+use App\Models\Service;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -87,10 +88,12 @@ class GuruController extends Controller
         $guru->load('donationCategories');
 
         return view('gurus.edit', [
-            'guru'       => $guru,
-            'categories' => DonationCategory::active()->orderBy('name')->get(),
-            'assigned'   => $guru->donationCategories->pluck('id')->toArray(),
-            'gurujiUsers' => User::whereIn('role', ['guruji'])->orderBy('name')->get(['id', 'name', 'email']),
+            'guru'             => $guru,
+            'categories'       => DonationCategory::active()->orderBy('name')->get(),
+            'assigned'         => $guru->donationCategories->pluck('id')->toArray(),
+            'gurujiUsers'      => User::whereIn('role', ['guruji'])->orderBy('name')->get(['id', 'name', 'email']),
+            'allServices'      => Service::orderBy('id')->get(),
+            'assignedServices' => Service::where('guru_id', $guru->id)->pluck('id')->toArray(),
         ]);
     }
 
@@ -120,6 +123,13 @@ class GuruController extends Controller
 
         $guru->update($data);
         $guru->donationCategories()->sync($data['categories'] ?? []);
+
+        // Re-assign services: null out previously linked ones, then set the checked ones
+        Service::where('guru_id', $guru->id)->update(['guru_id' => null]);
+        $serviceIds = array_filter(array_map('intval', $request->input('service_ids', [])));
+        if ($serviceIds) {
+            Service::whereIn('id', $serviceIds)->update(['guru_id' => $guru->id]);
+        }
 
         return redirect()->route('gurus.index')->with('success', 'Guruji updated.');
     }

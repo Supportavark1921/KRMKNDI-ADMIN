@@ -116,6 +116,33 @@
             @endif
         </div>
 
+        {{-- Services (edit only) --}}
+        @isset($allServices)
+        <div class="gf-section">
+            <h2 class="gf-title"><span>🪔</span> Linked Services</h2>
+            <p style="color:#9a8070;font-size:13px;margin:0 0 14px">Select which puja/anushthan services this Guruji performs.</p>
+            @if($allServices->isEmpty())
+                <p style="color:#c0a888;font-size:13px;margin:0">No services found.</p>
+            @else
+                <div style="display:flex;flex-wrap:wrap;gap:10px">
+                    @foreach($allServices as $svc)
+                    @php
+                        $t = is_array($svc->translations) ? $svc->translations : json_decode($svc->translations ?? '{}', true);
+                        $sName = $t['en']['name'] ?? $t['hi']['name'] ?? 'Service #'.$svc->id;
+                        $checked = in_array($svc->id, $assignedServices ?? []);
+                    @endphp
+                    <label class="cat-check {{ $checked ? 'checked' : '' }}" id="svc-lbl-{{ $svc->id }}">
+                        <input type="checkbox" name="service_ids[]" value="{{ $svc->id }}"
+                               {{ $checked ? 'checked' : '' }}
+                               onchange="document.getElementById('svc-lbl-{{ $svc->id }}').classList.toggle('checked', this.checked)">
+                        <span>{{ $sName }}</span>
+                    </label>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+        @endisset
+
         {{-- Status --}}
         <div class="gf-section">
             <h2 class="gf-title"><span>⚙</span> Status</h2>
