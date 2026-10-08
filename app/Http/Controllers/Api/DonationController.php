@@ -6,11 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\Donation;
 use App\Models\DonationCategory;
 use App\Models\DonationFeeConfig;
+use App\Services\FcmService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class DonationController extends Controller
 {
+    public function __construct(private readonly FcmService $fcm) {}
     /** GET /api/donations — authenticated user's donation history */
     public function index(\Illuminate\Http\Request $request): JsonResponse
     {
@@ -109,8 +111,30 @@ class DonationController extends Controller
             'payment_method' => $data['payment_method'] ?? null,
         ]);
 
+        $donation->load(['guru', 'category']);
+
+        if ($donation->user_id) {
+            $guruName = $donation->guru->name ?? 'Guruji';
+            $amount = '₹'.number_format($donation->total_amount, 0);
+            if ($data['payment_status'] === 'success') {
+                $this->fcm->sendToUsers(
+                    [$donation->user_id],
+                    '🙏 Donation Successful',
+                    "Thank you! Your donation of {$amount} to {$guruName} was received.",
+                    ['type' => 'donation', 'id' => (string) $donation->id],
+                );
+            } elseif ($data['payment_status'] === 'failed') {
+                $this->fcm->sendToUsers(
+                    [$donation->user_id],
+                    '❌ Donation Failed',
+                    "Your donation of {$amount} could not be processed. Please try again.",
+                    ['type' => 'donation', 'id' => (string) $donation->id],
+                );
+            }
+        }
+
         return response()->json([
-            'data' => $this->formatDonation($donation->load(['guru', 'category'])),
+            'data' => $this->formatDonation($donation),
             'created' => true,
         ], 201);
     }

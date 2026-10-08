@@ -8,6 +8,7 @@ use App\Models\Service;
 use App\Models\User;
 use App\Notifications\AppointmentRequested;
 use App\Notifications\AppointmentStatusChanged;
+use App\Services\FcmService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -15,6 +16,7 @@ use Illuminate\View\View;
 
 class AppointmentController extends Controller
 {
+    public function __construct(private readonly FcmService $fcm) {}
     public function index(): View
     {
         $user = auth()->user();
@@ -87,6 +89,20 @@ class AppointmentController extends Controller
         $appointment->update($data);
         $appointment->load('user');
         $appointment->user->notify(new AppointmentStatusChanged($appointment));
+
+        $messages = [
+            'confirmed'  => 'Your appointment has been confirmed! ✅',
+            'completed'  => 'Your appointment is now complete.',
+            'cancelled'  => 'Your appointment has been cancelled.',
+        ];
+        if (isset($messages[$data['status']]) && $appointment->user_id) {
+            $this->fcm->sendToUsers(
+                [$appointment->user_id],
+                '📅 Appointment Update',
+                $messages[$data['status']],
+                ['type' => 'appointment', 'id' => (string) $appointment->id],
+            );
+        }
 
         return back()->with('success', 'Appointment status updated.');
     }

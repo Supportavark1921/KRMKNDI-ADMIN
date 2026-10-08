@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Services\FcmService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -11,6 +12,7 @@ use Illuminate\View\View;
 
 class SamagriOrderController extends Controller
 {
+    public function __construct(private readonly FcmService $fcm) {}
     private const STATUSES = ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'];
 
     public function index(Request $request): View
@@ -67,6 +69,22 @@ class SamagriOrderController extends Controller
             ->performedOn($samagriOrder)
             ->withProperties(['from' => $from, 'to' => $to])
             ->log('order_status_changed');
+
+        $messages = [
+            'confirmed'  => "Your order #{$samagriOrder->id} has been confirmed! ✅",
+            'processing' => "Your order #{$samagriOrder->id} is being processed.",
+            'shipped'    => "Your order #{$samagriOrder->id} has been shipped! 🚚",
+            'delivered'  => "Your order #{$samagriOrder->id} has been delivered. 📦",
+            'cancelled'  => "Your order #{$samagriOrder->id} has been cancelled.",
+        ];
+        if (isset($messages[$to]) && $samagriOrder->user_id) {
+            $this->fcm->sendToUsers(
+                [$samagriOrder->user_id],
+                '🛍️ Order Update',
+                $messages[$to],
+                ['type' => 'samagri_order', 'id' => (string) $samagriOrder->id],
+            );
+        }
 
         return back()->with('success', "Order #" . $samagriOrder->id . " marked as {$to}.");
     }

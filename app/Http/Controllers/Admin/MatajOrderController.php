@@ -7,6 +7,7 @@ use App\Models\Mataji;
 use App\Models\MatajOrder;
 use App\Models\MatajOrderItem;
 use App\Models\Product;
+use App\Services\FcmService;
 use App\Services\InventoryService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,6 +17,7 @@ use Illuminate\View\View;
 
 class MatajOrderController extends Controller
 {
+    public function __construct(private readonly FcmService $fcm) {}
     // ── List ─────────────────────────────────────────────────────────────────
 
     public function index(Request $request): View
@@ -175,6 +177,15 @@ class MatajOrderController extends Controller
             ]);
         });
 
+        if ($matajOrder->customer_user_id) {
+            $this->fcm->sendToUsers(
+                [$matajOrder->customer_user_id],
+                '✅ Order Confirmed',
+                "Your order #{$matajOrder->id} has been confirmed.",
+                ['type' => 'mataj_order', 'id' => (string) $matajOrder->id],
+            );
+        }
+
         return back()->with('success', 'Order confirmed and stock updated.');
     }
 
@@ -197,6 +208,15 @@ class MatajOrderController extends Controller
             }
             $matajOrder->update(['status' => 'cancelled']);
         });
+
+        if ($matajOrder->customer_user_id) {
+            $this->fcm->sendToUsers(
+                [$matajOrder->customer_user_id],
+                '❌ Order Cancelled',
+                "Your order #{$matajOrder->id} has been cancelled.",
+                ['type' => 'mataj_order', 'id' => (string) $matajOrder->id],
+            );
+        }
 
         return back()->with('success', 'Order cancelled.');
     }
