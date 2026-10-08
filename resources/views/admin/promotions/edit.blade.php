@@ -137,9 +137,49 @@ textarea.prm-input{resize:vertical}
                             @endforeach
                         </select>
                     </div>
-                    <div class="prm-field" id="ctaValueField">
-                        <label class="prm-label">CTA value</label>
-                        <input type="text" name="cta_value" value="{{ old('cta_value', $promotion->cta_value) }}" class="prm-input" placeholder="Product ID, URL, etc.">
+                    <div class="prm-field" id="ctaValueField" style="display:none">
+                        <label class="prm-label" id="ctaValueLabel">CTA value *</label>
+
+                        {{-- Product --}}
+                        <div id="cta_wrap_product" class="cta-wrap" style="display:none">
+                            <input type="text" id="productSearch" class="prm-input" placeholder="Search product…" style="margin-bottom:6px" oninput="filterCta('cta_sel_product',this.value)">
+                            <select name="cta_value" id="cta_sel_product" class="prm-input cta-select" size="5" style="height:auto" disabled>
+                                <option value="">— pick a product —</option>
+                                @foreach($ctaProducts as $p)
+                                <option value="{{ $p->id }}" @selected(old('cta_value',$promotion->cta_value) == $p->id && old('cta_type',$promotion->cta_type) === 'product')>[{{ $p->product_code }}] {{ $p->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        {{-- Category --}}
+                        <select name="cta_value" id="cta_sel_category" class="prm-input cta-select cta-wrap" size="6" style="height:auto;display:none" disabled>
+                            <option value="">— pick a category —</option>
+                            @foreach($ctaCategories as $cat)
+                            <option value="{{ $cat->id }}" @selected(old('cta_value',$promotion->cta_value) == $cat->id && old('cta_type',$promotion->cta_type) === 'category')>{{ $cat->parent_id ? '└ ' : '' }}{{ $cat->name }}</option>
+                            @endforeach
+                        </select>
+
+                        {{-- Pooja --}}
+                        <select name="cta_value" id="cta_sel_pooja" class="prm-input cta-select cta-wrap" size="5" style="height:auto;display:none" disabled>
+                            <option value="">— pick a service —</option>
+                            @foreach($ctaServices as $svc)
+                            @php $t=is_array($svc->translations)?$svc->translations:json_decode($svc->translations??'{}',true); $sName=$t['en']['name']??$t['hi']['name']??'Service #'.$svc->id; @endphp
+                            <option value="{{ $svc->id }}" @selected(old('cta_value',$promotion->cta_value) == $svc->id && old('cta_type',$promotion->cta_type) === 'pooja')>{{ $sName }}</option>
+                            @endforeach
+                        </select>
+
+                        {{-- Mataji --}}
+                        <select name="cta_value" id="cta_sel_mataji" class="prm-input cta-select cta-wrap" style="display:none" disabled>
+                            <option value="">— pick a Mataji —</option>
+                            @foreach($ctaMatajis as $m)
+                            <option value="{{ $m->id }}" @selected(old('cta_value',$promotion->cta_value) == $m->id && old('cta_type',$promotion->cta_type) === 'mataji')>{{ $m->name }}</option>
+                            @endforeach
+                        </select>
+
+                        {{-- URL --}}
+                        <input type="url" name="cta_value" id="cta_sel_url" class="prm-input cta-select cta-wrap"
+                            value="{{ old('cta_type',$promotion->cta_type) === 'url' ? old('cta_value',$promotion->cta_value) : '' }}"
+                            placeholder="https://…" style="display:none" disabled>
                     </div>
                     <div class="prm-field">
                         <label class="prm-label">Sort order</label>
@@ -173,18 +213,38 @@ textarea.prm-input{resize:vertical}
 
 <script>
 (function () {
+    const CTA_LABELS = { product:'Product', category:'Category', pooja:'Puja / Service', mataji:'Mataji', url:'URL' };
+    const CTA_WRAPS  = { product:'cta_wrap_product', category:'cta_sel_category', pooja:'cta_sel_pooja', mataji:'cta_sel_mataji', url:'cta_sel_url' };
+    const CTA_SELS   = ['cta_sel_product','cta_sel_category','cta_sel_pooja','cta_sel_mataji','cta_sel_url'];
+
+    function switchCta(type) {
+        document.querySelectorAll('.cta-wrap').forEach(el => { el.style.display = 'none'; });
+        CTA_SELS.forEach(id => { const el = document.getElementById(id); if (el) el.disabled = true; });
+        const fld = document.getElementById('ctaValueField');
+        fld.style.display = type === 'none' ? 'none' : '';
+        if (type === 'none') return;
+        const wrapId = CTA_WRAPS[type];
+        if (wrapId) { const w = document.getElementById(wrapId); if (w) w.style.display = ''; }
+        const selEl = document.getElementById('cta_sel_' + type);
+        if (selEl) selEl.disabled = false;
+        const lbl = document.getElementById('ctaValueLabel');
+        if (lbl) lbl.textContent = (CTA_LABELS[type] || 'CTA value') + ' *';
+    }
+
+    window.filterCta = function(id, q) {
+        const sel = document.getElementById(id); if (!sel) return;
+        q = q.toLowerCase();
+        Array.from(sel.options).forEach(o => { o.hidden = q && !o.text.toLowerCase().includes(q); });
+    };
+
     const cta = document.getElementById('ctaType');
-    const fld = document.getElementById('ctaValueField');
-    function toggle() { fld.style.display = cta.value === 'none' ? 'none' : ''; }
-    cta.addEventListener('change', toggle);
-    toggle();
+    cta.addEventListener('change', () => switchCta(cta.value));
+    switchCta(cta.value);
 
     document.getElementById('imgInput').addEventListener('change', function () {
-        const f = this.files[0];
-        if (!f) return;
+        const f = this.files[0]; if (!f) return;
         const prev = document.getElementById('imgPreview');
-        prev.src = URL.createObjectURL(f);
-        prev.style.display = '';
+        prev.src = URL.createObjectURL(f); prev.style.display = '';
     });
 })();
 </script>
