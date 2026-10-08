@@ -10,11 +10,21 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Guru extends Model
 {
-    protected $fillable = ['user_id', 'name', 'description', 'image', 'background_image', 'gallery', 'status'];
+    protected $fillable = ['user_id', 'name', 'description', 'translations', 'image', 'background_image', 'gallery', 'status'];
 
     protected $casts = [
         'gallery' => 'array',
+        'translations' => 'array',
     ];
+
+    public function translatedField(string $field, string $lang = 'en'): string
+    {
+        if ($lang !== 'en' && isset($this->translations[$lang][$field])) {
+            return $this->translations[$lang][$field];
+        }
+
+        return $this->{$field} ?? '';
+    }
 
     // ── Relationships ────────────────────────────────────────────────────────
 

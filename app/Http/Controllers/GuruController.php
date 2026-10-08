@@ -41,6 +41,8 @@ class GuruController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:150'],
             'description' => ['nullable', 'string', 'max:2000'],
+            'translations.hi.name' => ['nullable', 'string', 'max:150'],
+            'translations.hi.description' => ['nullable', 'string', 'max:2000'],
             'status' => ['required', 'in:active,inactive'],
             'categories' => ['nullable', 'array'],
             'categories.*' => ['integer', 'exists:donation_categories,id'],
@@ -48,6 +50,13 @@ class GuruController extends Controller
             'background_image' => ['nullable', 'image', 'max:5120'],
             'gallery_new.*' => ['nullable', 'image', 'max:5120'],
         ]);
+
+        $data['translations'] = array_filter([
+            'hi' => array_filter([
+                'name' => $request->input('translations.hi.name'),
+                'description' => $request->input('translations.hi.description'),
+            ]),
+        ]) ?: null;
 
         if ($request->hasFile('image')) {
             $data['image'] = $request->file('image')->store('gurus', 'public');
@@ -116,6 +125,8 @@ class GuruController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:150'],
             'description' => ['nullable', 'string', 'max:2000'],
+            'translations.hi.name' => ['nullable', 'string', 'max:150'],
+            'translations.hi.description' => ['nullable', 'string', 'max:2000'],
             'status' => ['required', 'in:active,inactive'],
             'user_id' => ['nullable', 'exists:users,id'],
             'categories' => ['nullable', 'array'],
@@ -125,6 +136,13 @@ class GuruController extends Controller
             'gallery_new.*' => ['nullable', 'image', 'max:5120'],
             'removed_gallery' => ['nullable', 'string'],
         ]);
+
+        $data['translations'] = array_filter([
+            'hi' => array_filter([
+                'name' => $request->input('translations.hi.name'),
+                'description' => $request->input('translations.hi.description'),
+            ]),
+        ]) ?: null;
 
         if ($request->hasFile('image')) {
             if ($guru->image) {

@@ -80,6 +80,32 @@
             @endisset
         </div>
 
+        {{-- Hindi Translation --}}
+        <div class="gf-section">
+            <h2 class="gf-title"><span>🇮🇳</span> Hindi Translation <span style="font-size:12px;font-weight:500;color:#9a8070;text-transform:none;letter-spacing:0">(optional)</span></h2>
+            <p style="color:#9a8070;font-size:13px;margin:0 0 16px">These values are shown to app users when their language is set to Hindi. Leave blank to fall back to English.</p>
+            <div class="gf-row" style="margin-bottom:16px">
+                <div>
+                    <label class="gf-label">Name (Hindi)</label>
+                    <input type="text" name="translations[hi][name]" class="gf-input"
+                        value="{{ old('translations.hi.name', $guru->translations['hi']['name'] ?? '') }}"
+                        placeholder="e.g. श्री XYZ महाराज">
+                    @error('translations.hi.name')<span class="gf-error">{{ $message }}</span>@enderror
+                </div>
+                <div>
+                    <label class="gf-label">Name (English)</label>
+                    <input type="text" class="gf-input" value="{{ old('name', $guru->name ?? '') }}" disabled style="background:#f8f4f0;color:#9a8070;cursor:not-allowed" placeholder="(set above)">
+                    <span class="gf-help">Read-only reference — edit the English name in the section above.</span>
+                </div>
+            </div>
+            <div>
+                <label class="gf-label">Description (Hindi)</label>
+                <textarea name="translations[hi][description]" class="gf-textarea" rows="3"
+                    placeholder="हिन्दी में परिचय…">{{ old('translations.hi.description', $guru->translations['hi']['description'] ?? '') }}</textarea>
+                @error('translations.hi.description')<span class="gf-error">{{ $message }}</span>@enderror
+            </div>
+        </div>
+
         {{-- Photo --}}
         <div class="gf-section">
             <h2 class="gf-title"><span>📷</span> Profile Photo</h2>
