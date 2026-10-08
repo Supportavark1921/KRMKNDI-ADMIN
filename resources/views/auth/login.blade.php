@@ -4,7 +4,7 @@
 <main class="auth-page">
     <aside class="auth-art">
         <div class="brand">
-            <img src="{{ asset('images/krmknd-logo.png') }}" alt="krmknd" style="width:42px;height:42px;object-fit:cover;object-position:center 12%;border-radius:11px;">
+            <img src="{{ asset('images/krmknd-brand-logo.png') }}" alt="krmknd" style="height:42px;width:auto;object-fit:contain;">
             <span style="color:#ffd575;font-weight:700;letter-spacing:.04em">krmknd</span>
         </div>
         <div class="art-copy"><div class="eyebrow">Ancient wisdom, thoughtfully presented</div><h1>Find clarity in every constellation.</h1><p>Your personal space for a more mindful astrological journey.</p><div class="zodiac"><span>♈</span><span>♉</span><span>♊</span><span>♋</span></div></div>
