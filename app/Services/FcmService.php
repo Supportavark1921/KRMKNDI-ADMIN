@@ -55,8 +55,10 @@ class FcmService
         if (! config('firebase.project_id')) {
             return ['sent' => 0, 'failed' => count($tokens), 'error' => 'FIREBASE_PROJECT_ID is not set in .env'];
         }
-        if (! $this->accessToken()) {
-            return ['sent' => 0, 'failed' => count($tokens), 'error' => 'Firebase credentials file missing or invalid — check FIREBASE_CREDENTIALS in .env'];
+
+        ['token' => $accessToken, 'error' => $authError] = $this->accessToken();
+        if (! $accessToken) {
+            return ['sent' => 0, 'failed' => count($tokens), 'error' => $authError];
         }
 
         $sent = 0;
@@ -64,7 +66,7 @@ class FcmService
         $staleTokens = [];
 
         foreach ($tokens as $token) {
-            $result = $this->sendOne($token, $title, $body, $data, $options);
+            $result = $this->sendOne($token, $title, $body, $data, $options, $accessToken);
 
             if ($result === 'ok') {
                 $sent++;
@@ -85,21 +87,9 @@ class FcmService
     }
 
     /** @return 'ok'|'stale'|'error' */
-    private function sendOne(string $token, string $title, string $body, array $data, array $options = []): string
+    private function sendOne(string $token, string $title, string $body, array $data, array $options = [], string $accessToken = ''): string
     {
         $projectId = config('firebase.project_id');
-
-        if (! $projectId) {
-            Log::warning('[FCM] FIREBASE_PROJECT_ID not set — add FIREBASE_PROJECT_ID to .env');
-
-            return 'error';
-        }
-
-        $accessToken = $this->accessToken();
-        if (! $accessToken) {
-            // accessToken() already logged the specific reason
-            return 'error';
-        }
 
         $notification = ['title' => $title, 'body' => $body];
         if (! empty($options['image'])) {
@@ -147,14 +137,15 @@ class FcmService
         return 'error';
     }
 
-    private function accessToken(): string
+    /** @return array{token: string, error: string} */
+    private function accessToken(): array
     {
         $credentialsPath = config('firebase.credentials.file');
 
         if (! $credentialsPath) {
             Log::warning('[FCM] FIREBASE_CREDENTIALS not set in .env');
 
-            return '';
+            return ['token' => '', 'error' => 'FIREBASE_CREDENTIALS is not set in .env'];
         }
 
         // Resolve relative paths against the project root so both
@@ -164,25 +155,39 @@ class FcmService
         }
 
         if (! file_exists($credentialsPath)) {
-            Log::warning('[FCM] service account file not found at: '.$credentialsPath.
-                ' — check FIREBASE_CREDENTIALS in .env (use a path relative to project root or absolute)');
+            $msg = 'Firebase service account file not found at: '.$credentialsPath;
+            Log::warning('[FCM] '.$msg);
 
-            return '';
+            return ['token' => '', 'error' => $msg];
         }
 
-        // Load service account JSON directly — avoids needing GOOGLE_APPLICATION_CREDENTIALS env var.
         $json = json_decode(file_get_contents($credentialsPath), true);
+
+        if (! $json || ($json['type'] ?? '') !== 'service_account') {
+            $msg = 'Firebase credentials file is not a valid service account JSON: '.$credentialsPath;
+            Log::error('[FCM] '.$msg);
+
+            return ['token' => '', 'error' => $msg];
+        }
+
         $credentials = new ServiceAccountCredentials(
             'https://www.googleapis.com/auth/firebase.messaging',
             $json,
         );
 
         try {
-            return $credentials->fetchAuthToken()['access_token'] ?? '';
+            $token = $credentials->fetchAuthToken()['access_token'] ?? '';
+            if (! $token) {
+                Log::error('[FCM] fetchAuthToken returned empty access token');
+
+                return ['token' => '', 'error' => 'Google returned an empty access token — check the service account key is still valid'];
+            }
+
+            return ['token' => $token, 'error' => ''];
         } catch (\Exception $e) {
             Log::error('[FCM] failed to fetch access token: '.$e->getMessage());
 
-            return '';
+            return ['token' => '', 'error' => 'Google auth error: '.$e->getMessage()];
         }
     }
 }
