@@ -11,6 +11,7 @@
         .auth-art { position:relative; overflow:hidden; min-height:100%; padding:56px; color:#fff; background:radial-gradient(circle at 20% 25%, #835de6 0, transparent 32%), radial-gradient(circle at 72% 75%, #ee9c35 0, transparent 28%), linear-gradient(145deg,#101f3a 0%,#233f6e 52%,#5b3f91 100%); }
         .auth-art:before,.auth-art:after { content:""; position:absolute; border:1px solid rgba(255,255,255,.17); border-radius:50%; } .auth-art:before { width:560px; height:560px; right:-180px; top:-110px; } .auth-art:after { width:340px; height:340px; left:-125px; bottom:-120px; }
         .brand { position:relative; display:flex; align-items:center; gap:11px; font-size:18px; font-weight:750; letter-spacing:.02em; } .brand-mark { display:grid; place-items:center; width:35px; height:35px; border-radius:12px; background:linear-gradient(135deg,#ffd56c,#f49039); color:#432766; font-size:20px; }
+        .sidebar-logo-img { display:block; width:44px; height:44px; object-fit:cover; object-position:center 12%; border-radius:12px; }
         .art-copy { position:relative; z-index:1; max-width:490px; margin-top:18vh; } .eyebrow { color:#ffd779; font-size:12px; letter-spacing:.18em; text-transform:uppercase; font-weight:700; } h1 { margin:15px 0; font-size:clamp(38px,4vw,60px); line-height:1.04; letter-spacing:-.045em; } .art-copy p { max-width:405px; color:#dbe4f8; font-size:17px; line-height:1.6; }
         .zodiac { position:relative; z-index:1; display:grid; grid-template-columns:repeat(4,1fr); gap:10px; max-width:390px; margin-top:42px; } .zodiac span { padding:14px 10px; border:1px solid rgba(255,255,255,.18); border-radius:14px; background:rgba(255,255,255,.08); text-align:center; color:#ffe0a1; font-size:23px; }
         .auth-panel { display:flex; align-items:center; justify-content:center; padding:36px; background:var(--paper); } .form-wrap { width:min(100%,440px); } .form-wrap h2 { margin:0 0 8px; font-size:31px; letter-spacing:-.035em; } .subtext { margin:0 0 29px; color:var(--muted); }
@@ -89,7 +90,10 @@
     @auth
         <div class="app-shell">
             <aside class="sidebar">
-                <a class="sidebar-brand" href="{{ route('dashboard') }}"><span class="brand-mark">✦</span><span>ARK <b>Jyotish</b></span></a>
+                <a class="sidebar-brand" href="{{ route('dashboard') }}">
+                    <img src="{{ asset('images/krmknd-logo.png') }}" alt="krmknd" class="sidebar-logo-img">
+                    <span style="font-size:17px;letter-spacing:.04em;color:#ffd575;font-weight:700">krmknd</span>
+                </a>
                 <span class="sidebar-label">Workspace</span>
                 <nav class="sidebar-nav">
                     <a class="{{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}"><span>⌂</span> Dashboard</a>
