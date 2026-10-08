@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Article;
+use App\Services\FcmService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -13,6 +14,7 @@ use Illuminate\View\View;
 
 class ArticleController extends Controller
 {
+    public function __construct(private readonly FcmService $fcm) {}
     public function index(Request $request): View
     {
         Gate::authorize('articles.view');
@@ -64,7 +66,15 @@ class ArticleController extends Controller
             $data['published_at'] = now();
         }
 
-        Article::create($data);
+        $article = Article::create($data);
+
+        if ($article->status === 'published') {
+            $this->fcm->sendToAll(
+                '📰 New Article',
+                $article->title,
+                ['type' => 'article', 'id' => (string) $article->id, 'slug' => $article->slug],
+            );
+        }
 
         return redirect()->route('admin.articles.index')->with('success', 'Article created.');
     }
@@ -101,7 +111,17 @@ class ArticleController extends Controller
             $data['published_at'] = now();
         }
 
+        $wasPublished = $article->status === 'published';
         $article->update($data);
+
+        // Notify only on the first publish transition
+        if (! $wasPublished && $article->status === 'published') {
+            $this->fcm->sendToAll(
+                '📰 New Article',
+                $article->title,
+                ['type' => 'article', 'id' => (string) $article->id, 'slug' => $article->slug],
+            );
+        }
 
         return redirect()->route('admin.articles.index')->with('success', 'Article updated.');
     }

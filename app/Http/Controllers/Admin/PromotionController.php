@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Promotion;
+use App\Services\FcmService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -12,6 +13,7 @@ use Illuminate\View\View;
 
 class PromotionController extends Controller
 {
+    public function __construct(private readonly FcmService $fcm) {}
     public function index(Request $request): View
     {
         Gate::authorize('promotions.view');
@@ -64,7 +66,11 @@ class PromotionController extends Controller
             $data['image'] = $request->file('image')->store('promotions', 'public');
         }
 
-        Promotion::create($data);
+        $promotion = Promotion::create($data);
+
+        if ($promotion->status === 'active') {
+            $this->notifyPromotion($promotion);
+        }
 
         return redirect()->route('admin.promotions.index')->with('success', 'Promotion created.');
     }
@@ -90,7 +96,12 @@ class PromotionController extends Controller
             $data['image'] = $request->file('image')->store('promotions', 'public');
         }
 
+        $wasActive = $promotion->status === 'active';
         $promotion->update($data);
+
+        if (! $wasActive && $promotion->status === 'active') {
+            $this->notifyPromotion($promotion);
+        }
 
         return redirect()->route('admin.promotions.index')->with('success', 'Promotion updated.');
     }
@@ -115,6 +126,7 @@ class PromotionController extends Controller
     {
         Gate::authorize('promotions.update');
         $promotion->update(['status' => 'active', 'updated_by' => auth()->id()]);
+        $this->notifyPromotion($promotion);
 
         return back()->with('success', 'Promotion activated.');
     }
@@ -125,6 +137,17 @@ class PromotionController extends Controller
         $promotion->update(['status' => 'inactive', 'updated_by' => auth()->id()]);
 
         return back()->with('success', 'Promotion deactivated.');
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private function notifyPromotion(Promotion $promotion): void
+    {
+        $this->fcm->sendToAll(
+            '🎉 New Promotion',
+            $promotion->title,
+            ['type' => 'promotion', 'id' => (string) $promotion->id],
+        );
     }
 
     // ── AJAX ─────────────────────────────────────────────────────────────────
