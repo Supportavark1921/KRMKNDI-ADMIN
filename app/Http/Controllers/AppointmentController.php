@@ -78,6 +78,13 @@ class AppointmentController extends Controller
         $request->user()->notify(new AppointmentRequested($appointment));
         User::where('role', 'admin')->get()->each->notify(new AppointmentRequested($appointment));
 
+        $this->fcm->sendToUsers(
+            [$request->user()->id],
+            '📅 Appointment Requested',
+            'Your appointment request has been received. We will confirm it shortly.',
+            ['type' => 'appointment', 'id' => (string) $appointment->id],
+        );
+
         return redirect()->route('appointments.index')->with('success', 'Your appointment request has been sent to Pandit Ji.');
     }
 

@@ -116,18 +116,18 @@ class DonationController extends Controller
         if ($donation->user_id) {
             $guruName = $donation->guru->name ?? 'Guruji';
             $amount = '₹'.number_format($donation->total_amount, 0);
-            if ($data['payment_status'] === 'success') {
+            $notifs = [
+                'pending'   => ['🙏 Donation Received',    "Your donation of {$amount} to {$guruName} is being processed."],
+                'success'   => ['🙏 Donation Successful',  "Thank you! Your donation of {$amount} to {$guruName} was received."],
+                'failed'    => ['❌ Donation Failed',      "Your donation of {$amount} could not be processed. Please try again."],
+                'cancelled' => ['❌ Donation Cancelled',   "Your donation of {$amount} has been cancelled."],
+            ];
+            if (isset($notifs[$data['payment_status']])) {
+                [$title, $body] = $notifs[$data['payment_status']];
                 $this->fcm->sendToUsers(
                     [$donation->user_id],
-                    '🙏 Donation Successful',
-                    "Thank you! Your donation of {$amount} to {$guruName} was received.",
-                    ['type' => 'donation', 'id' => (string) $donation->id],
-                );
-            } elseif ($data['payment_status'] === 'failed') {
-                $this->fcm->sendToUsers(
-                    [$donation->user_id],
-                    '❌ Donation Failed',
-                    "Your donation of {$amount} could not be processed. Please try again.",
+                    $title,
+                    $body,
                     ['type' => 'donation', 'id' => (string) $donation->id],
                 );
             }

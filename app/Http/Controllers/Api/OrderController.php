@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\OrderResource;
 use App\Models\Order;
 use App\Models\Product;
+use App\Services\FcmService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
@@ -13,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
+    public function __construct(private readonly FcmService $fcm) {}
     public function index(Request $request): ResourceCollection
     {
         $orders = Order::with('items')
@@ -104,6 +106,13 @@ class OrderController extends Controller
 
             return $order;
         });
+
+        $this->fcm->sendToUsers(
+            [$request->user()->id],
+            '🛍️ Order Placed',
+            "Your order #{$order->id} has been placed successfully! We'll confirm it soon.",
+            ['type' => 'samagri_order', 'id' => (string) $order->id],
+        );
 
         return (new OrderResource($order->load('items')))->response()->setStatusCode(201);
     }
