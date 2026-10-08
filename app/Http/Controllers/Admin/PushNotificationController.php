@@ -23,20 +23,20 @@ class PushNotificationController extends Controller
     public function send(Request $request): RedirectResponse
     {
         $data = $request->validate([
-            'target'     => ['required', 'in:all,users'],
-            'user_ids'   => ['required_if:target,users', 'array'],
+            'target' => ['required', 'in:all,users'],
+            'user_ids' => ['required_if:target,users', 'array'],
             'user_ids.*' => ['integer', 'exists:users,id'],
-            'title'      => ['required', 'string', 'max:100'],
-            'body'       => ['required', 'string', 'max:200'],
-            'screen'     => ['nullable', 'string', 'in:History,Home'],
-            'tab'        => ['nullable', 'string', 'in:bookings,donations'],
-            'color'      => ['nullable', 'string', 'regex:/^#[0-9a-fA-F]{6}$/'],
-            'image'      => ['nullable', 'url', 'max:500'],
+            'title' => ['required', 'string', 'max:100'],
+            'body' => ['required', 'string', 'max:200'],
+            'screen' => ['nullable', 'string', 'in:History,Home'],
+            'tab' => ['nullable', 'string', 'in:bookings,donations'],
+            'color' => ['nullable', 'string', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'image' => ['nullable', 'url', 'max:500'],
         ]);
 
         $payload = array_filter([
             'screen' => $data['screen'] ?? null,
-            'tab'    => $data['tab']    ?? null,
+            'tab' => $data['tab'] ?? null,
         ]);
 
         $options = array_filter([
@@ -48,11 +48,15 @@ class PushNotificationController extends Controller
             ? $this->fcm->sendToAll($data['title'], $data['body'], $payload, $options)
             : $this->fcm->sendToUsers($data['user_ids'], $data['title'], $data['body'], $payload, $options);
 
-        $msg = "Sent to {$result['sent']} device(s).";
-        if ($result['failed']) {
-            $msg .= " {$result['failed']} failed (stale tokens removed).";
+        if (! empty($result['error'])) {
+            return back()->with('error', 'Push notification failed: '.$result['error']);
         }
 
-        return back()->with('success', $msg);
+        $msg = "Sent to {$result['sent']} device(s).";
+        if ($result['failed']) {
+            $msg .= " {$result['failed']} stale token(s) removed.";
+        }
+
+        return back()->with($result['sent'] > 0 ? 'success' : 'error', $msg);
     }
 }

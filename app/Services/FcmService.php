@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\DeviceToken;
+use Google\Auth\Credentials\ServiceAccountCredentials;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -13,7 +14,7 @@ class FcmService
     /**
      * Send a notification to all devices belonging to the given user ids.
      *
-     * @param  int[]                 $userIds
+     * @param  int[]  $userIds
      * @param  array<string,string>  $data
      * @return array{sent: int, failed: int}
      */
@@ -39,15 +40,27 @@ class FcmService
     }
 
     /**
-     * @param  string[]              $tokens
+     * @param  string[]  $tokens
      * @param  array<string,string>  $data
      * @param  array{color?:string,image?:string}  $options
      * @return array{sent: int, failed: int}
      */
     public function sendToTokens(array $tokens, string $title, string $body, array $data = [], array $options = []): array
     {
-        $sent        = 0;
-        $failed      = 0;
+        if (empty($tokens)) {
+            return ['sent' => 0, 'failed' => 0, 'error' => 'No registered device tokens found.'];
+        }
+
+        // Validate config before looping — avoids pointless per-token failures.
+        if (! config('firebase.project_id')) {
+            return ['sent' => 0, 'failed' => count($tokens), 'error' => 'FIREBASE_PROJECT_ID is not set in .env'];
+        }
+        if (! $this->accessToken()) {
+            return ['sent' => 0, 'failed' => count($tokens), 'error' => 'Firebase credentials file missing or invalid — check FIREBASE_CREDENTIALS in .env'];
+        }
+
+        $sent = 0;
+        $failed = 0;
         $staleTokens = [];
 
         foreach ($tokens as $token) {
@@ -68,7 +81,7 @@ class FcmService
             DeviceToken::whereIn('token', $staleTokens)->delete();
         }
 
-        return compact('sent', 'failed');
+        return ['sent' => $sent, 'failed' => $failed, 'error' => null];
     }
 
     /** @return 'ok'|'stale'|'error' */
@@ -77,12 +90,14 @@ class FcmService
         $projectId = config('firebase.project_id');
 
         if (! $projectId) {
-            Log::warning('[FCM] FIREBASE_PROJECT_ID not set.');
+            Log::warning('[FCM] FIREBASE_PROJECT_ID not set — add FIREBASE_PROJECT_ID to .env');
+
             return 'error';
         }
 
         $accessToken = $this->accessToken();
         if (! $accessToken) {
+            // accessToken() already logged the specific reason
             return 'error';
         }
 
@@ -101,14 +116,14 @@ class FcmService
 
         $payload = [
             'message' => [
-                'token'        => $token,
+                'token' => $token,
                 'notification' => $notification,
-                'data'         => (object) array_map('strval', $data),
-                'android'      => $androidNotification,
+                'data' => (object) array_map('strval', $data),
+                'android' => $androidNotification,
             ],
         ];
 
-        $url      = str_replace('{project_id}', $projectId, self::FCM_ENDPOINT);
+        $url = str_replace('{project_id}', $projectId, self::FCM_ENDPOINT);
         $response = Http::withToken($accessToken)->post($url, $payload);
 
         if ($response->successful()) {
@@ -123,10 +138,12 @@ class FcmService
 
         if ($response->status() === 404 || $errorCode === 'UNREGISTERED') {
             Log::info('[FCM] stale token removed', ['token' => substr($token, 0, 20)]);
+
             return 'stale';
         }
 
         Log::error('[FCM] send failed', ['status' => $response->status(), 'body' => $response->body()]);
+
         return 'error';
     }
 
@@ -134,18 +151,38 @@ class FcmService
     {
         $credentialsPath = config('firebase.credentials.file');
 
-        if (! $credentialsPath || ! file_exists($credentialsPath)) {
-            Log::warning('[FCM] service account file not found: '.$credentialsPath);
+        if (! $credentialsPath) {
+            Log::warning('[FCM] FIREBASE_CREDENTIALS not set in .env');
+
+            return '';
+        }
+
+        // Resolve relative paths against the project root so both
+        // "storage/app/file.json" and "/absolute/path/file.json" work.
+        if (! str_starts_with($credentialsPath, '/') && ! preg_match('/^[A-Za-z]:[\\/]/', $credentialsPath)) {
+            $credentialsPath = base_path($credentialsPath);
+        }
+
+        if (! file_exists($credentialsPath)) {
+            Log::warning('[FCM] service account file not found at: '.$credentialsPath.
+                ' — check FIREBASE_CREDENTIALS in .env (use a path relative to project root or absolute)');
+
             return '';
         }
 
         // Load service account JSON directly — avoids needing GOOGLE_APPLICATION_CREDENTIALS env var.
-        $json        = json_decode(file_get_contents($credentialsPath), true);
-        $credentials = new \Google\Auth\Credentials\ServiceAccountCredentials(
+        $json = json_decode(file_get_contents($credentialsPath), true);
+        $credentials = new ServiceAccountCredentials(
             'https://www.googleapis.com/auth/firebase.messaging',
             $json,
         );
 
-        return $credentials->fetchAuthToken()['access_token'] ?? '';
+        try {
+            return $credentials->fetchAuthToken()['access_token'] ?? '';
+        } catch (\Exception $e) {
+            Log::error('[FCM] failed to fetch access token: '.$e->getMessage());
+
+            return '';
+        }
     }
 }
