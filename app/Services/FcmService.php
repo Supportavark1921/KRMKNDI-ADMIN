@@ -148,10 +148,15 @@ class FcmService
             return ['token' => '', 'error' => 'FIREBASE_CREDENTIALS is not set in .env'];
         }
 
-        // Resolve relative paths against the project root so both
-        // "storage/app/file.json" and "/absolute/path/file.json" work.
+        // Resolve relative paths. Try storage_path() first for "storage/app/…"
+        // paths, then base_path() — avoids issues on shared hosting where
+        // base_path() may resolve to public/ instead of the project root.
         if (! str_starts_with($credentialsPath, '/') && ! preg_match('/^[A-Za-z]:[\\/]/', $credentialsPath)) {
-            $credentialsPath = base_path($credentialsPath);
+            if (str_starts_with($credentialsPath, 'storage/')) {
+                $credentialsPath = storage_path(substr($credentialsPath, strlen('storage/')));
+            } else {
+                $credentialsPath = base_path($credentialsPath);
+            }
         }
 
         if (! file_exists($credentialsPath)) {
