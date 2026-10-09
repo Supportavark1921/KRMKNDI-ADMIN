@@ -192,6 +192,7 @@ class PromotionController extends Controller
             'ctaCategories' => \App\Models\ProductCategory::where('status', 'active')->orderBy('name')->get(['id', 'name', 'parent_id']),
             'ctaServices'   => \App\Models\Service::where('status', 'active')->orderBy('id')->get(['id', 'translations']),
             'ctaMatajis'    => \App\Models\Mataji::where('status', 'active')->orderBy('name')->get(['id', 'name']),
+            'ctaGurus'      => \App\Models\Guru::where('status', 'active')->orderBy('name')->get(['id', 'name']),
         ];
     }
 

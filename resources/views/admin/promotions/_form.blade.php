@@ -109,6 +109,16 @@
                 @endforeach
             </select>
 
+            {{-- Donation / Guru picker --}}
+            <select name="cta_value" id="cta_val_donation" class="form-input cta-val-field" style="display:none;height:auto">
+                <option value="">— Select Guruji —</option>
+                @foreach($ctaGurus as $g)
+                    <option value="{{ $g->id }}" @selected(old('cta_value', $promotion->cta_value ?? '') == $g->id && old('cta_type', $promotion->cta_type ?? '') === 'donation')>
+                        {{ $g->name }}
+                    </option>
+                @endforeach
+            </select>
+
             {{-- URL input --}}
             <input type="url" name="cta_value" id="cta_val_url" class="form-input cta-val-field" disabled style="display:none"
                 value="{{ old('cta_type', $promotion->cta_type ?? '') === 'url' ? old('cta_value', $promotion->cta_value ?? '') : '' }}"
@@ -176,6 +186,7 @@ const CTA_LABELS = {
     category: 'Category',
     pooja:    'Puja / Service',
     mataji:   'Mataji',
+    donation: 'Guruji (Donation)',
     url:      'URL',
 };
 
@@ -185,11 +196,12 @@ const CTA_FIELD_MAP = {
     category: 'cta_val_category',
     pooja:    'cta_val_pooja',
     mataji:   'cta_val_mataji',
+    donation: 'cta_val_donation',
     url:      'cta_val_url',
 };
 
 // All selects/inputs that carry name="cta_value" — disable the hidden ones so they don't submit
-const CTA_SUBMIT_IDS = ['cta_val_product', 'cta_val_category', 'cta_val_pooja', 'cta_val_mataji', 'cta_val_url'];
+const CTA_SUBMIT_IDS = ['cta_val_product', 'cta_val_category', 'cta_val_pooja', 'cta_val_mataji', 'cta_val_donation', 'cta_val_url'];
 
 function switchCta(type) {
     // Hide all wrapper elements
