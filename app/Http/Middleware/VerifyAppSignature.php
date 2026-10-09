@@ -17,22 +17,30 @@ class VerifyAppSignature
 
     // Routes that skip HMAC signature check (auth:sanctum still enforces tokens where needed).
     private const PUBLIC_PREFIXES = [
+        // Auth
         'api/auth',
-        'api/booking/charges',
-        'api/appointments',
-        'api/gurus',
+        // Panchang, promotions, articles
         'api/v1/panchang',
         'api/v1/promotions',
-        'api/services',
-        'api/availability',
-        'api/donations',
-        'api/donation',
-        'api/donation-categories',
-        'api/openapi.json',
-        'api/v1/fcm-token',
+        'api/v1/articles',
+        // Samagri shop (browse — cart/orders still require sanctum)
         'api/v1/samagri',
         'api/v1/cart',
         'api/v1/orders',
+        'api/v1/fcm-token',
+        // Gurus, services, availability
+        'api/gurus',
+        'api/services',
+        'api/availability',
+        // Booking
+        'api/booking/charges',
+        'api/appointments',
+        // Donations
+        'api/donations',
+        'api/donation',
+        'api/donation-categories',
+        // Misc
+        'api/openapi.json',
     ];
 
     public function handle(Request $request, Closure $next): Response
