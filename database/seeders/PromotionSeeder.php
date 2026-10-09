@@ -2,15 +2,23 @@
 
 namespace Database\Seeders;
 
+use App\Models\Guru;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\Promotion;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class PromotionSeeder extends Seeder
 {
     public function run(): void
     {
+        // Resolve Mayank guruji ID — used as default for services & donation CTAs
+        $mayankUserId = User::where('email', 'mayank@krmknd.com')->value('id');
+        $mayankGuruId = Guru::when($mayankUserId, fn ($q) => $q->where('user_id', $mayankUserId))
+            ->where('name', 'Pt. Mayank')
+            ->value('id');
+
         // Resolve real IDs so cta_value points to actual DB records
         $sareesCatId   = ProductCategory::where('slug', 'sarees-vastras')->value('id');
         $shringarCatId = ProductCategory::where('slug', 'shringar-items')->value('id');
@@ -28,8 +36,8 @@ class PromotionSeeder extends Seeder
                 'type'        => 'promotion',
                 'placement'   => 'home_top',
                 'status'      => 'active',
-                'cta_type'    => 'mataji',
-                'cta_value'   => '',
+                'cta_type'    => 'services',
+                'cta_value'   => (string) ($mayankGuruId ?? ''),
                 'audience'    => 'all',
                 'sort_order'  => 1,
                 'translations' => [
@@ -121,6 +129,23 @@ class PromotionSeeder extends Seeder
                     'hi' => [
                         'title'       => 'माताजी चुनरी और चादर अर्पण',
                         'description' => 'आपके नाम से माताजी को पवित्र चुनरी या चादर अर्पित करें। हमारे गुरुजी मंदिर में अर्पण समारोह करेंगे और अनुष्ठान की पुष्टि के रूप में आपको एक अभिमंत्रित फोटो और वीडियो भेजेंगे।',
+                    ],
+                ],
+            ],
+            [
+                'title'       => 'Support Guruji – Make a Donation',
+                'description' => 'Your donation directly supports Pt. Mayank in continuing his sacred work — performing daily pujas, Navratri anushthan and community sevas at the temple. Every contribution, big or small, carries divine merit.',
+                'type'        => 'promotion',
+                'placement'   => 'home_middle',
+                'status'      => 'active',
+                'cta_type'    => 'donation',
+                'cta_value'   => (string) ($mayankGuruId ?? ''),
+                'audience'    => 'all',
+                'sort_order'  => 7,
+                'translations' => [
+                    'hi' => [
+                        'title'       => 'गुरुजी को सहयोग करें – दान करें',
+                        'description' => 'आपका दान पं. मयंक को उनके पवित्र कार्य — दैनिक पूजा, नवरात्रि अनुष्ठान और मंदिर में सामुदायिक सेवाएं — जारी रखने में सीधे सहायता करता है। हर योगदान, चाहे बड़ा हो या छोटा, दिव्य पुण्य देता है।',
                     ],
                 ],
             ],
