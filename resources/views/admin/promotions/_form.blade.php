@@ -67,7 +67,7 @@
                     style="margin-bottom:6px" oninput="filterOptions('cta_val_product', this.value)">
                 <select name="cta_value" id="cta_val_product" class="form-input" size="6" style="height:auto">
                     <option value="">— Select product —</option>
-                    @foreach($ctaProducts as $p)
+                    @foreach($ctaProducts ?? [] as $p)
                         <option value="{{ $p->id }}" @selected(old('cta_value', $promotion->cta_value ?? '') == $p->id && old('cta_type', $promotion->cta_type ?? '') === 'product')>
                             [{{ $p->product_code }}] {{ $p->name }}
                         </option>
