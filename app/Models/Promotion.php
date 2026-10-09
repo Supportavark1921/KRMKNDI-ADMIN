@@ -17,7 +17,7 @@ class Promotion extends Model
 
     public const PLACEMENTS = ['home_top', 'home_middle', 'shop', 'pooja', 'popup'];
 
-    public const CTA_TYPES = ['none', 'product', 'category', 'mataji', 'pooja', 'url'];
+    public const CTA_TYPES = ['none', 'product', 'category', 'mataji', 'pooja', 'services', 'donation', 'url', 'other'];
 
     public const AUDIENCES = ['all', 'user', 'guruji', 'vendor'];
 
