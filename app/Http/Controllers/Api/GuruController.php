@@ -59,6 +59,11 @@ class GuruController extends Controller
             'name' => $guru->name,
             'description' => $guru->description,
             'image' => $guru->image ? Storage::disk('public')->url($guru->image) : null,
+            'background_image' => $guru->background_image ? Storage::disk('public')->url($guru->background_image) : null,
+            'gallery' => collect($guru->gallery ?? [])
+                ->map(fn ($path) => Storage::disk('public')->url($path))
+                ->values()
+                ->all(),
             'status' => $guru->status,
         ];
 
