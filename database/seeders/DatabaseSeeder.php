@@ -29,6 +29,9 @@ class DatabaseSeeder extends Seeder
         // Promotions (links to products/categories above)
         $this->call(PromotionSeeder::class);
 
+        // Articles / Blog
+        $this->call(ArticleSeeder::class);
+
         // Pooja samagri per service
         $this->call(SamagriSeeder::class);
 
