@@ -100,6 +100,33 @@
         @csrf
         @if(isset($method))<input type="hidden" name="_method" value="{{ $method }}">@endif
 
+        {{-- ── 0. Guruji assignment ─────────────────────────────────────── --}}
+        <div class="sf-section">
+            <h2 class="sf-section-title"><span>🕉</span> Guruji Assignment</h2>
+            <div class="sf-row" style="align-items:end">
+                <div>
+                    <label class="sf-label">Assign to Guruji</label>
+                    <select name="guru_id" class="sf-select">
+                        <option value="">— Global (available to all Gurujis) —</option>
+                        @foreach($gurus as $guru)
+                            <option value="{{ $guru->id }}"
+                                @selected(old('guru_id', $isEdit ? $service->guru_id : '') == $guru->id)>
+                                {{ $guru->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <span class="sf-help">Leave blank to make this service available across all Gurujis. Select a Guruji to make it exclusive to them (e.g. different price or samagri).</span>
+                    @error('guru_id')<span class="sf-error">{{ $message }}</span>@enderror
+                </div>
+                @if($isEdit && $service->guru)
+                <div style="padding:12px 16px;border:1px solid #e4e7f2;border-radius:12px;background:#f8f8ff">
+                    <div style="font-size:11px;font-weight:800;color:#6b748c;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">Currently assigned to</div>
+                    <div style="font-size:15px;font-weight:700;color:#1b2240">{{ $service->guru->name }}</div>
+                </div>
+                @endif
+            </div>
+        </div>
+
         {{-- ── 1. Translations ──────────────────────────────────────────── --}}
         <div class="sf-section">
             <h2 class="sf-section-title"><span>🌐</span> Content &amp; Translations</h2>

@@ -111,6 +111,15 @@
             </select>
         </div>
         <div class="svc-filter">
+            <select name="guru_id" onchange="this.form.submit()">
+                <option value="">All Gurujis</option>
+                <option value="none" @selected(request('guru_id') === 'none')>Global (no Guruji)</option>
+                @foreach($gurus as $guru)
+                    <option value="{{ $guru->id }}" @selected(request('guru_id') == $guru->id)>{{ $guru->name }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="svc-filter">
             <select name="status" onchange="this.form.submit()">
                 <option value="">All Status</option>
                 <option value="active"   @selected(request('status') === 'active')>Active</option>
@@ -118,7 +127,7 @@
             </select>
         </div>
         <button type="submit" style="width:auto;margin:0;padding:10px 16px;border-radius:10px;background:var(--violet);box-shadow:none;font-size:13px">Search</button>
-        @if(request()->hasAny(['search','language','status']))
+        @if(request()->hasAny(['search','language','status','guru_id']))
             <a href="{{ route('services.index') }}" style="padding:10px 14px;border-radius:10px;border:1px solid #e0e3ef;color:#555e7a;font-size:13px;font-weight:600;text-decoration:none;background:#fff">Clear</a>
         @endif
     </form>
@@ -138,6 +147,7 @@
                     <tr>
                         <th style="width:70px">Image</th>
                         <th>Service</th>
+                        <th>Guruji</th>
                         <th>Languages</th>
                         <th>Price</th>
                         <th>Status</th>
@@ -164,6 +174,15 @@
                                         <span>{{ Str::limit($service->title(), 50) }}</span>
                                     </div>
                                 </div>
+                            </td>
+                            <td>
+                                @if($service->guru)
+                                    <span style="display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:8px;background:#f0ecff;color:#5a42a8;font-size:12px;font-weight:700">
+                                        🕉 {{ $service->guru->name }}
+                                    </span>
+                                @else
+                                    <span style="color:#9aa3bc;font-size:12px">Global</span>
+                                @endif
                             </td>
                             <td>
                                 @foreach($service->activeLanguages() as $lang)

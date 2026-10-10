@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Guru;
 use App\Models\Service;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -15,7 +16,7 @@ class ServiceController extends Controller
     {
         Gate::authorize('manage-appointments');
 
-        $query = Service::latest();
+        $query = Service::with('guru')->latest();
 
         if ($search = $request->query('search')) {
             $query->search($search);
@@ -29,9 +30,14 @@ class ServiceController extends Controller
             $query->where('status', $status);
         }
 
+        if ($guruId = $request->query('guru_id')) {
+            $query->where('guru_id', $guruId === 'none' ? null : $guruId);
+        }
+
         return view('services.index', [
-            'services' => $query->paginate(15)->withQueryString(),
+            'services'  => $query->paginate(15)->withQueryString(),
             'languages' => Service::SUPPORTED_LANGUAGES,
+            'gurus'     => Guru::orderBy('name')->get(['id', 'name']),
         ]);
     }
 
@@ -41,6 +47,7 @@ class ServiceController extends Controller
 
         return view('services.create', [
             'languages' => Service::SUPPORTED_LANGUAGES,
+            'gurus'     => Guru::orderBy('name')->get(['id', 'name']),
         ]);
     }
 
@@ -72,8 +79,9 @@ class ServiceController extends Controller
         Gate::authorize('manage-appointments');
 
         return view('services.edit', [
-            'service' => $service,
+            'service'   => $service,
             'languages' => Service::SUPPORTED_LANGUAGES,
+            'gurus'     => Guru::orderBy('name')->get(['id', 'name']),
         ]);
     }
 
@@ -115,7 +123,8 @@ class ServiceController extends Controller
         $langs = array_keys(Service::SUPPORTED_LANGUAGES);
 
         $rules = [
-            'status' => ['required', 'in:active,inactive'],
+            'status'   => ['required', 'in:active,inactive'],
+            'guru_id'  => ['nullable', 'exists:gurus,id'],
             'pricing.amount' => ['required', 'integer', 'min:0', 'max:9999999'],
             'pricing.currency' => ['required', 'string', 'max:10'],
             'pricing.discount_amount' => ['nullable', 'integer', 'min:0', 'max:9999999'],
