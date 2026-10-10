@@ -19,7 +19,13 @@ class ArticleController extends Controller
     {
         Gate::authorize('articles.view');
 
+        $canSeeAll = auth()->user()->can('articles.approve');
         $query = Article::with('author')->withTrashed();
+
+        // Non-approvers see only their own articles
+        if (! $canSeeAll) {
+            $query->where('created_by', auth()->id());
+        }
 
         if ($s = $request->query('search')) {
             $query->search($s);
@@ -30,15 +36,19 @@ class ArticleController extends Controller
         if ($status = $request->query('status')) {
             if ($status === 'trashed') {
                 $query->onlyTrashed();
+            } elseif ($status === 'pending') {
+                $query->where('approval_status', 'pending')->withoutTrashed();
             } else {
                 $query->where('status', $status)->withoutTrashed();
             }
         }
 
         return view('admin.articles.index', [
-            'articles' => $query->orderByDesc('updated_at')->paginate(20)->withQueryString(),
+            'articles'   => $query->orderByDesc('updated_at')->paginate(20)->withQueryString(),
             'categories' => Article::CATEGORIES,
-            'statuses' => Article::STATUSES,
+            'statuses'   => Article::STATUSES,
+            'canApprove' => $canSeeAll,
+            'pendingCount' => $canSeeAll ? Article::where('approval_status', 'pending')->count() : 0,
         ]);
     }
 
@@ -54,9 +64,10 @@ class ArticleController extends Controller
         Gate::authorize('articles.create');
 
         $data = $this->validateArticle($request);
-        $data['author_id'] = auth()->id();
-        $data['created_by'] = auth()->id();
-        $data['updated_by'] = auth()->id();
+        $data['author_id']       = auth()->id();
+        $data['created_by']      = auth()->id();
+        $data['updated_by']      = auth()->id();
+        $data['approval_status'] = auth()->user()->can('articles.approve') ? 'approved' : 'pending';
 
         if ($request->hasFile('cover_image')) {
             $data['cover_image'] = $request->file('cover_image')->store('articles', 'public');
@@ -89,6 +100,9 @@ class ArticleController extends Controller
     public function edit(Article $article): View
     {
         Gate::authorize('articles.update');
+        if (! auth()->user()->can('articles.approve')) {
+            abort_unless((int) $article->created_by === auth()->id(), 403, 'Not your article.');
+        }
 
         return view('admin.articles.edit', array_merge($this->formData(), ['article' => $article]));
     }
@@ -96,6 +110,9 @@ class ArticleController extends Controller
     public function update(Request $request, Article $article): RedirectResponse
     {
         Gate::authorize('articles.update');
+        if (! auth()->user()->can('articles.approve')) {
+            abort_unless((int) $article->created_by === auth()->id(), 403, 'Not your article.');
+        }
 
         $data = $this->validateArticle($request, $article->id);
         $data['updated_by'] = auth()->id();
@@ -140,6 +157,22 @@ class ArticleController extends Controller
         Article::withTrashed()->findOrFail($id)->restore();
 
         return back()->with('success', 'Article restored.');
+    }
+
+    public function approve(Article $article): RedirectResponse
+    {
+        Gate::authorize('articles.approve');
+        $article->update(['approval_status' => 'approved', 'updated_by' => auth()->id()]);
+
+        return back()->with('success', 'Article approved.');
+    }
+
+    public function reject(Request $request, Article $article): RedirectResponse
+    {
+        Gate::authorize('articles.approve');
+        $article->update(['approval_status' => 'rejected', 'updated_by' => auth()->id()]);
+
+        return back()->with('success', 'Article rejected.');
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

@@ -50,6 +50,10 @@
 .prm-status-active::before{background:#28a76a}
 .prm-status-draft::before{background:#f0a42e}
 .prm-status-inactive::before,.prm-status-archived::before{background:#aaa}
+.approval-pending{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;color:#7a4a18;background:#fff3e0;font-size:11px;font-weight:750}
+.approval-approved{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;color:#1e6b47;background:#e2f7ed;font-size:11px;font-weight:750}
+.approval-rejected{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;color:#7a2020;background:#fce8e8;font-size:11px;font-weight:750}
+.pending-banner{display:flex;align-items:center;gap:10px;max-width:1200px;margin:0 auto 14px;padding:13px 16px;border-radius:12px;background:#fff3e0;color:#7a4a18;font-size:14px;font-weight:600;border:1px solid #f0a42e44}
 .action-cell{display:flex;align-items:center;justify-content:flex-end;gap:6px}
 .btn-icon{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:9px;border:1px solid #e4e7f2;background:#fff;color:#555e7a;font-size:14px;cursor:pointer;transition:.15s;text-decoration:none}
 .btn-icon:hover{border-color:#8a1f5e;color:#8a1f5e;background:#ffe8f5}
@@ -71,6 +75,9 @@
 
     @if(session('success'))<div class="flash-success">✓ {{ session('success') }}</div>@endif
     @if(session('error'))<div class="flash-error">✗ {{ session('error') }}</div>@endif
+    @if($canApprove && $pendingCount > 0)
+    <div class="pending-banner">⏳ {{ $pendingCount }} promotion{{ $pendingCount > 1 ? 's' : '' }} pending approval — <a href="{{ route('admin.promotions.index', ['status' => 'pending']) }}" style="color:#c06010;font-weight:700;text-decoration:underline">Review now</a></div>
+    @endif
 
     <div class="prm-hero">
         <div>
@@ -125,6 +132,9 @@
                 <option value="draft"    @selected(request('status') === 'draft')>Draft</option>
                 <option value="inactive" @selected(request('status') === 'inactive')>Inactive</option>
                 <option value="trashed"  @selected(request('status') === 'trashed')>Archived</option>
+                @if($canApprove)
+                <option value="pending"  @selected(request('status') === 'pending')>⏳ Pending Approval</option>
+                @endif
             </select>
         </div>
         <button type="submit" style="width:auto;margin:0;padding:10px 16px;border-radius:10px;background:#8a1f5e;color:#fff;border:0;cursor:pointer;font:700 13px inherit">Search</button>
@@ -153,6 +163,7 @@
                     <th>Placement</th>
                     <th>Audience</th>
                     <th>Status</th>
+                    <th>Approval</th>
                     <th>Schedule</th>
                     <th style="text-align:right">Actions</th>
                 </tr>
@@ -185,6 +196,10 @@
                         <span class="prm-status-{{ $p->status }}">{{ ucfirst($p->status) }}</span>
                     @endif
                 </td>
+                <td>
+                    @php $as = $p->approval_status ?? 'approved'; @endphp
+                    <span class="approval-{{ $as }}">{{ ucfirst($as) }}</span>
+                </td>
                 <td style="font-size:11px;color:#9a7a90;white-space:nowrap">
                     {{ $p->starts_at?->format('d M') ?? '—' }} → {{ $p->ends_at?->format('d M') ?? '∞' }}
                 </td>
@@ -197,23 +212,35 @@
                             </form>
                             @endcan
                         @else
+                            @if($canApprove && ($p->approval_status ?? 'approved') === 'pending')
+                            <form method="POST" action="{{ route('admin.promotions.approve', $p) }}" style="display:inline">
+                                @csrf <button class="btn-icon success" title="Approve" style="color:#1e6b47">✓</button>
+                            </form>
+                            <form method="POST" action="{{ route('admin.promotions.reject', $p) }}" style="display:inline" onsubmit="return confirm('Reject this promotion?')">
+                                @csrf <button class="btn-icon danger" title="Reject">✕</button>
+                            </form>
+                            @endif
                             @can('promotions.update')
+                            @if($canApprove || (int)$p->created_by === auth()->id())
                             <a href="{{ route('admin.promotions.edit', $p) }}" class="btn-icon" title="Edit">✎</a>
-                            @if($p->status === 'active')
+                            @endif
+                            @if($p->status === 'active' && $canApprove)
                             <form method="POST" action="{{ route('admin.promotions.deactivate', $p) }}" style="display:inline">
                                 @csrf <button class="btn-icon warning" title="Deactivate">⏸</button>
                             </form>
-                            @else
+                            @elseif($p->status !== 'active' && $canApprove)
                             <form method="POST" action="{{ route('admin.promotions.activate', $p) }}" style="display:inline">
                                 @csrf <button class="btn-icon success" title="Activate">▶</button>
                             </form>
                             @endif
                             @endcan
                             @can('promotions.delete')
+                            @if($canApprove || (int)$p->created_by === auth()->id())
                             <form method="POST" action="{{ route('admin.promotions.destroy', $p) }}" style="display:inline" onsubmit="return confirm('Archive this promotion?')">
                                 @csrf @method('DELETE')
                                 <button class="btn-icon danger" title="Archive">🗑</button>
                             </form>
+                            @endif
                             @endcan
                         @endif
                     </div>

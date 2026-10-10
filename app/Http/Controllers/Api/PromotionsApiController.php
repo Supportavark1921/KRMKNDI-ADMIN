@@ -19,7 +19,7 @@ class PromotionsApiController extends Controller
         $cacheKey = "promotions:{$placement}:{$lang}:{$audience}";
 
         $items = Cache::remember($cacheKey, 300, function () use ($placement, $audience) {
-            $q = Promotion::live()->forAudience($audience);
+            $q = Promotion::live()->where('approval_status', 'approved')->forAudience($audience);
 
             if ($placement) {
                 $q->forPlacement($placement);

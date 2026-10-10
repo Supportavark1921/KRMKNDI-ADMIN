@@ -20,10 +20,13 @@ class Article extends Model
 
     public const STATUSES = ['draft', 'published', 'archived'];
 
+    public const APPROVAL_STATUSES = ['pending', 'approved', 'rejected'];
+
     protected $fillable = [
         'title', 'slug', 'excerpt', 'content', 'cover_image',
         'category', 'tags', 'status', 'published_at',
         'author_id', 'translations', 'created_by', 'updated_by',
+        'approval_status',
     ];
 
     protected $casts = [

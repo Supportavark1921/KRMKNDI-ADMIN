@@ -194,6 +194,8 @@ Route::middleware('auth')->group(function () {
         Route::put('/{article}', [AdminArticleController::class, 'update'])->name('update');
         Route::delete('/{article}', [AdminArticleController::class, 'destroy'])->name('destroy');
         Route::post('/{id}/restore', [AdminArticleController::class, 'restore'])->name('restore');
+        Route::post('/{article}/approve', [AdminArticleController::class, 'approve'])->name('approve');
+        Route::post('/{article}/reject', [AdminArticleController::class, 'reject'])->name('reject');
     });
 
     // ── App Content / Promotions ─────────────────────────────────────────────
@@ -207,6 +209,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/{id}/restore', [AdminPromotionController::class, 'restore'])->name('restore');
         Route::post('/{promotion}/activate', [AdminPromotionController::class, 'activate'])->name('activate');
         Route::post('/{promotion}/deactivate', [AdminPromotionController::class, 'deactivate'])->name('deactivate');
+        Route::post('/{promotion}/approve', [AdminPromotionController::class, 'approve'])->name('approve');
+        Route::post('/{promotion}/reject', [AdminPromotionController::class, 'reject'])->name('reject');
     });
 
     // ── Mataji orders ────────────────────────────────────────────────────────

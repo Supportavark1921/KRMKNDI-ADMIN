@@ -46,14 +46,38 @@
 
         <div class="gf-section">
             <h2 class="gf-title"><span>❧</span> Category Details</h2>
-            <div style="margin-bottom:14px">
-                <label class="gf-label">Category Name <span style="color:#e04a4a">*</span></label>
-                <input type="text" name="name" class="gf-input" value="{{ old('name', $category->name ?? '') }}" required placeholder="e.g. Ann Prasadhan">
-                @error('name')<span class="gf-error">{{ $message }}</span>@enderror
+
+            {{-- Language tabs --}}
+            <div style="display:flex;gap:0;margin-bottom:18px;border-bottom:2px solid #ede0d0">
+                <button type="button" onclick="dcLang('en',this)" id="dc-tab-en" style="padding:8px 18px;border:0;background:none;font:700 13px inherit;color:#e8813a;border-bottom:2px solid #e8813a;margin-bottom:-2px;cursor:pointer">English</button>
+                <button type="button" onclick="dcLang('hi',this)" id="dc-tab-hi" style="padding:8px 18px;border:0;background:none;font:600 13px inherit;color:#9a8070;cursor:pointer">हिंदी</button>
             </div>
-            <div>
-                <label class="gf-label">Description</label>
-                <textarea name="description" class="gf-textarea" rows="3" placeholder="What this donation supports…">{{ old('description', $category->description ?? '') }}</textarea>
+
+            <div id="dc-en">
+                <div style="margin-bottom:14px">
+                    <label class="gf-label">Category Name <span style="color:#e04a4a">*</span></label>
+                    <input type="text" name="name" class="gf-input" value="{{ old('name', $category->name ?? '') }}" required placeholder="e.g. Ann Prasadhan">
+                    @error('name')<span class="gf-error">{{ $message }}</span>@enderror
+                </div>
+                <div>
+                    <label class="gf-label">Description</label>
+                    <textarea name="description" class="gf-textarea" rows="3" placeholder="What this donation supports…">{{ old('description', $category->description ?? '') }}</textarea>
+                </div>
+            </div>
+
+            <div id="dc-hi" style="display:none">
+                <div style="margin-bottom:14px">
+                    <label class="gf-label">Category Name (हिंदी)</label>
+                    <input type="text" name="translations[hi][name]" class="gf-input"
+                           value="{{ old('translations.hi.name', $category->translations['hi']['name'] ?? '') }}"
+                           placeholder="e.g. अन्न प्रसादन">
+                    @error('translations.hi.name')<span class="gf-error">{{ $message }}</span>@enderror
+                </div>
+                <div>
+                    <label class="gf-label">Description (हिंदी)</label>
+                    <textarea name="translations[hi][description]" class="gf-textarea" rows="3"
+                              placeholder="यह दान किसे सहायता करता है…">{{ old('translations.hi.description', $category->translations['hi']['description'] ?? '') }}</textarea>
+                </div>
             </div>
         </div>
 
@@ -115,4 +139,14 @@
 <script>
 function previewCatImg(input){if(!input.files[0])return;document.getElementById('cat-preview-img').src=URL.createObjectURL(input.files[0]);document.getElementById('cat-preview').style.display='block';document.getElementById('cat-drop').style.display='none';}
 function removeCatImg(){document.getElementById('cat-preview').style.display='none';document.getElementById('cat-drop').style.display='flex';document.getElementById('cat-img').value='';}
+function dcLang(lang,btn){
+    ['en','hi'].forEach(function(l){
+        document.getElementById('dc-'+l).style.display=l===lang?'block':'none';
+        var t=document.getElementById('dc-tab-'+l);
+        t.style.color=l===lang?'#e8813a':'#9a8070';
+        t.style.borderBottom=l===lang?'2px solid #e8813a':'none';
+        t.style.fontWeight=l===lang?'700':'600';
+        t.style.marginBottom=l===lang?'-2px':'0';
+    });
+}
 </script>

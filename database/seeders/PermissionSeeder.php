@@ -48,6 +48,9 @@ class PermissionSeeder extends Seeder
         $vendor->syncPermissions([
             'products.view', 'products.create', 'products.update',
             'inventory.view', 'inventory.create', 'inventory.update',
+            // Articles & Promotions: vendor creates own content, pending admin approval
+            'articles.view', 'articles.create', 'articles.update',
+            'promotions.view', 'promotions.create', 'promotions.update',
         ]);
 
         // Enduser: minimal — own appointments + notifications
@@ -91,9 +94,9 @@ class PermissionSeeder extends Seeder
             // Panchang
             'panchang.view', 'api-docs.view',
             // App Content
-            'promotions.view', 'promotions.create', 'promotions.update', 'promotions.delete', 'promotions.restore',
+            'promotions.view', 'promotions.create', 'promotions.update', 'promotions.delete', 'promotions.restore', 'promotions.approve',
             // Articles
-            'articles.view', 'articles.create', 'articles.update', 'articles.delete', 'articles.restore',
+            'articles.view', 'articles.create', 'articles.update', 'articles.delete', 'articles.restore', 'articles.approve',
             // Locations
             'locations.view', 'locations.create', 'locations.update',
             // Mataji orders
@@ -123,6 +126,9 @@ class PermissionSeeder extends Seeder
             'panchang.view',
             'mataji-orders.view',
             'samagri-orders.view',
+            // Articles & Promotions: support creates own content, pending admin approval
+            'articles.view', 'articles.create', 'articles.update',
+            'promotions.view', 'promotions.create', 'promotions.update',
         ];
     }
 
@@ -146,8 +152,9 @@ class PermissionSeeder extends Seeder
             'my-poojan.view', 'my-poojan.update',
             'my-seva.view', 'my-seva.update',
             'my-store.view', 'my-store.create', 'my-store.update', 'my-store.delete',
-            // Articles (guruji can create their own content)
+            // Articles & Promotions: Guruji creates own content, pending admin approval
             'articles.view', 'articles.create', 'articles.update',
+            'promotions.view', 'promotions.create', 'promotions.update',
         ];
     }
 }

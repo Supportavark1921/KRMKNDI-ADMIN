@@ -18,7 +18,13 @@ class PromotionController extends Controller
     {
         Gate::authorize('promotions.view');
 
+        $canSeeAll = auth()->user()->can('promotions.approve');
         $query = Promotion::withTrashed();
+
+        // Non-approvers see only their own promotions
+        if (! $canSeeAll) {
+            $query->where('created_by', auth()->id());
+        }
 
         if ($s = $request->query('search')) {
             $query->where('title', 'like', "%{$s}%");
@@ -32,6 +38,8 @@ class PromotionController extends Controller
         if ($status = $request->query('status')) {
             if ($status === 'trashed') {
                 $query->onlyTrashed();
+            } elseif ($status === 'pending') {
+                $query->where('approval_status', 'pending')->withoutTrashed();
             } else {
                 $query->where('status', $status)->withoutTrashed();
             }
@@ -41,9 +49,11 @@ class PromotionController extends Controller
         }
 
         return view('admin.promotions.index', [
-            'promotions' => $query->orderBy('sort_order')->orderByDesc('updated_at')->paginate(20)->withQueryString(),
-            'types' => Promotion::TYPES,
-            'placements' => Promotion::PLACEMENTS,
+            'promotions'  => $query->orderBy('sort_order')->orderByDesc('updated_at')->paginate(20)->withQueryString(),
+            'types'       => Promotion::TYPES,
+            'placements'  => Promotion::PLACEMENTS,
+            'canApprove'  => $canSeeAll,
+            'pendingCount' => $canSeeAll ? Promotion::where('approval_status', 'pending')->count() : 0,
         ]);
     }
 
@@ -59,8 +69,9 @@ class PromotionController extends Controller
         Gate::authorize('promotions.create');
 
         $data = $this->validatePromotion($request);
-        $data['created_by'] = auth()->id();
-        $data['updated_by'] = auth()->id();
+        $data['created_by']      = auth()->id();
+        $data['updated_by']      = auth()->id();
+        $data['approval_status'] = auth()->user()->can('promotions.approve') ? 'approved' : 'pending';
 
         if ($request->hasFile('image')) {
             $data['image'] = $request->file('image')->store('promotions', 'public');
@@ -78,6 +89,9 @@ class PromotionController extends Controller
     public function edit(Promotion $promotion): View
     {
         Gate::authorize('promotions.update');
+        if (! auth()->user()->can('promotions.approve')) {
+            abort_unless((int) $promotion->created_by === auth()->id(), 403, 'Not your promotion.');
+        }
 
         return view('admin.promotions.edit', array_merge($this->formData(), ['promotion' => $promotion]));
     }
@@ -85,6 +99,9 @@ class PromotionController extends Controller
     public function update(Request $request, Promotion $promotion): RedirectResponse
     {
         Gate::authorize('promotions.update');
+        if (! auth()->user()->can('promotions.approve')) {
+            abort_unless((int) $promotion->created_by === auth()->id(), 403, 'Not your promotion.');
+        }
 
         $data = $this->validatePromotion($request, $promotion->id);
         $data['updated_by'] = auth()->id();
@@ -120,6 +137,22 @@ class PromotionController extends Controller
         Promotion::withTrashed()->findOrFail($id)->restore();
 
         return back()->with('success', 'Promotion restored.');
+    }
+
+    public function approve(Promotion $promotion): RedirectResponse
+    {
+        Gate::authorize('promotions.approve');
+        $promotion->update(['approval_status' => 'approved', 'updated_by' => auth()->id()]);
+
+        return back()->with('success', 'Promotion approved.');
+    }
+
+    public function reject(Request $request, Promotion $promotion): RedirectResponse
+    {
+        Gate::authorize('promotions.approve');
+        $promotion->update(['approval_status' => 'rejected', 'updated_by' => auth()->id()]);
+
+        return back()->with('success', 'Promotion rejected.');
     }
 
     public function activate(Promotion $promotion): RedirectResponse

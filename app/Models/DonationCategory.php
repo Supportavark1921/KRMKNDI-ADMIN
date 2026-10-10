@@ -9,7 +9,18 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class DonationCategory extends Model
 {
-    protected $fillable = ['name', 'description', 'image', 'status'];
+    protected $fillable = ['name', 'description', 'image', 'status', 'translations'];
+
+    protected $casts = ['translations' => 'array'];
+
+    public function translatedField(string $field, string $lang = 'en'): string
+    {
+        if ($lang !== 'en' && isset($this->translations[$lang][$field])) {
+            return $this->translations[$lang][$field];
+        }
+
+        return $this->{$field} ?? '';
+    }
 
     public function gurus(): BelongsToMany
     {

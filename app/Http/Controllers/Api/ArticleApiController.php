@@ -15,7 +15,7 @@ class ArticleApiController extends Controller
         $category = $request->query('category');
         $search = $request->query('search');
 
-        $query = Article::published()->with('author:id,name');
+        $query = Article::published()->where('approval_status', 'approved')->with('author:id,name');
 
         if ($category) {
             $query->where('category', $category);
@@ -41,7 +41,7 @@ class ArticleApiController extends Controller
 
     public function show(Article $article, Request $request): JsonResponse
     {
-        if ($article->status !== 'published') {
+        if ($article->status !== 'published' || ($article->approval_status ?? 'approved') !== 'approved') {
             return response()->json(['success' => false, 'message' => 'Not found.'], 404);
         }
 

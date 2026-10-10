@@ -57,10 +57,19 @@ class SevaController extends Controller
         );
 
         $data = $request->validate([
-            'name'        => ['required', 'string', 'max:120', 'unique:donation_categories,name,'.$donationCategory->id],
-            'description' => ['nullable', 'string', 'max:1000'],
-            'image'       => ['nullable', 'image', 'max:5120'],
+            'name'                        => ['required', 'string', 'max:120', 'unique:donation_categories,name,'.$donationCategory->id],
+            'description'                 => ['nullable', 'string', 'max:1000'],
+            'translations.hi.name'        => ['nullable', 'string', 'max:120'],
+            'translations.hi.description' => ['nullable', 'string', 'max:1000'],
+            'image'                       => ['nullable', 'image', 'max:5120'],
         ]);
+
+        $data['translations'] = array_filter([
+            'hi' => array_filter([
+                'name'        => $request->input('translations.hi.name'),
+                'description' => $request->input('translations.hi.description'),
+            ]),
+        ]) ?: null;
 
         if ($request->hasFile('image')) {
             if ($donationCategory->image) {

@@ -51,10 +51,10 @@ return [
     'api-docs' => ['view'],
 
     // ── App Content / Promotions ─────────────────────────────────────────────
-    'promotions' => ['view', 'create', 'update', 'delete', 'restore'],
+    'promotions' => ['view', 'create', 'update', 'delete', 'restore', 'approve'],
 
     // ── Articles / Blog ───────────────────────────────────────────────────────
-    'articles' => ['view', 'create', 'update', 'delete', 'restore'],
+    'articles' => ['view', 'create', 'update', 'delete', 'restore', 'approve'],
 
     // ── Guruji-only self-service menus ────────────────────────────────────────
     'my-poojan' => ['view', 'update'],   // Guruji manages their assigned services

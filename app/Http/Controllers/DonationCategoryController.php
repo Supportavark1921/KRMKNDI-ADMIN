@@ -52,10 +52,19 @@ class DonationCategoryController extends Controller
         }
 
         $data = $request->validate([
-            'name'        => ['required', 'string', 'max:120', 'unique:donation_categories,name,'.$donationCategory->id],
-            'description' => ['nullable', 'string', 'max:1000'],
-            'image'       => ['nullable', 'image', 'max:5120'],
+            'name'                        => ['required', 'string', 'max:120', 'unique:donation_categories,name,'.$donationCategory->id],
+            'description'                 => ['nullable', 'string', 'max:1000'],
+            'translations.hi.name'        => ['nullable', 'string', 'max:120'],
+            'translations.hi.description' => ['nullable', 'string', 'max:1000'],
+            'image'                       => ['nullable', 'image', 'max:5120'],
         ]);
+
+        $data['translations'] = array_filter([
+            'hi' => array_filter([
+                'name'        => $request->input('translations.hi.name'),
+                'description' => $request->input('translations.hi.description'),
+            ]),
+        ]) ?: null;
 
         if ($request->hasFile('image')) {
             if ($donationCategory->image) {
@@ -87,13 +96,22 @@ class DonationCategoryController extends Controller
         Gate::authorize('donation-categories.create');
 
         $data = $request->validate([
-            'name' => ['required', 'string', 'max:120', 'unique:donation_categories,name'],
-            'description' => ['nullable', 'string', 'max:1000'],
-            'status' => ['required', 'in:active,inactive'],
-            'gurus' => ['nullable', 'array'],
-            'gurus.*' => ['integer', 'exists:gurus,id'],
-            'image' => ['nullable', 'image', 'max:5120'],
+            'name'                        => ['required', 'string', 'max:120', 'unique:donation_categories,name'],
+            'description'                 => ['nullable', 'string', 'max:1000'],
+            'translations.hi.name'        => ['nullable', 'string', 'max:120'],
+            'translations.hi.description' => ['nullable', 'string', 'max:1000'],
+            'status'                      => ['required', 'in:active,inactive'],
+            'gurus'                       => ['nullable', 'array'],
+            'gurus.*'                     => ['integer', 'exists:gurus,id'],
+            'image'                       => ['nullable', 'image', 'max:5120'],
         ]);
+
+        $data['translations'] = array_filter([
+            'hi' => array_filter([
+                'name'        => $request->input('translations.hi.name'),
+                'description' => $request->input('translations.hi.description'),
+            ]),
+        ]) ?: null;
 
         if ($request->hasFile('image')) {
             $data['image'] = $request->file('image')->store('donation-categories', 'public');
@@ -124,13 +142,22 @@ class DonationCategoryController extends Controller
         Gate::authorize('donation-categories.update');
 
         $data = $request->validate([
-            'name' => ['required', 'string', 'max:120', 'unique:donation_categories,name,'.$donationCategory->id],
-            'description' => ['nullable', 'string', 'max:1000'],
-            'status' => ['required', 'in:active,inactive'],
-            'gurus' => ['nullable', 'array'],
-            'gurus.*' => ['integer', 'exists:gurus,id'],
-            'image' => ['nullable', 'image', 'max:5120'],
+            'name'                        => ['required', 'string', 'max:120', 'unique:donation_categories,name,'.$donationCategory->id],
+            'description'                 => ['nullable', 'string', 'max:1000'],
+            'translations.hi.name'        => ['nullable', 'string', 'max:120'],
+            'translations.hi.description' => ['nullable', 'string', 'max:1000'],
+            'status'                      => ['required', 'in:active,inactive'],
+            'gurus'                       => ['nullable', 'array'],
+            'gurus.*'                     => ['integer', 'exists:gurus,id'],
+            'image'                       => ['nullable', 'image', 'max:5120'],
         ]);
+
+        $data['translations'] = array_filter([
+            'hi' => array_filter([
+                'name'        => $request->input('translations.hi.name'),
+                'description' => $request->input('translations.hi.description'),
+            ]),
+        ]) ?: null;
 
         if ($request->hasFile('image')) {
             if ($donationCategory->image) {

@@ -23,6 +23,8 @@ class Promotion extends Model
 
     public const STATUSES = ['draft', 'active', 'inactive'];
 
+    public const APPROVAL_STATUSES = ['pending', 'approved', 'rejected'];
+
     protected $fillable = [
         'title', 'description', 'image', 'gallery',
         'type', 'placement', 'status',
@@ -30,6 +32,7 @@ class Promotion extends Model
         'starts_at', 'ends_at',
         'sort_order', 'audience',
         'translations', 'created_by', 'updated_by',
+        'approval_status',
     ];
 
     protected $casts = [
