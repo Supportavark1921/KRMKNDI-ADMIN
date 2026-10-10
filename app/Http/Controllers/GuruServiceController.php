@@ -19,7 +19,7 @@ class GuruServiceController extends Controller
 
     public function store(Request $request, Service $service): RedirectResponse
     {
-        Gate::authorize('services.update');
+        Gate::authorize('services.view'); // view is enough; own-row scope enforced below
 
         $data = $this->validated($request);
 
@@ -47,7 +47,7 @@ class GuruServiceController extends Controller
 
     public function update(Request $request, Service $service, GuruService $guruService): RedirectResponse
     {
-        Gate::authorize('services.update');
+        Gate::authorize('services.view');
         // Guruji can only edit their own row
         $ownId = $this->ownGuruId();
         if ($ownId && $guruService->guru_id !== $ownId) {
@@ -71,7 +71,7 @@ class GuruServiceController extends Controller
 
     public function destroy(Service $service, GuruService $guruService): RedirectResponse
     {
-        Gate::authorize('services.update');
+        Gate::authorize('services.view');
         $ownId = $this->ownGuruId();
         if ($ownId && $guruService->guru_id !== $ownId) {
             abort(403, 'You can only remove pricing for your own Guruji account.');
