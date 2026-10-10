@@ -14,7 +14,7 @@ class MatajisController extends Controller
 {
     public function index(): View
     {
-        Gate::authorize('manage-store');
+        Gate::authorize('matajis.view');
 
         return view('admin.store.matajis.index', [
             'matajis' => Mataji::latest()->paginate(20),

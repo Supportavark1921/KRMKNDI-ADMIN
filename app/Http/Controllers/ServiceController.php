@@ -14,7 +14,7 @@ class ServiceController extends Controller
 {
     public function index(Request $request): View
     {
-        Gate::authorize('manage-appointments');
+        Gate::authorize('services.view');
 
         $query = Service::with('guru')->latest();
 
@@ -43,7 +43,7 @@ class ServiceController extends Controller
 
     public function create(): View
     {
-        Gate::authorize('manage-appointments');
+        Gate::authorize('services.create');
 
         return view('services.create', [
             'languages' => Service::SUPPORTED_LANGUAGES,
@@ -53,7 +53,7 @@ class ServiceController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        Gate::authorize('manage-appointments');
+        Gate::authorize('services.create');
 
         $data = $this->validated($request);
         $data['images'] = $this->handleImages($request);
@@ -66,7 +66,7 @@ class ServiceController extends Controller
 
     public function show(Service $service): View
     {
-        Gate::authorize('manage-appointments');
+        Gate::authorize('services.view');
 
         $service->load(['guruServices.guru']);
         $assignedGuruIds = $service->guruServices->pluck('guru_id')->toArray();
@@ -81,7 +81,7 @@ class ServiceController extends Controller
 
     public function edit(Service $service): View
     {
-        Gate::authorize('manage-appointments');
+        Gate::authorize('services.update');
 
         return view('services.edit', [
             'service'   => $service,
@@ -92,7 +92,7 @@ class ServiceController extends Controller
 
     public function update(Request $request, Service $service): RedirectResponse
     {
-        Gate::authorize('manage-appointments');
+        Gate::authorize('services.update');
 
         $data = $this->validated($request, $service);
         $data['images'] = $this->handleImages($request, $service);
@@ -105,7 +105,7 @@ class ServiceController extends Controller
 
     public function destroy(Service $service): RedirectResponse
     {
-        Gate::authorize('manage-appointments');
+        Gate::authorize('services.delete');
 
         // Clean up stored images
         if ($primary = $service->primaryImage()) {

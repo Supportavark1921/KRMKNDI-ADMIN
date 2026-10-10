@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Guru;
 use App\Models\GuruService;
 use App\Models\Service;
 use Illuminate\Http\RedirectResponse;
@@ -10,14 +11,27 @@ use Illuminate\Support\Facades\Gate;
 
 class GuruServiceController extends Controller
 {
+    /** Resolve the logged-in user's own Guru record (for Guruji role). */
+    private function ownGuruId(): ?int
+    {
+        return Guru::where('user_id', auth()->id())->value('id');
+    }
+
     public function store(Request $request, Service $service): RedirectResponse
     {
-        Gate::authorize('manage-appointments');
+        Gate::authorize('services.update');
 
         $data = $this->validated($request);
 
+        // Guruji can only create a row for themselves
+        $guruId = $data['guru_id'];
+        $ownId  = $this->ownGuruId();
+        if ($ownId && $guruId != $ownId) {
+            abort(403, 'You can only add pricing for your own Guruji account.');
+        }
+
         GuruService::create([
-            'guru_id'       => $data['guru_id'],
+            'guru_id'       => $guruId,
             'service_id'    => $service->id,
             'pricing'       => $this->buildPricing($data),
             'pooja_samagri' => $this->buildSamagri($data),
@@ -33,7 +47,12 @@ class GuruServiceController extends Controller
 
     public function update(Request $request, Service $service, GuruService $guruService): RedirectResponse
     {
-        Gate::authorize('manage-appointments');
+        Gate::authorize('services.update');
+        // Guruji can only edit their own row
+        $ownId = $this->ownGuruId();
+        if ($ownId && $guruService->guru_id !== $ownId) {
+            abort(403, 'You can only edit pricing for your own Guruji account.');
+        }
 
         $data = $this->validated($request, forUpdate: true);
 
@@ -52,7 +71,11 @@ class GuruServiceController extends Controller
 
     public function destroy(Service $service, GuruService $guruService): RedirectResponse
     {
-        Gate::authorize('manage-appointments');
+        Gate::authorize('services.update');
+        $ownId = $this->ownGuruId();
+        if ($ownId && $guruService->guru_id !== $ownId) {
+            abort(403, 'You can only remove pricing for your own Guruji account.');
+        }
 
         $guruService->delete();
 

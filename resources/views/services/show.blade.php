@@ -178,10 +178,12 @@
                     <p class="svc-panel-title" style="margin:0;border:0;padding:0">Guruji Pricing &amp; Samagri</p>
                     <p style="margin:4px 0 0;color:#7882a0;font-size:12px">Each Guruji can have their own price and samagri list for this service.</p>
                 </div>
+                @can('services.create')
                 <button type="button" onclick="document.getElementById('gs-add-panel').classList.toggle('hidden')"
                         style="padding:8px 14px;border-radius:9px;border:1px dashed #c4b7f5;background:transparent;color:#6246ea;font:700 13px inherit;cursor:pointer">
                     ＋ Add Guruji
                 </button>
+                @endcan
             </div>
 
             @if($service->guruServices->isEmpty())
@@ -214,14 +216,24 @@
                         </td>
                         <td><span class="status-{{ $gs->status }}">{{ ucfirst($gs->status) }}</span></td>
                         <td style="text-align:right">
+                            @php
+                                $ownGuruId = \App\Models\Guru::where('user_id', auth()->id())->value('id');
+                                $canEdit   = auth()->user()->can('services.create') || $ownGuruId == $gs->guru_id;
+                            @endphp
+                            @if($canEdit)
                             <button type="button"
                                     onclick="toggleEdit({{ $gs->id }})"
                                     style="padding:5px 10px;border-radius:7px;border:1px solid #e4e7f2;background:#fff;color:#555e7a;font:600 12px inherit;cursor:pointer">Edit</button>
+                            @can('services.create')
                             <form method="POST" action="{{ route('guru-services.destroy', [$service, $gs]) }}" style="display:inline"
                                   onsubmit="return confirm('Remove this Guruji pricing?')">
                                 @csrf @method('DELETE')
                                 <button type="submit" style="padding:5px 10px;border-radius:7px;border:1px solid #fdc9c9;background:#fff0f0;color:#d94040;font:600 12px inherit;cursor:pointer">Remove</button>
                             </form>
+                            @endcan
+                            @else
+                            <span style="color:#c0c8d8;font-size:12px">—</span>
+                            @endif
                         </td>
                     </tr>
                     {{-- Inline edit form --}}
