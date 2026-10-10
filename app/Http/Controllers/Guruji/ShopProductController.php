@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Guruji;
 
 use App\Http\Controllers\Controller;
 use App\Models\Guru;
+use App\Models\Mataji;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use Illuminate\Http\RedirectResponse;
@@ -56,6 +57,7 @@ class ShopProductController extends Controller
 
         return view('guruji.store.products.create', [
             'categories' => $this->myCategories($guru),
+            'matajis'    => Mataji::where('status', 'active')->orderBy('name')->get(),
             'guru'       => $guru,
         ]);
     }
@@ -98,6 +100,7 @@ class ShopProductController extends Controller
         return view('guruji.store.products.edit', [
             'product'    => $product->load('images', 'attributes'),
             'categories' => $this->myCategories($guru),
+            'matajis'    => Mataji::where('status', 'active')->orderBy('name')->get(),
             'guru'       => $guru,
         ]);
     }
@@ -163,6 +166,8 @@ class ShopProductController extends Controller
         $validated = $request->validate([
             'name'              => ['required', 'string', 'max:200'],
             'category_id'       => ['required', 'integer', 'exists:product_categories,id'],
+            'mataji_id'         => ['nullable', 'integer', 'exists:matajis,id'],
+            'product_type'      => ['required', 'in:NORMAL,MATAJI_OFFERING,MATAJI_OFFERED_RESALE'],
             'sku'               => $skuRule,
             'short_description' => ['nullable', 'string', 'max:300'],
             'description'       => ['nullable', 'string'],

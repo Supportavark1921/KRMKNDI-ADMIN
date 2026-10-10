@@ -57,6 +57,27 @@
                     @error('category_id')<span class="ms-error">{{ $message }}</span>@enderror
                 </div>
                 <div>
+                    <label class="ms-label">Product Type <span style="color:#e04a4a">*</span></label>
+                    <select name="product_type" class="ms-select" id="product-type" onchange="toggleMataji()">
+                        <option value="NORMAL" {{ old('product_type', $product->product_type ?? 'NORMAL') === 'NORMAL' ? 'selected' : '' }}>Normal Product</option>
+                        <option value="MATAJI_OFFERING" {{ old('product_type', $product->product_type ?? '') === 'MATAJI_OFFERING' ? 'selected' : '' }}>Mataji Offering</option>
+                        <option value="MATAJI_OFFERED_RESALE" {{ old('product_type', $product->product_type ?? '') === 'MATAJI_OFFERED_RESALE' ? 'selected' : '' }}>Mataji Offered Resale</option>
+                    </select>
+                    @error('product_type')<span class="ms-error">{{ $message }}</span>@enderror
+                </div>
+            </div>
+            <div id="mataji-row" style="margin-bottom:14px;{{ !in_array(old('product_type', $product->product_type ?? 'NORMAL'), ['MATAJI_OFFERING','MATAJI_OFFERED_RESALE']) ? 'display:none' : '' }}">
+                <label class="ms-label">Mataji (Temple Deity)</label>
+                <select name="mataji_id" class="ms-select">
+                    <option value="">— Select Mataji —</option>
+                    @foreach($matajis as $m)
+                        <option value="{{ $m->id }}" {{ old('mataji_id', $product->mataji_id ?? '') == $m->id ? 'selected' : '' }}>{{ $m->name }}{{ $m->temple_name ? ' — '.$m->temple_name : '' }}</option>
+                    @endforeach
+                </select>
+                @error('mataji_id')<span class="ms-error">{{ $message }}</span>@enderror
+            </div>
+            <div class="ms-grid-2" style="margin-bottom:0">
+                <div>
                     <label class="ms-label">SKU</label>
                     <input type="text" name="sku" class="ms-input" value="{{ old('sku', $product->sku ?? '') }}" placeholder="Unique code">
                     @error('sku')<span class="ms-error">{{ $message }}</span>@enderror
@@ -153,6 +174,10 @@ function addAttr(){
     document.getElementById('attr-list').appendChild(d);ai++;
 }
 function rmAttr(i){const el=document.getElementById('ar-'+i);if(el)el.remove();}
+function toggleMataji(){
+    const v=document.getElementById('product-type').value;
+    document.getElementById('mataji-row').style.display=(v==='MATAJI_OFFERING'||v==='MATAJI_OFFERED_RESALE')?'block':'none';
+}
 function deleteImg(id){
     const inp=document.getElementById('del-'+id);
     if(inp){inp.disabled=false;}
