@@ -349,12 +349,21 @@
 
         <div class="svc-actions">
             <a href="{{ route('services.index') }}" class="btn-back">← Back to Services</a>
+            @can('services.update')
             <a href="{{ route('services.edit', $service) }}" class="btn-edit">✎ Edit Service</a>
+            @else
+            @php $myGsId = \App\Models\Guru::where('user_id', auth()->id())->value('id'); @endphp
+            @if($myGsId && $service->guruServices->where('guru_id', $myGsId)->isNotEmpty())
+            <a href="{{ route('guru-services.edit-content', $service) }}" class="btn-edit" style="background:linear-gradient(100deg,#3a2d82,#6b5cc8)">✎ Edit My Content</a>
+            @endif
+            @endcan
+            @can('services.delete')
             <form method="POST" action="{{ route('services.destroy', $service) }}"
                   onsubmit="return confirm('Delete this service? This cannot be undone.')">
                 @csrf @method('DELETE')
                 <button type="submit" style="padding:11px 16px;border-radius:10px;border:1px solid #fdc9c9;color:#d94040;background:#fff0f0;font:600 14px inherit;cursor:pointer">🗑 Delete</button>
             </form>
+            @endcan
         </div>
     </div>
 </div>

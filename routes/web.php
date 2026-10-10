@@ -37,6 +37,8 @@ use App\Http\Controllers\GuruController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\GuruServiceController;
+use App\Http\Controllers\Guruji\PoojanController;
+use App\Http\Controllers\Guruji\SevaController;
 use App\Http\Controllers\ServiceController;
 use Illuminate\Support\Facades\Route;
 
@@ -77,6 +79,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/services/{service}/guru-services', [GuruServiceController::class, 'store'])->name('guru-services.store');
     Route::put('/services/{service}/guru-services/{guruService}', [GuruServiceController::class, 'update'])->name('guru-services.update');
     Route::delete('/services/{service}/guru-services/{guruService}', [GuruServiceController::class, 'destroy'])->name('guru-services.destroy');
+    Route::get('/services/{service}/my-edit', [GuruServiceController::class, 'editContent'])->name('guru-services.edit-content');
+    Route::put('/services/{service}/my-edit', [GuruServiceController::class, 'updateContent'])->name('guru-services.update-content');
     Route::get('/clients', [ClientProfileController::class, 'clients'])->name('clients.index');
     Route::get('/clients/{user}', [ClientProfileController::class, 'show'])->name('clients.show');
     Route::put('/clients/{user}/notes', [ClientProfileController::class, 'notes'])->name('clients.notes');
@@ -87,6 +91,8 @@ Route::middleware('auth')->group(function () {
 
     // Donation categories
     Route::resource('donation-categories', DonationCategoryController::class)->except(['show']);
+    Route::get('/donation-categories/{donationCategory}/my-edit', [DonationCategoryController::class, 'editMyCategory'])->name('donation-categories.my-edit');
+    Route::put('/donation-categories/{donationCategory}/my-edit', [DonationCategoryController::class, 'updateMyCategory'])->name('donation-categories.update-my');
 
     // Donation listing & detail (admin read-only)
     Route::get('/donations', [DonationController::class, 'index'])->name('donations.index');
@@ -96,6 +102,17 @@ Route::middleware('auth')->group(function () {
     // Donation fee settings
     Route::get('/donation-fees', [DonationFeeController::class, 'index'])->name('donation-fees.index');
     Route::put('/donation-fees', [DonationFeeController::class, 'update'])->name('donation-fees.update');
+    // Guruji self-service menus
+    Route::prefix('my')->name('my.')->group(function () {
+        Route::get('/poojan', [PoojanController::class, 'index'])->name('poojan.index');
+        Route::get('/poojan/{service}/edit', [PoojanController::class, 'edit'])->name('poojan.edit');
+        Route::put('/poojan/{service}', [PoojanController::class, 'update'])->name('poojan.update');
+
+        Route::get('/seva', [SevaController::class, 'index'])->name('seva.index');
+        Route::get('/seva/{donationCategory}/edit', [SevaController::class, 'edit'])->name('seva.edit');
+        Route::put('/seva/{donationCategory}', [SevaController::class, 'update'])->name('seva.update');
+    });
+
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
     // Location master-data admin

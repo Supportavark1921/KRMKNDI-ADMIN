@@ -14,23 +14,77 @@ class DonationCategoryController extends Controller
 {
     public function index(): View
     {
-        Gate::authorize('manage-appointments');
+        Gate::authorize('donation-categories.view');
+
+        $myGuruId = Guru::where('user_id', auth()->id())->value('id');
+
+        $query = DonationCategory::with('gurus')->withCount(['gurus', 'donations'])->latest();
+        // Guruji only sees categories assigned to them
+        if ($myGuruId && ! auth()->user()->can('donation-categories.update')) {
+            $query->whereHas('gurus', fn ($q) => $q->where('gurus.id', $myGuruId));
+        }
 
         return view('donation-categories.index', [
-            'categories' => DonationCategory::withCount(['gurus', 'donations'])->latest()->paginate(20),
+            'categories' => $query->paginate(20),
+            'myGuruId'   => $myGuruId,
         ]);
+    }
+
+    public function editMyCategory(DonationCategory $donationCategory): View
+    {
+        Gate::authorize('donation-categories.view');
+
+        $myGuruId = Guru::where('user_id', auth()->id())->value('id');
+        if (! $myGuruId || ! $donationCategory->gurus()->where('gurus.id', $myGuruId)->exists()) {
+            abort(403, 'You are not assigned to this category.');
+        }
+
+        return view('donation-categories.my-edit', compact('donationCategory'));
+    }
+
+    public function updateMyCategory(Request $request, DonationCategory $donationCategory): RedirectResponse
+    {
+        Gate::authorize('donation-categories.view');
+
+        $myGuruId = Guru::where('user_id', auth()->id())->value('id');
+        if (! $myGuruId || ! $donationCategory->gurus()->where('gurus.id', $myGuruId)->exists()) {
+            abort(403, 'You are not assigned to this category.');
+        }
+
+        $data = $request->validate([
+            'name'        => ['required', 'string', 'max:120', 'unique:donation_categories,name,'.$donationCategory->id],
+            'description' => ['nullable', 'string', 'max:1000'],
+            'image'       => ['nullable', 'image', 'max:5120'],
+        ]);
+
+        if ($request->hasFile('image')) {
+            if ($donationCategory->image) {
+                Storage::disk('public')->delete($donationCategory->image);
+            }
+            $data['image'] = $request->file('image')->store('donation-categories', 'public');
+        }
+
+        $old = $donationCategory->only(['name', 'description', 'image']);
+        $donationCategory->update($data);
+
+        activity()->causedBy(auth()->user())->performedOn($donationCategory)
+            ->withProperties(['old' => $old, 'new' => $data])
+            ->log('donation_category_content_updated');
+
+        return redirect()->route('donation-categories.index')
+            ->with('success', 'Category updated.');
     }
 
     public function create(): View
     {
-        Gate::authorize('manage-appointments');
+        Gate::authorize('donation-categories.create');
 
         return view('donation-categories.create', ['gurus' => Guru::active()->orderBy('name')->get()]);
     }
 
     public function store(Request $request): RedirectResponse
     {
-        Gate::authorize('manage-appointments');
+        Gate::authorize('donation-categories.create');
 
         $data = $request->validate([
             'name' => ['required', 'string', 'max:120', 'unique:donation_categories,name'],
@@ -56,7 +110,7 @@ class DonationCategoryController extends Controller
 
     public function edit(DonationCategory $donationCategory): View
     {
-        Gate::authorize('manage-appointments');
+        Gate::authorize('donation-categories.update');
 
         return view('donation-categories.edit', [
             'category' => $donationCategory->load('gurus'),
@@ -67,7 +121,7 @@ class DonationCategoryController extends Controller
 
     public function update(Request $request, DonationCategory $donationCategory): RedirectResponse
     {
-        Gate::authorize('manage-appointments');
+        Gate::authorize('donation-categories.update');
 
         $data = $request->validate([
             'name' => ['required', 'string', 'max:120', 'unique:donation_categories,name,'.$donationCategory->id],
@@ -93,7 +147,7 @@ class DonationCategoryController extends Controller
 
     public function destroy(DonationCategory $donationCategory): RedirectResponse
     {
-        Gate::authorize('manage-appointments');
+        Gate::authorize('donation-categories.delete');
 
         if ($donationCategory->donations()->exists()) {
             return back()->with('error', 'Cannot delete a category with donation history. Deactivate instead.');

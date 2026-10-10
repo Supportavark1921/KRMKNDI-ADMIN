@@ -137,9 +137,14 @@ class PermissionSeeder extends Seeder
             'mataji-orders.view', 'mataji-orders.create', 'mataji-orders.update', 'mataji-orders.delete', 'mataji-orders.restore',
             'donations.view',
             'notifications.view',
-            // Services: Guruji can view the list/detail only.
-            // Their per-Guruji pricing rows are managed via GuruServiceController (services.view gate).
+            // Services: Guruji can view the list/detail and edit their own assigned service content.
+            // Pricing rows are managed via GuruServiceController (services.view gate).
             'services.view',
+            // Donation categories: Guruji sees only their assigned ones and can update content.
+            'donation-categories.view',
+            // Dedicated Guruji self-service menus
+            'my-poojan.view', 'my-poojan.update',
+            'my-seva.view', 'my-seva.update',
             // Articles (guruji can create their own content)
             'articles.view', 'articles.create', 'articles.update',
         ];

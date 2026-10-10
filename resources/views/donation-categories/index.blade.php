@@ -41,7 +41,9 @@
 
     <div class="don-hero">
         <div><span class="hero-overline">Admin · Donations</span><h1>Donation Categories</h1><p>Categories represent the purpose for which a Guruji receives donations (Ann Prasadhan, Gau Seva, etc.).</p></div>
+        @can('donation-categories.create')
         <a href="{{ route('donation-categories.create') }}" class="hero-add-btn">＋ Add Category</a>
+        @endcan
     </div>
 
     @if($categories->isEmpty())
@@ -66,11 +68,17 @@
                             <div class="cat-meta" style="margin-top:5px">{{ $cat->gurus_count }} Guruji · {{ $cat->donations_count }} donations</div>
                         </div>
                         <div class="cat-actions">
-                            <a href="{{ route('donation-categories.edit', $cat) }}" class="btn-icon" title="Edit">✎</a>
+                            @if(auth()->user()->can('donation-categories.update'))
+                                <a href="{{ route('donation-categories.edit', $cat) }}" class="btn-icon" title="Edit">✎</a>
+                            @elseif(isset($myGuruId) && $myGuruId && $cat->gurus->contains('id', $myGuruId))
+                                <a href="{{ route('donation-categories.my-edit', $cat) }}" class="btn-icon" title="Edit My Content" style="color:#e8813a;border-color:#e8c8a8">✎</a>
+                            @endif
+                            @can('donation-categories.delete')
                             <form method="POST" action="{{ route('donation-categories.destroy', $cat) }}" onsubmit="return confirm('Delete {{ $cat->name }}? Cannot delete if donations exist.')">
                                 @csrf @method('DELETE')
                                 <button type="submit" class="btn-icon danger" title="Delete">🗑</button>
                             </form>
+                            @endcan
                         </div>
                     </div>
                 </div>

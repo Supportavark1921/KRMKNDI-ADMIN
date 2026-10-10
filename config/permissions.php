@@ -55,4 +55,8 @@ return [
 
     // ── Articles / Blog ───────────────────────────────────────────────────────
     'articles' => ['view', 'create', 'update', 'delete', 'restore'],
+
+    // ── Guruji-only self-service menus ────────────────────────────────────────
+    'my-poojan' => ['view', 'update'],   // Guruji manages their assigned services
+    'my-seva'   => ['view', 'update'],   // Guruji manages their assigned donation categories
 ];

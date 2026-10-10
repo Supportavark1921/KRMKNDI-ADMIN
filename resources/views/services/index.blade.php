@@ -210,11 +210,15 @@
                             <td>
                                 <div class="action-cell">
                                     <a href="{{ route('services.show', $service) }}" class="btn-icon" title="View">👁</a>
+                                    @can('services.update')
                                     <a href="{{ route('services.edit', $service) }}" class="btn-icon" title="Edit">✎</a>
+                                    @endcan
+                                    @can('services.delete')
                                     <form method="POST" action="{{ route('services.destroy', $service) }}" onsubmit="return confirm('Delete this service? This cannot be undone.')">
                                         @csrf @method('DELETE')
                                         <button type="submit" class="btn-icon danger" title="Delete" style="border:1px solid #e4e7f2">🗑</button>
                                     </form>
+                                    @endcan
                                 </div>
                             </td>
                         </tr>
