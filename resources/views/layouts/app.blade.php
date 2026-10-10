@@ -161,6 +161,15 @@
                 </nav>
                 @endcanany
 
+                {{-- Guruji My Store --}}
+                @can('my-store.view')
+                <span class="sidebar-label" style="margin-top:18px">My Store</span>
+                <nav class="sidebar-nav">
+                    <a class="{{ request()->routeIs('my.store.categories.*') ? 'active' : '' }}" href="{{ route('my.store.categories.index') }}"><span>📦</span> Categories</a>
+                    <a class="{{ request()->routeIs('my.store.products.*') ? 'active' : '' }}" href="{{ route('my.store.products.index') }}"><span>🛍</span> Products</a>
+                </nav>
+                @endcan
+
                 {{-- Guruji My Services --}}
                 @canany(['my-poojan.view','my-seva.view'])
                 <span class="sidebar-label" style="margin-top:18px">My Services</span>

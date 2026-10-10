@@ -145,6 +145,7 @@ class PermissionSeeder extends Seeder
             // Dedicated Guruji self-service menus
             'my-poojan.view', 'my-poojan.update',
             'my-seva.view', 'my-seva.update',
+            'my-store.view', 'my-store.create', 'my-store.update', 'my-store.delete',
             // Articles (guruji can create their own content)
             'articles.view', 'articles.create', 'articles.update',
         ];

@@ -19,7 +19,7 @@ class ProductCategory extends Model
         return LogOptions::defaults()->logOnly(['name', 'slug', 'parent_id', 'status'])->logOnlyDirty()->dontSubmitEmptyLogs();
     }
 
-    protected $fillable = ['parent_id', 'name', 'slug', 'description', 'image', 'sort_order', 'status'];
+    protected $fillable = ['parent_id', 'guru_id', 'name', 'slug', 'description', 'image', 'sort_order', 'status'];
 
     protected static function booted(): void
     {

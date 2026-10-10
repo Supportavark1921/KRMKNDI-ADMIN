@@ -24,7 +24,7 @@ class Product extends Model
     }
 
     protected $fillable = [
-        'product_code', 'sku', 'category_id', 'mataji_id', 'vendor_id',
+        'product_code', 'sku', 'category_id', 'mataji_id', 'vendor_id', 'guru_id',
         'name', 'short_description', 'description', 'brand_source',
         'unit', 'badge', 'rating', 'reviews_count',
         'uses', 'contents',

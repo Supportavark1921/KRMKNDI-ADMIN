@@ -39,6 +39,8 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\GuruServiceController;
 use App\Http\Controllers\Guruji\PoojanController;
 use App\Http\Controllers\Guruji\SevaController;
+use App\Http\Controllers\Guruji\ShopCategoryController;
+use App\Http\Controllers\Guruji\ShopProductController;
 use App\Http\Controllers\ServiceController;
 use Illuminate\Support\Facades\Route;
 
@@ -111,6 +113,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/seva', [SevaController::class, 'index'])->name('seva.index');
         Route::get('/seva/{donationCategory}/edit', [SevaController::class, 'edit'])->name('seva.edit');
         Route::put('/seva/{donationCategory}', [SevaController::class, 'update'])->name('seva.update');
+
+        // My Store — Guruji's own products & categories
+        Route::resource('store/categories', ShopCategoryController::class)
+            ->names('store.categories')->except(['show']);
+        Route::resource('store/products', ShopProductController::class)
+            ->names('store.products')->except(['show']);
     });
 
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
