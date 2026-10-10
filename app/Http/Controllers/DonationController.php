@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Donation;
 use App\Models\DonationCategory;
 use App\Models\Guru;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
@@ -69,5 +70,28 @@ class DonationController extends Controller
         $donation->load(['user', 'guru', 'category']);
 
         return view('donations.show', compact('donation'));
+    }
+
+    public function updatePayment(Request $request, Donation $donation): RedirectResponse
+    {
+        Gate::authorize('manage-appointments');
+
+        $data = $request->validate([
+            'payment_status' => ['required', 'in:pending,screenshot_uploaded,success,failed,cancelled,refunded'],
+            'transaction_id' => ['nullable', 'string', 'max:200'],
+        ]);
+
+        $donation->update([
+            'payment_status' => $data['payment_status'],
+            'transaction_id' => $data['transaction_id'] ?: $donation->transaction_id,
+        ]);
+
+        activity()
+            ->causedBy(auth()->user())
+            ->performedOn($donation)
+            ->withProperties(['payment_status' => $data['payment_status'], 'transaction_id' => $data['transaction_id']])
+            ->log('payment_status_updated');
+
+        return back()->with('success', 'Payment status updated.');
     }
 }

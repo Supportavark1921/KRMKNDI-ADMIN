@@ -113,4 +113,27 @@ class AppointmentController extends Controller
 
         return back()->with('success', 'Appointment status updated.');
     }
+
+    public function updatePayment(Request $request, Appointment $appointment): RedirectResponse
+    {
+        Gate::authorize('manage-appointments');
+
+        $data = $request->validate([
+            'payment_status' => ['required', 'in:unpaid,screenshot_uploaded,paid,cancelled'],
+            'payment_id'     => ['nullable', 'string', 'max:200'],
+        ]);
+
+        $appointment->update([
+            'payment_status' => $data['payment_status'],
+            'payment_id'     => $data['payment_id'] ?: $appointment->payment_id,
+        ]);
+
+        activity()
+            ->causedBy(auth()->user())
+            ->performedOn($appointment)
+            ->withProperties(['payment_status' => $data['payment_status'], 'payment_id' => $data['payment_id']])
+            ->log('payment_status_updated');
+
+        return back()->with('success', 'Payment status updated.');
+    }
 }

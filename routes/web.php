@@ -54,6 +54,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/appointments/book', [AppointmentController::class, 'create'])->name('appointments.create');
     Route::post('/appointments', [AppointmentController::class, 'store'])->name('appointments.store');
     Route::patch('/appointments/{appointment}/status', [AppointmentController::class, 'updateStatus'])->name('appointments.status');
+    Route::patch('/appointments/{appointment}/payment', [AppointmentController::class, 'updatePayment'])->name('appointments.payment');
     Route::get('/availability', [AvailabilityController::class, 'index'])->name('availability.index');
     Route::put('/availability', [AvailabilityController::class, 'update'])->name('availability.update');
     Route::get('/available-times', [AvailabilityController::class, 'times'])->name('availability.times');
@@ -85,6 +86,7 @@ Route::middleware('auth')->group(function () {
     // Donation listing & detail (admin read-only)
     Route::get('/donations', [DonationController::class, 'index'])->name('donations.index');
     Route::get('/donations/{donation}', [DonationController::class, 'show'])->name('donations.show');
+    Route::patch('/donations/{donation}/payment', [DonationController::class, 'updatePayment'])->name('donations.payment');
 
     // Donation fee settings
     Route::get('/donation-fees', [DonationFeeController::class, 'index'])->name('donation-fees.index');
@@ -196,6 +198,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [AdminSamagriOrderController::class, 'index'])->name('index');
         Route::get('/{samagriOrder}', [AdminSamagriOrderController::class, 'show'])->name('show');
         Route::post('/{samagriOrder}/status', [AdminSamagriOrderController::class, 'updateStatus'])->name('status');
+        Route::patch('/{samagriOrder}/payment', [AdminSamagriOrderController::class, 'updatePayment'])->name('payment');
         Route::delete('/{samagriOrder}', [AdminSamagriOrderController::class, 'destroy'])->name('destroy');
         Route::post('/{id}/restore', [AdminSamagriOrderController::class, 'restore'])->name('restore');
     });

@@ -1,6 +1,7 @@
 @extends('layouts.app')
 @section('title', 'Order #' . $order->id)
 @section('content')
+@php use Illuminate\Support\Facades\Storage; @endphp
 
 <div class="store-header">
     <div>
@@ -63,6 +64,55 @@
             <dt style="color:#888">Notes</dt><dd>{{ $order->notes }}</dd>
             @endif
         </dl>
+    </div>
+
+    {{-- Payment Panel --}}
+    <div class="store-card">
+        <h3 style="margin:0 0 12px">Payment</h3>
+        <dl style="display:grid;grid-template-columns:140px 1fr;gap:6px 12px;margin:0 0 14px">
+            <dt style="color:#888">Payment Status</dt>
+            <dd>
+                @php $pc = match($order->payment_status ?? 'unpaid') {
+                    'paid'                => 'badge-active',
+                    'screenshot_uploaded' => 'badge-pending',
+                    'cancelled'           => 'badge-inactive',
+                    default               => 'badge-inactive',
+                }; @endphp
+                <span class="badge {{ $pc }}">{{ ucfirst(str_replace('_', ' ', $order->payment_status ?? 'unpaid')) }}</span>
+            </dd>
+            <dt style="color:#888">Transaction ID</dt>
+            <dd style="font-family:ui-monospace,monospace;font-size:13px">{{ $order->payment_id ?: '—' }}</dd>
+        </dl>
+
+        @if($order->payment_screenshot)
+        <div style="margin-bottom:14px">
+            <p style="margin:0 0 6px;font-size:12px;color:#888;font-weight:600;text-transform:uppercase;letter-spacing:.04em">Payment Screenshot</p>
+            <a href="{{ Storage::url($order->payment_screenshot) }}" target="_blank">
+                <img src="{{ Storage::url($order->payment_screenshot) }}" style="max-height:220px;border-radius:8px;border:1px solid #e0e0e0;cursor:zoom-in">
+            </a>
+        </div>
+        @endif
+
+        @can('samagri-orders.update')
+        <form method="POST" action="{{ route('admin.samagri-orders.payment', $order) }}">
+            @csrf @method('PATCH')
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+                <div style="flex:1;min-width:160px">
+                    <label style="display:block;font-size:11px;font-weight:700;color:#888;margin-bottom:4px;text-transform:uppercase">Payment Status</label>
+                    <select name="payment_status" class="form-input" style="height:36px">
+                        @foreach(['unpaid','screenshot_uploaded','paid','cancelled'] as $ps)
+                        <option value="{{ $ps }}" @selected(($order->payment_status ?? 'unpaid') === $ps)>{{ ucfirst(str_replace('_',' ',$ps)) }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div style="flex:2;min-width:200px">
+                    <label style="display:block;font-size:11px;font-weight:700;color:#888;margin-bottom:4px;text-transform:uppercase">Transaction ID</label>
+                    <input type="text" name="payment_id" class="form-input" style="height:36px" placeholder="Enter transaction / UTR ID" value="{{ old('payment_id', $order->payment_id) }}">
+                </div>
+                <button class="btn-primary" style="height:36px;white-space:nowrap">Update Payment</button>
+            </div>
+        </form>
+        @endcan
     </div>
 
     <div class="store-card">

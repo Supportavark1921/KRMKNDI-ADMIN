@@ -1,6 +1,7 @@
 @extends('layouts.app', ['title' => 'Appointments - ARK Jyotish'])
 @section('content')
-@php
+@php use Illuminate\Support\Facades\Storage;
+
     $role = auth()->user()->role;
     $isStaff = in_array($role, ['admin','manager','support','guruji']);
     $pendingCount = $appointments->where('status','pending')->count();
@@ -192,6 +193,30 @@
                             </select>
                             <button class="apt-save" type="submit">Save</button>
                         </form>
+
+                        {{-- Payment section --}}
+                        <div class="apt-status-form" style="margin-top:4px;gap:4px">
+                            <label style="display:flex;align-items:center;justify-content:space-between">
+                                <span>Payment</span>
+                                <span style="padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700;background:{{ match($appointment->payment_status ?? 'unpaid') { 'paid' => '#d3f9d8', 'screenshot_uploaded' => '#fff3d7', default => '#f3f3f3' } }};color:{{ match($appointment->payment_status ?? 'unpaid') { 'paid' => '#1a4d2a', 'screenshot_uploaded' => '#8a5a11', default => '#666' } }}">
+                                    {{ ucfirst(str_replace('_',' ', $appointment->payment_status ?? 'unpaid')) }}
+                                </span>
+                            </label>
+                            @if($appointment->payment_screenshot)
+                            <a href="{{ Storage::disk('public')->url($appointment->payment_screenshot) }}" target="_blank" style="font-size:11px;color:#237861;font-weight:700">📎 View screenshot</a>
+                            @endif
+                            <form method="POST" action="{{ route('appointments.payment', $appointment) }}" style="display:grid;gap:4px;margin-top:2px">
+                                @csrf @method('PATCH')
+                                <select name="payment_status" style="padding:5px 8px;border:1px solid #c8ded5;border-radius:7px;font:600 12px inherit;color:#205c4e;background:#f7fcf9">
+                                    @foreach(['unpaid','screenshot_uploaded','paid','cancelled'] as $ps)
+                                    <option value="{{ $ps }}" @selected(($appointment->payment_status ?? 'unpaid') === $ps)>{{ ucfirst(str_replace('_',' ',$ps)) }}</option>
+                                    @endforeach
+                                </select>
+                                <input type="text" name="payment_id" placeholder="Transaction / UTR ID" value="{{ $appointment->payment_id }}"
+                                    style="padding:5px 8px;border:1px solid #c8ded5;border-radius:7px;font:12px inherit;color:#205c4e">
+                                <button class="apt-save" type="submit" style="background:#1d5c4a">Update Payment</button>
+                            </form>
+                        </div>
                     @else
                         <a class="apt-book-again" href="{{ route('appointments.create') }}">Book another →</a>
                     @endif

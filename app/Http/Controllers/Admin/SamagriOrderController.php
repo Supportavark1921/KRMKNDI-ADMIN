@@ -89,6 +89,29 @@ class SamagriOrderController extends Controller
         return back()->with('success', "Order #" . $samagriOrder->id . " marked as {$to}.");
     }
 
+    public function updatePayment(Request $request, Order $samagriOrder): RedirectResponse
+    {
+        Gate::authorize('samagri-orders.update');
+
+        $data = $request->validate([
+            'payment_status' => ['required', 'in:unpaid,screenshot_uploaded,paid,cancelled'],
+            'payment_id'     => ['nullable', 'string', 'max:200'],
+        ]);
+
+        $samagriOrder->update([
+            'payment_status' => $data['payment_status'],
+            'payment_id'     => $data['payment_id'] ?: $samagriOrder->payment_id,
+        ]);
+
+        activity()
+            ->causedBy(auth()->user())
+            ->performedOn($samagriOrder)
+            ->withProperties(['payment_status' => $data['payment_status'], 'payment_id' => $data['payment_id']])
+            ->log('payment_status_updated');
+
+        return back()->with('success', 'Payment status updated.');
+    }
+
     public function destroy(Order $samagriOrder): RedirectResponse
     {
         Gate::authorize('samagri-orders.delete');

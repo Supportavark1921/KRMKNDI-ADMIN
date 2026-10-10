@@ -80,11 +80,45 @@
             {{-- Payment details --}}
             <div class="detail-panel">
                 <p class="panel-title">Payment Details</p>
-                <div class="detail-row"><div class="d-label">Status</div><div><span class="st-{{ $donation->payment_status }}">{{ ucfirst($donation->payment_status) }}</span></div></div>
+                <div class="detail-row"><div class="d-label">Status</div><div><span class="st-{{ $donation->payment_status }}">{{ ucfirst(str_replace('_',' ',$donation->payment_status)) }}</span></div></div>
                 <div class="detail-row"><div class="d-label">Payment Method</div><div class="d-value muted">{{ $donation->payment_method ?: '—' }}</div></div>
                 <div class="detail-row"><div class="d-label">Transaction ID</div><div class="d-value muted" style="font-family:ui-monospace,monospace;font-size:13px">{{ $donation->transaction_id ?: '—' }}</div></div>
                 <div class="detail-row"><div class="d-label">Payment ID</div><div class="d-value muted" style="font-family:ui-monospace,monospace;font-size:13px">{{ $donation->payment_id ?: '—' }}</div></div>
+                @if($donation->payment_screenshot)
+                <div class="detail-row">
+                    <div class="d-label">Screenshot</div>
+                    <a href="{{ Storage::disk('public')->url($donation->payment_screenshot) }}" target="_blank">
+                        <img src="{{ Storage::disk('public')->url($donation->payment_screenshot) }}" style="max-height:160px;border-radius:6px;border:1px solid #e8d8c8;margin-top:4px;cursor:zoom-in">
+                    </a>
+                </div>
+                @endif
             </div>
+
+            {{-- Admin payment update --}}
+            @can('manage-appointments')
+            <div class="detail-panel" style="grid-column:1/-1">
+                <p class="panel-title">Update Payment Status</p>
+                @if(session('success'))<div style="margin-bottom:12px;padding:10px 14px;border-radius:8px;background:#d3f9d8;color:#1a4d2a;font-size:14px;font-weight:600">✓ {{ session('success') }}</div>@endif
+                <form method="POST" action="{{ route('donations.payment', $donation) }}">
+                    @csrf @method('PATCH')
+                    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+                        <div style="flex:1;min-width:160px">
+                            <div class="d-label" style="margin-bottom:4px">Payment Status</div>
+                            <select name="payment_status" class="form-input" style="height:38px;border:1px solid #d8c8b8;border-radius:8px;padding:0 10px">
+                                @foreach(['pending','screenshot_uploaded','success','failed','cancelled','refunded'] as $ps)
+                                <option value="{{ $ps }}" @selected($donation->payment_status === $ps)>{{ ucfirst(str_replace('_',' ',$ps)) }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div style="flex:2;min-width:200px">
+                            <div class="d-label" style="margin-bottom:4px">Transaction ID</div>
+                            <input type="text" name="transaction_id" style="height:38px;width:100%;padding:0 10px;border:1px solid #d8c8b8;border-radius:8px;font:inherit" placeholder="Enter UTR / transaction ID" value="{{ old('transaction_id', $donation->transaction_id) }}">
+                        </div>
+                        <button type="submit" style="height:38px;padding:0 18px;border:0;border-radius:8px;background:#e8813a;color:#fff;font:700 14px inherit;cursor:pointer;white-space:nowrap">Update Payment</button>
+                    </div>
+                </form>
+            </div>
+            @endcan
 
             {{-- Timestamps --}}
             <div class="detail-panel">
