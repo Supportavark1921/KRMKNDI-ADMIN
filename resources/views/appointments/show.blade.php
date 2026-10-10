@@ -139,7 +139,8 @@
             @endif
 
             {{-- Update Payment Status --}}
-            <div class="detail-panel" style="@if(in_array($appointment->status, ['completed','cancelled']))grid-column:1/-1@endif">
+            @php $payPanelSpan = in_array($appointment->status, ['completed','cancelled']) ? 'grid-column:1/-1' : ''; @endphp
+            <div class="detail-panel" style="{{ $payPanelSpan }}">
                 <p class="panel-title">Update Payment Status</p>
                 <form method="POST" action="{{ route('appointments.payment', $appointment) }}">
                     @csrf @method('PATCH')
