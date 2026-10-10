@@ -41,6 +41,14 @@ class AppointmentController extends Controller
         return view('appointments.index', compact('appointments'));
     }
 
+    public function show(Appointment $appointment): View
+    {
+        Gate::authorize('manage-appointments');
+        $appointment->load(['user', 'guru', 'service']);
+
+        return view('appointments.show', compact('appointment'));
+    }
+
     public function create(): View
     {
         AvailabilitySlot::ensureWeek();

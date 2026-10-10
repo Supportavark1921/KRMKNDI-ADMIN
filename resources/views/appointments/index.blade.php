@@ -182,6 +182,9 @@
                 <div class="apt-action">
                     <span class="apt-status {{ $appointment->status }}">{{ ucfirst($appointment->status) }}</span>
                     @if($isStaff)
+                        <a href="{{ route('appointments.show', $appointment) }}" style="display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border:1px solid #c8ded5;border-radius:8px;color:#237861;background:#f0faf5;font:600 11px inherit;text-decoration:none">View Detail →</a>
+                    @endif
+                    @if($isStaff)
                         <div class="apt-status-form" style="gap:0;padding:0;overflow:hidden">
                             {{-- Booking status --}}
                             <form method="POST" action="{{ route('appointments.status', $appointment) }}" style="display:grid;gap:5px;padding:10px 11px;border-bottom:1px solid #dceee7">

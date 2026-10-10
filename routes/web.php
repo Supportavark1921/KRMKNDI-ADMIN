@@ -52,6 +52,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [AuthController::class, 'dashboard'])->name('dashboard');
     Route::get('/appointments', [AppointmentController::class, 'index'])->name('appointments.index');
     Route::get('/appointments/book', [AppointmentController::class, 'create'])->name('appointments.create');
+    Route::get('/appointments/{appointment}', [AppointmentController::class, 'show'])->name('appointments.show');
     Route::post('/appointments', [AppointmentController::class, 'store'])->name('appointments.store');
     Route::patch('/appointments/{appointment}/status', [AppointmentController::class, 'updateStatus'])->name('appointments.status');
     Route::patch('/appointments/{appointment}/payment', [AppointmentController::class, 'updatePayment'])->name('appointments.payment');
