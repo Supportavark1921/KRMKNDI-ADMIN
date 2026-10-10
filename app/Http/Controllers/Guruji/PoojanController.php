@@ -21,13 +21,25 @@ class PoojanController extends Controller
         return $guru;
     }
 
+    /** True if this service is assigned to the given Guru (direct or via guru_services). */
+    private function isAssigned(Service $service, Guru $guru): bool
+    {
+        return (int) $service->guru_id === $guru->id
+            || GuruService::where('guru_id', $guru->id)->where('service_id', $service->id)->exists();
+    }
+
     public function index(): View
     {
         Gate::authorize('my-poojan.view');
 
-        $guru     = $this->myGuru();
+        $guru = $this->myGuru();
+
+        // Services directly assigned by admin (services.guru_id) OR via guru_services row
         $services = Service::with(['guruServices' => fn ($q) => $q->where('guru_id', $guru->id)])
-            ->whereHas('guruServices', fn ($q) => $q->where('guru_id', $guru->id))
+            ->where(function ($q) use ($guru) {
+                $q->where('guru_id', $guru->id)
+                  ->orWhereHas('guruServices', fn ($q2) => $q2->where('guru_id', $guru->id));
+            })
             ->latest()->get();
 
         return view('guruji.poojan.index', compact('services', 'guru'));
@@ -38,9 +50,10 @@ class PoojanController extends Controller
         Gate::authorize('my-poojan.update');
 
         $guru = $this->myGuru();
-        $gs   = GuruService::firstOrNew(['guru_id' => $guru->id, 'service_id' => $service->id]);
+        abort_unless($this->isAssigned($service, $guru), 403, 'This service is not assigned to you.');
 
-        abort_unless($gs->exists, 403, 'This service is not assigned to you.');
+        // Use existing row or an unsaved stub — no pricing yet is fine
+        $gs = GuruService::firstOrNew(['guru_id' => $guru->id, 'service_id' => $service->id]);
 
         return view('guruji.poojan.edit', [
             'service'   => $service,
@@ -54,7 +67,7 @@ class PoojanController extends Controller
         Gate::authorize('my-poojan.update');
 
         $guru = $this->myGuru();
-        $gs   = GuruService::where(['guru_id' => $guru->id, 'service_id' => $service->id])->firstOrFail();
+        abort_unless($this->isAssigned($service, $guru), 403, 'This service is not assigned to you.');
 
         $langs = array_keys(Service::SUPPORTED_LANGUAGES);
         $rules = [
@@ -132,10 +145,10 @@ class PoojanController extends Controller
                 ? (int) $data['pricing_discount_amount'] : null,
         ];
 
-        $gs->update([
-            'pricing'       => $pricing,
-            'pooja_samagri' => $samagri,
-        ]);
+        GuruService::updateOrCreate(
+            ['guru_id' => $guru->id, 'service_id' => $service->id],
+            ['pricing' => $pricing, 'pooja_samagri' => $samagri, 'status' => 'active']
+        );
 
         activity()->causedBy(auth()->user())->performedOn($service)
             ->withProperties(['guru_id' => $guru->id])
