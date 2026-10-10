@@ -255,7 +255,41 @@
             </div>
         </div>
 
-        {{-- ── 4. Settings ──────────────────────────────────────────────── --}}
+        {{-- ── 4. Pooja Samagri ─────────────────────────────────────────── --}}
+        <div class="sf-section">
+            <h2 class="sf-section-title"><span>🪔</span> Pooja Samagri</h2>
+            <p style="margin:0 0 18px;color:#8b96b0;font-size:13px">List all items needed for this poojan. These are shown to the customer before booking.</p>
+
+            <div id="samagri-list" style="display:grid;gap:10px;margin-bottom:14px">
+                @php $existingSamagri = $isEdit ? ($service->pooja_samagri ?? []) : []; @endphp
+                @forelse($existingSamagri as $i => $item)
+                <div class="samagri-row" style="display:grid;grid-template-columns:1fr 140px 36px;gap:10px;align-items:center">
+                    <input type="text" name="pooja_samagri[{{ $i }}][name]" class="sf-input"
+                           placeholder="Item name (e.g. Ghee, Flowers, Camphor)"
+                           value="{{ old('pooja_samagri.'.$i.'.name', $item['name'] ?? '') }}" required>
+                    <div class="sf-input-prefix">
+                        <span>₹</span>
+                        <input type="number" name="pooja_samagri[{{ $i }}][price]" class="sf-input"
+                               placeholder="Price" min="0" step="0.01"
+                               value="{{ old('pooja_samagri.'.$i.'.price', $item['price'] ?? '') }}">
+                    </div>
+                    <button type="button" onclick="removeSamagriRow(this)"
+                            style="width:36px;height:40px;border:1px solid #fdc9c9;border-radius:10px;background:#fff0f0;color:#d94040;font-size:18px;cursor:pointer;line-height:1">×</button>
+                </div>
+                @empty
+                {{-- empty: first row added by JS on page load --}}
+                @endforelse
+            </div>
+
+            <button type="button" onclick="addSamagriRow()"
+                    style="display:inline-flex;align-items:center;gap:7px;padding:10px 16px;border:1px dashed #c4b7f5;border-radius:10px;background:transparent;color:#6246ea;font:700 13px inherit;cursor:pointer;transition:.15s"
+                    onmouseover="this.style.background='#ede9ff'" onmouseout="this.style.background='transparent'">
+                ＋ Add Samagri Item
+            </button>
+            <span class="sf-help" style="margin-left:12px">Leave price blank if not applicable.</span>
+        </div>
+
+        {{-- ── 5. Settings ──────────────────────────────────────────────── --}}
         <div class="sf-section">
             <h2 class="sf-section-title"><span>⚙</span> Settings</h2>
             <div class="sf-toggle-wrap">
@@ -399,6 +433,35 @@ function removeGalleryItem(btn, path) {
 function removeNewGallery(btn) {
     btn.closest('.gallery-item').remove();
 }
+
+// ── Pooja Samagri ────────────────────────────────────────────────────────────
+let samagriIdx = {{ count($existingSamagri ?? []) }};
+
+function addSamagriRow() {
+    const i = samagriIdx++;
+    const row = document.createElement('div');
+    row.className = 'samagri-row';
+    row.style = 'display:grid;grid-template-columns:1fr 140px 36px;gap:10px;align-items:center';
+    row.innerHTML = `
+        <input type="text" name="pooja_samagri[${i}][name]" class="sf-input"
+               placeholder="Item name (e.g. Ghee, Flowers, Camphor)" required>
+        <div class="sf-input-prefix">
+            <span>₹</span>
+            <input type="number" name="pooja_samagri[${i}][price]" class="sf-input"
+                   placeholder="Price" min="0" step="0.01">
+        </div>
+        <button type="button" onclick="removeSamagriRow(this)"
+                style="width:36px;height:40px;border:1px solid #fdc9c9;border-radius:10px;background:#fff0f0;color:#d94040;font-size:18px;cursor:pointer;line-height:1">×</button>`;
+    document.getElementById('samagri-list').appendChild(row);
+    row.querySelector('input[type=text]').focus();
+}
+
+function removeSamagriRow(btn) {
+    btn.closest('.samagri-row').remove();
+}
+
+// Add one blank row on create if none exist
+if (samagriIdx === 0) addSamagriRow();
 
 // Gallery drag-drop
 const galleryDrop = document.getElementById('gallery-drop');

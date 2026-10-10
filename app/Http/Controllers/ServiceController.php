@@ -119,6 +119,9 @@ class ServiceController extends Controller
             'pricing.amount' => ['required', 'integer', 'min:0', 'max:9999999'],
             'pricing.currency' => ['required', 'string', 'max:10'],
             'pricing.discount_amount' => ['nullable', 'integer', 'min:0', 'max:9999999'],
+            'pooja_samagri'           => ['nullable', 'array'],
+            'pooja_samagri.*.name'    => ['required', 'string', 'max:200'],
+            'pooja_samagri.*.price'   => ['nullable', 'numeric', 'min:0'],
         ];
 
         // Require EN name; others are optional
@@ -150,6 +153,18 @@ class ServiceController extends Controller
             $pricing['discount_amount'] = null;
         }
         $data['pricing'] = $pricing;
+
+        // Clean samagri: drop rows with blank name, cast price to float or null, re-index
+        $samagri = [];
+        foreach ($data['pooja_samagri'] ?? [] as $item) {
+            $name = trim($item['name'] ?? '');
+            if ($name === '') continue;
+            $samagri[] = [
+                'name'  => $name,
+                'price' => isset($item['price']) && $item['price'] !== '' ? (float) $item['price'] : null,
+            ];
+        }
+        $data['pooja_samagri'] = $samagri;
 
         return $data;
     }
