@@ -68,9 +68,14 @@ class ServiceController extends Controller
     {
         Gate::authorize('manage-appointments');
 
+        $service->load(['guruServices.guru']);
+        $assignedGuruIds = $service->guruServices->pluck('guru_id')->toArray();
+
         return view('services.show', [
-            'service' => $service,
-            'languages' => Service::SUPPORTED_LANGUAGES,
+            'service'          => $service,
+            'languages'        => Service::SUPPORTED_LANGUAGES,
+            'gurus'            => Guru::orderBy('name')->get(['id', 'name']),
+            'assignedGuruIds'  => $assignedGuruIds,
         ]);
     }
 

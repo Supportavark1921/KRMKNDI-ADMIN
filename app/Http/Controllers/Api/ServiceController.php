@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\GuruService;
 use App\Models\Service;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -20,13 +21,22 @@ class ServiceController extends Controller
 
         $guruId = $request->query('guru_id');
 
-        $services = Service::when($status !== 'all', fn ($q) => $q->where('status', $status))
-            ->when($guruId, fn ($q) => $q->where('guru_id', $guruId))
-            ->latest()
-            ->get()
-            ->map(fn ($s) => $this->format($s, $lang));
+        if ($guruId) {
+            // Return services this Guruji has pricing for, with their specific price/samagri
+            $guruServices = GuruService::with('service')
+                ->where('guru_id', $guruId)
+                ->where('status', 'active')
+                ->get();
 
-        return response()->json(['data' => $services]);
+            $services = $guruServices->map(fn ($gs) => $this->formatWithGuruService($gs, $lang));
+        } else {
+            $services = Service::when($status !== 'all', fn ($q) => $q->where('status', $status))
+                ->latest()
+                ->get()
+                ->map(fn ($s) => $this->format($s, $lang));
+        }
+
+        return response()->json(['data' => $services->values()]);
     }
 
     /**
@@ -40,6 +50,21 @@ class ServiceController extends Controller
     }
 
     // ── Private ──────────────────────────────────────────────────────────────
+
+    private function formatWithGuruService(GuruService $gs, string $lang): array
+    {
+        $base = $this->format($gs->service, $lang);
+        // Override price and samagri with Guruji-specific values
+        $base['pricing'] = [
+            'amount'          => $gs->amount(),
+            'currency'        => $gs->currency(),
+            'discount_amount' => $gs->discountAmount(),
+            'formatted'       => $gs->amount() !== null ? '₹'.number_format($gs->amount()) : null,
+        ];
+        $base['pooja_samagri'] = $gs->samagri();
+        $base['guru_service_id'] = $gs->id;
+        return $base;
+    }
 
     private function format(Service $service, string $lang): array
     {

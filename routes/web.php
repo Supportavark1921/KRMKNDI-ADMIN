@@ -36,6 +36,7 @@ use App\Http\Controllers\DonationFeeController;
 use App\Http\Controllers\GuruController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\GuruServiceController;
 use App\Http\Controllers\ServiceController;
 use Illuminate\Support\Facades\Route;
 
@@ -73,6 +74,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/services/{service}/edit', [ServiceController::class, 'edit'])->name('services.edit');
     Route::put('/services/{service}', [ServiceController::class, 'update'])->name('services.update');
     Route::delete('/services/{service}', [ServiceController::class, 'destroy'])->name('services.destroy');
+    Route::post('/services/{service}/guru-services', [GuruServiceController::class, 'store'])->name('guru-services.store');
+    Route::put('/services/{service}/guru-services/{guruService}', [GuruServiceController::class, 'update'])->name('guru-services.update');
+    Route::delete('/services/{service}/guru-services/{guruService}', [GuruServiceController::class, 'destroy'])->name('guru-services.destroy');
     Route::get('/clients', [ClientProfileController::class, 'clients'])->name('clients.index');
     Route::get('/clients/{user}', [ClientProfileController::class, 'show'])->name('clients.show');
     Route::put('/clients/{user}/notes', [ClientProfileController::class, 'notes'])->name('clients.notes');

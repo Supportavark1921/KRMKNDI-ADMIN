@@ -30,6 +30,11 @@ class Service extends Model
         return $this->belongsTo(Guru::class);
     }
 
+    public function guruServices(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(GuruService::class);
+    }
+
     protected function casts(): array
     {
         return [

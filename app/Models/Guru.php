@@ -50,6 +50,11 @@ class Guru extends Model
         return $this->hasMany(Service::class);
     }
 
+    public function guruServices(): HasMany
+    {
+        return $this->hasMany(GuruService::class);
+    }
+
     public function donations(): HasMany
     {
         return $this->hasMany(Donation::class);
