@@ -27,18 +27,20 @@ class DonationController extends Controller
     }
 
     /** GET /api/donation-categories/{category} */
-    public function category(DonationCategory $category): JsonResponse
+    public function category(DonationCategory $category, \Illuminate\Http\Request $request): JsonResponse
     {
+        $lang = $request->query('lang', 'en');
         return response()->json([
             'success' => true,
             'data'    => [
                 'id'          => $category->id,
-                'name'        => $category->name,
-                'description' => $category->description,
+                'name'        => $category->translatedField('name', $lang),
+                'description' => $category->translatedField('description', $lang) ?: null,
                 'image'       => $category->image
                     ? \Illuminate\Support\Facades\Storage::disk('public')->url($category->image)
                     : null,
                 'status'      => $category->status,
+                'translations' => $category->translations ?? [],
             ],
         ]);
     }
@@ -145,7 +147,11 @@ class DonationController extends Controller
             'id' => $d->id,
             'donation_id' => $d->donation_id,
             'guru' => ['id' => $d->guru_id, 'name' => $d->guru->name ?? null],
-            'category' => ['id' => $d->category_id, 'name' => $d->category->name ?? null],
+            'category' => [
+                'id' => $d->category_id,
+                'name' => $d->category->name ?? null,
+                'translations' => $d->category->translations ?? [],
+            ],
             'breakdown' => [
                 'donation_amount' => $d->donation_amount,
                 'handling_charge' => $d->handling_charge,

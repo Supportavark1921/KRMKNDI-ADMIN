@@ -26,6 +26,12 @@ class ProductResource extends JsonResource
             'rating'       => (float) $this->rating,
             'reviews'      => $this->reviews_count,
             'stock'        => $stock,
+            'product_type' => $this->product_type ?? 'NORMAL',
+            'mataji'       => $this->whenLoaded('mataji', fn () => $this->mataji ? [
+                'id'          => $this->mataji->id,
+                'name'        => $this->mataji->name,
+                'temple_name' => $this->mataji->temple_name,
+            ] : null),
             'uses'         => $this->uses ?? [],
             'contents'     => $this->contents ?? [],
             'image'        => $this->primaryImageUrl(),

@@ -34,7 +34,7 @@ class SamagriController extends Controller
             'per_page'    => ['nullable', 'integer', 'min:1', 'max:50'],
         ]);
 
-        $query = Product::with(['category', 'images', 'inventory'])
+        $query = Product::with(['category', 'images', 'inventory', 'mataji'])
             ->active()
             ->when($request->search, fn ($q, $s) => $q->where(function ($q) use ($s) {
                 $q->where('name', 'like', "%{$s}%")
@@ -66,7 +66,7 @@ class SamagriController extends Controller
             return response()->json(['message' => 'Product not found.'], 404);
         }
 
-        $product->load(['category', 'images', 'inventory']);
+        $product->load(['category', 'images', 'inventory', 'mataji']);
 
         return new ProductResource($product);
     }
