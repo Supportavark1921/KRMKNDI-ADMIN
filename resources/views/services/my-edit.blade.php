@@ -39,7 +39,7 @@
         <div class="svc-me-hero">
             <div>
                 <span class="hero-overline">My Services</span>
-                <h1>{{ $service->translate('name') }}</h1>
+                <h1>{{ $service->translation('name') }}</h1>
                 <p>Edit the name, title and description shown to users in the app.</p>
             </div>
         </div>

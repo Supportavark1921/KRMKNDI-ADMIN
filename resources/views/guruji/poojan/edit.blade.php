@@ -43,7 +43,7 @@
 </style>
 <div class="dashboard pj-page">
     <div class="topbar">
-        <div class="page-heading"><span>Poojan › Edit Service</span><small>{{ $service->translate('name') }}</small></div>
+        <div class="page-heading"><span>Poojan › Edit Service</span><small>{{ $service->translation('name') }}</small></div>
         <form method="POST" action="{{ route('logout') }}">@csrf<button class="logout" type="submit">Sign out</button></form>
     </div>
     <div class="pj-wrap">
@@ -52,7 +52,7 @@
         <div class="pj-hero">
             <div>
                 <span class="hero-overline">Edit · Poojan Service</span>
-                <h1>{{ $service->translate('name') }}</h1>
+                <h1>{{ $service->translation('name') }}</h1>
                 <p>Update name, description, images, samagri list and price.</p>
             </div>
         </div>

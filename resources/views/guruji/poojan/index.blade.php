@@ -58,8 +58,8 @@
                             @endif
                         </div>
                         <div class="pj-card-body">
-                            <div class="pj-card-name">{{ $service->translate('name') }}</div>
-                            <div class="pj-card-desc">{{ \Illuminate\Support\Str::limit($service->translate('title') ?: $service->translate('description'), 80) ?: '—' }}</div>
+                            <div class="pj-card-name">{{ $service->translation('name') }}</div>
+                            <div class="pj-card-desc">{{ \Illuminate\Support\Str::limit($service->translation('title') ?: $service->translation('description'), 80) ?: '—' }}</div>
                             @if($gs)
                                 <div class="pj-price">
                                     {{ $gs->currency() === 'INR' ? '₹' : $gs->currency() }}{{ number_format($gs->amount()) }}
