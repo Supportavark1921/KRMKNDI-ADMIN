@@ -15,7 +15,7 @@ class ProductCategoryResource extends JsonResource
             'name'      => $this->name,
             'slug'      => $this->slug,
             'parent_id' => $this->parent_id,
-            'image'     => $this->image ? Storage::url($this->image) : null,
+            'image'     => $this->image ? Storage::disk('public')->url($this->image) : null,
         ];
     }
 }

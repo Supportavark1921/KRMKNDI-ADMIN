@@ -31,7 +31,7 @@ class ProductResource extends JsonResource
             'image'        => $this->primaryImageUrl(),
             'images'       => $this->when(
                 $request->routeIs('samagri.show'),
-                fn () => $this->images->map(fn ($img) => Storage::url($img->path))->values()
+                fn () => $this->images->map(fn ($img) => Storage::disk('public')->url($img->path))->values()
             ),
         ];
     }
@@ -53,6 +53,6 @@ class ProductResource extends JsonResource
             ? $this->primaryImage
             : $this->images->firstWhere('is_primary', true) ?? $this->images->first();
 
-        return $primary ? Storage::url($primary->path) : null;
+        return $primary ? Storage::disk('public')->url($primary->path) : null;
     }
 }
