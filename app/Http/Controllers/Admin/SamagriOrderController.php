@@ -109,6 +109,22 @@ class SamagriOrderController extends Controller
             ->withProperties(['payment_status' => $data['payment_status'], 'payment_id' => $data['payment_id']])
             ->log('payment_status_updated');
 
+        if ($data['payment_status'] === 'paid' && $samagriOrder->user_id) {
+            $this->fcm->sendToUsers(
+                [$samagriOrder->user_id],
+                '💳 Payment Confirmed',
+                "Payment for your order #{$samagriOrder->id} has been confirmed. We'll process it shortly!",
+                ['type' => 'samagri_order', 'id' => (string) $samagriOrder->id],
+            );
+        } elseif ($data['payment_status'] === 'cancelled' && $samagriOrder->user_id) {
+            $this->fcm->sendToUsers(
+                [$samagriOrder->user_id],
+                '❌ Payment Cancelled',
+                "Payment for order #{$samagriOrder->id} could not be verified. Please contact us.",
+                ['type' => 'samagri_order', 'id' => (string) $samagriOrder->id],
+            );
+        }
+
         return back()->with('success', 'Payment status updated.');
     }
 

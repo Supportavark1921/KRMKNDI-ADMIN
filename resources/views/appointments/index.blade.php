@@ -182,39 +182,41 @@
                 <div class="apt-action">
                     <span class="apt-status {{ $appointment->status }}">{{ ucfirst($appointment->status) }}</span>
                     @if($isStaff)
-                        <form class="apt-status-form" method="POST" action="{{ route('appointments.status', $appointment) }}">
-                            @csrf @method('PATCH')
-                            <label for="s{{ $appointment->id }}">Update status</label>
-                            <select id="s{{ $appointment->id }}" name="status">
-                                <option value="pending"   @selected($appointment->status==='pending')>Pending</option>
-                                <option value="confirmed" @selected($appointment->status==='confirmed')>Confirmed</option>
-                                <option value="completed" @selected($appointment->status==='completed')>Completed</option>
-                                <option value="cancelled" @selected($appointment->status==='cancelled')>Cancelled</option>
-                            </select>
-                            <button class="apt-save" type="submit">Save</button>
-                        </form>
-
-                        {{-- Payment section --}}
-                        <div class="apt-status-form" style="margin-top:4px;gap:4px">
-                            <label style="display:flex;align-items:center;justify-content:space-between">
-                                <span>Payment</span>
-                                <span style="padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700;background:{{ match($appointment->payment_status ?? 'unpaid') { 'paid' => '#d3f9d8', 'screenshot_uploaded' => '#fff3d7', default => '#f3f3f3' } }};color:{{ match($appointment->payment_status ?? 'unpaid') { 'paid' => '#1a4d2a', 'screenshot_uploaded' => '#8a5a11', default => '#666' } }}">
-                                    {{ ucfirst(str_replace('_',' ', $appointment->payment_status ?? 'unpaid')) }}
-                                </span>
-                            </label>
-                            @if($appointment->payment_screenshot)
-                            <a href="{{ Storage::disk('public')->url($appointment->payment_screenshot) }}" target="_blank" style="font-size:11px;color:#237861;font-weight:700">📎 View screenshot</a>
-                            @endif
-                            <form method="POST" action="{{ route('appointments.payment', $appointment) }}" style="display:grid;gap:4px;margin-top:2px">
+                        <div class="apt-status-form" style="gap:0;padding:0;overflow:hidden">
+                            {{-- Booking status --}}
+                            <form method="POST" action="{{ route('appointments.status', $appointment) }}" style="display:grid;gap:5px;padding:10px 11px;border-bottom:1px solid #dceee7">
                                 @csrf @method('PATCH')
-                                <select name="payment_status" style="padding:5px 8px;border:1px solid #c8ded5;border-radius:7px;font:600 12px inherit;color:#205c4e;background:#f7fcf9">
-                                    @foreach(['unpaid','screenshot_uploaded','paid','cancelled'] as $ps)
-                                    <option value="{{ $ps }}" @selected(($appointment->payment_status ?? 'unpaid') === $ps)>{{ ucfirst(str_replace('_',' ',$ps)) }}</option>
+                                <label for="s{{ $appointment->id }}" style="font-size:10px;font-weight:800;color:#63736e;letter-spacing:.04em;text-transform:uppercase;margin:0">Booking Status</label>
+                                <select id="s{{ $appointment->id }}" name="status" style="width:100%;padding:7px 9px;border:1px solid #c8ded5;border-radius:8px;color:#205c4e;background:#f7fcf9;font:600 13px inherit">
+                                    <option value="pending"   @selected($appointment->status==='pending')>Pending</option>
+                                    <option value="confirmed" @selected($appointment->status==='confirmed')>Confirmed</option>
+                                    <option value="completed" @selected($appointment->status==='completed')>Completed</option>
+                                    <option value="cancelled" @selected($appointment->status==='cancelled')>Cancelled</option>
+                                </select>
+                                <button class="apt-save" type="submit">Save Booking Status</button>
+                            </form>
+
+                            {{-- Payment status --}}
+                            <form method="POST" action="{{ route('appointments.payment', $appointment) }}" style="display:grid;gap:5px;padding:10px 11px;background:#f4faf7">
+                                @csrf @method('PATCH')
+                                <div style="display:flex;align-items:center;justify-content:space-between">
+                                    <label style="font-size:10px;font-weight:800;color:#63736e;letter-spacing:.04em;text-transform:uppercase;margin:0">Payment</label>
+                                    @php $ps = $appointment->payment_status ?? 'unpaid'; @endphp
+                                    <span style="padding:2px 7px;border-radius:10px;font-size:10px;font-weight:700;background:{{ $ps==='paid'?'#d3f9d8':($ps==='screenshot_uploaded'?'#fff3d7':'#eee') }};color:{{ $ps==='paid'?'#1a4d2a':($ps==='screenshot_uploaded'?'#8a5a11':'#666') }}">
+                                        {{ ucfirst(str_replace('_',' ',$ps)) }}
+                                    </span>
+                                </div>
+                                @if($appointment->payment_screenshot)
+                                <a href="{{ Storage::disk('public')->url($appointment->payment_screenshot) }}" target="_blank" style="font-size:11px;color:#237861;font-weight:700">📎 View screenshot</a>
+                                @endif
+                                <select name="payment_status" style="padding:6px 8px;border:1px solid #b8d4c8;border-radius:7px;font:600 12px inherit;color:#1d5c4a;background:#edf8f3">
+                                    @foreach(['unpaid','screenshot_uploaded','paid','cancelled'] as $s)
+                                    <option value="{{ $s }}" @selected($ps===$s)>{{ ucfirst(str_replace('_',' ',$s)) }}</option>
                                     @endforeach
                                 </select>
                                 <input type="text" name="payment_id" placeholder="Transaction / UTR ID" value="{{ $appointment->payment_id }}"
-                                    style="padding:5px 8px;border:1px solid #c8ded5;border-radius:7px;font:12px inherit;color:#205c4e">
-                                <button class="apt-save" type="submit" style="background:#1d5c4a">Update Payment</button>
+                                    style="padding:6px 8px;border:1px solid #b8d4c8;border-radius:7px;font:12px inherit;color:#1d5c4a;background:#fff">
+                                <button class="apt-save" type="submit" style="background:#1d5c4a">Save Payment Status</button>
                             </form>
                         </div>
                     @else

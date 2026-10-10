@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Donation;
 use App\Models\DonationCategory;
 use App\Models\Guru;
+use App\Services\FcmService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -12,6 +13,8 @@ use Illuminate\View\View;
 
 class DonationController extends Controller
 {
+    public function __construct(private readonly FcmService $fcm) {}
+
     public function index(Request $request): View
     {
         Gate::authorize('manage-appointments');
@@ -91,6 +94,23 @@ class DonationController extends Controller
             ->performedOn($donation)
             ->withProperties(['payment_status' => $data['payment_status'], 'transaction_id' => $data['transaction_id']])
             ->log('payment_status_updated');
+
+        if ($data['payment_status'] === 'success' && $donation->user_id) {
+            $amount = '₹' . number_format($donation->total_amount, 2);
+            $this->fcm->sendToUsers(
+                [$donation->user_id],
+                '🙏 Donation Confirmed',
+                "Your donation of {$amount} has been verified. Thank you for your generosity!",
+                ['type' => 'donation', 'id' => (string) $donation->id],
+            );
+        } elseif ($data['payment_status'] === 'failed' && $donation->user_id) {
+            $this->fcm->sendToUsers(
+                [$donation->user_id],
+                '❌ Donation Payment Failed',
+                'Your donation payment could not be verified. Please contact us.',
+                ['type' => 'donation', 'id' => (string) $donation->id],
+            );
+        }
 
         return back()->with('success', 'Payment status updated.');
     }

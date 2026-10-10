@@ -95,7 +95,6 @@
             </div>
 
             {{-- Admin payment update --}}
-            @can('manage-appointments')
             <div class="detail-panel" style="grid-column:1/-1">
                 <p class="panel-title">Update Payment Status</p>
                 @if(session('success'))<div style="margin-bottom:12px;padding:10px 14px;border-radius:8px;background:#d3f9d8;color:#1a4d2a;font-size:14px;font-weight:600">✓ {{ session('success') }}</div>@endif
@@ -104,7 +103,7 @@
                     <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
                         <div style="flex:1;min-width:160px">
                             <div class="d-label" style="margin-bottom:4px">Payment Status</div>
-                            <select name="payment_status" class="form-input" style="height:38px;border:1px solid #d8c8b8;border-radius:8px;padding:0 10px">
+                            <select name="payment_status" style="height:38px;width:100%;padding:0 10px;border:1px solid #d8c8b8;border-radius:8px;font:inherit">
                                 @foreach(['pending','screenshot_uploaded','success','failed','cancelled','refunded'] as $ps)
                                 <option value="{{ $ps }}" @selected($donation->payment_status === $ps)>{{ ucfirst(str_replace('_',' ',$ps)) }}</option>
                                 @endforeach
@@ -114,11 +113,10 @@
                             <div class="d-label" style="margin-bottom:4px">Transaction ID</div>
                             <input type="text" name="transaction_id" style="height:38px;width:100%;padding:0 10px;border:1px solid #d8c8b8;border-radius:8px;font:inherit" placeholder="Enter UTR / transaction ID" value="{{ old('transaction_id', $donation->transaction_id) }}">
                         </div>
-                        <button type="submit" style="height:38px;padding:0 18px;border:0;border-radius:8px;background:#e8813a;color:#fff;font:700 14px inherit;cursor:pointer;white-space:nowrap">Update Payment</button>
+                        <button type="submit" style="height:38px;padding:0 18px;border:0;border-radius:8px;background:#e8813a;color:#fff;font:700 14px inherit;cursor:pointer;white-space:nowrap">Save Payment Status</button>
                     </div>
                 </form>
             </div>
-            @endcan
 
             {{-- Timestamps --}}
             <div class="detail-panel">

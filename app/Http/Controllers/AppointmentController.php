@@ -134,6 +134,22 @@ class AppointmentController extends Controller
             ->withProperties(['payment_status' => $data['payment_status'], 'payment_id' => $data['payment_id']])
             ->log('payment_status_updated');
 
+        if ($data['payment_status'] === 'paid' && $appointment->user_id) {
+            $this->fcm->sendToUsers(
+                [$appointment->user_id],
+                '💳 Payment Confirmed',
+                'Your appointment payment has been confirmed. We look forward to seeing you!',
+                ['type' => 'appointment', 'id' => (string) $appointment->id],
+            );
+        } elseif ($data['payment_status'] === 'cancelled' && $appointment->user_id) {
+            $this->fcm->sendToUsers(
+                [$appointment->user_id],
+                '❌ Payment Cancelled',
+                'Your appointment payment could not be verified. Please contact us.',
+                ['type' => 'appointment', 'id' => (string) $appointment->id],
+            );
+        }
+
         return back()->with('success', 'Payment status updated.');
     }
 }
