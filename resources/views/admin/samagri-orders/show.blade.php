@@ -139,22 +139,6 @@
                 <div class="detail-row"><div class="d-label">Current Status</div><div><span class="st-{{ $order->status }}">{{ ucfirst($order->status) }}</span></div></div>
                 <div class="detail-row"><div class="d-label">Order Total</div><div class="d-value">₹{{ number_format($order->total_amount, 2) }}</div></div>
                 <div class="detail-row"><div class="d-label">Placed On</div><div class="d-value muted">{{ $order->created_at->format('d M Y, g:i A') }}</div></div>
-                @can('samagri-orders.update')
-                @if(!in_array($order->status, ['cancelled','delivered']) && !$order->trashed())
-                <div style="border-top:1px solid #e8f5ec;padding-top:14px;margin-top:4px">
-                    <div class="d-label" style="margin-bottom:6px">Update Booking Status</div>
-                    <form method="POST" action="{{ route('admin.samagri-orders.status', $order) }}" style="display:flex;gap:8px;align-items:center">
-                        @csrf
-                        <select name="status" style="height:38px;flex:1;padding:0 10px;border:1px solid #c0d8c8;border-radius:8px;font:inherit">
-                            @foreach(['pending','confirmed','processing','shipped','delivered','cancelled'] as $s)
-                            <option value="{{ $s }}" @selected($order->status === $s)>{{ ucfirst($s) }}</option>
-                            @endforeach
-                        </select>
-                        <button type="submit" onclick="return confirm('Update order status?')" style="height:38px;padding:0 16px;border:0;border-radius:8px;background:#1a8040;color:#fff;font:700 13px inherit;cursor:pointer;white-space:nowrap">Save</button>
-                    </form>
-                </div>
-                @endif
-                @endcan
             </div>
 
             {{-- Payment Details --}}
@@ -180,6 +164,29 @@
                 <div class="detail-row"><div class="d-label">Last Updated</div><div class="d-value muted">{{ $order->updated_at->format('d M Y, g:i A') }}</div></div>
                 <div class="detail-row"><div class="d-label">Internal ID</div><div class="d-value muted" style="font-family:ui-monospace,monospace">#{{ $order->id }}</div></div>
             </div>
+
+            {{-- Update Booking Status --}}
+            @can('samagri-orders.update')
+            @if(!in_array($order->status, ['cancelled','delivered']) && !$order->trashed())
+            <div class="detail-panel" style="grid-column:1/-1">
+                <p class="panel-title">Update Booking Status</p>
+                <form method="POST" action="{{ route('admin.samagri-orders.status', $order) }}">
+                    @csrf
+                    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+                        <div style="flex:1;min-width:200px">
+                            <div class="d-label" style="margin-bottom:4px">Booking Status</div>
+                            <select name="status" style="height:38px;width:100%;padding:0 10px;border:1px solid #c0d8c8;border-radius:8px;font:inherit">
+                                @foreach(['pending','confirmed','processing','shipped','delivered','cancelled'] as $s)
+                                <option value="{{ $s }}" @selected($order->status === $s)>{{ ucfirst($s) }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <button type="submit" onclick="return confirm('Update order status?')" style="height:38px;padding:0 18px;border:0;border-radius:8px;background:#1a8040;color:#fff;font:700 14px inherit;cursor:pointer;white-space:nowrap">Save Booking Status</button>
+                    </div>
+                </form>
+            </div>
+            @endif
+            @endcan
 
             {{-- Update Payment Status --}}
             @can('samagri-orders.update')
