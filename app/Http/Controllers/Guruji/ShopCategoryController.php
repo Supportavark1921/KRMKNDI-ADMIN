@@ -26,7 +26,6 @@ class ShopCategoryController extends Controller
         Gate::authorize('my-store.view');
         $guru       = $this->myGuru();
         $categories = ProductCategory::withCount('products')
-            ->where('guru_id', $guru->id)
             ->orderBy('name')->get();
 
         return view('guruji.store.categories.index', compact('categories', 'guru'));

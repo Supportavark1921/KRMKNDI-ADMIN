@@ -24,7 +24,7 @@ class ShopProductController extends Controller
 
     private function myCategories(Guru $guru)
     {
-        return ProductCategory::where('guru_id', $guru->id)->where('status', 'active')->orderBy('name')->get();
+        return ProductCategory::where('status', 'active')->orderBy('name')->get();
     }
 
     public function index(Request $request): View

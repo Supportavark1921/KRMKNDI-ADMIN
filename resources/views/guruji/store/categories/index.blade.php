@@ -64,6 +64,7 @@ table.ms-table{width:100%;border-collapse:collapse}
                     </thead>
                     <tbody>
                         @foreach($categories as $cat)
+                        @php $isOwn = (int)$cat->guru_id === $guru->id; @endphp
                         <tr>
                             <td>
                                 @if($cat->image)
@@ -72,10 +73,13 @@ table.ms-table{width:100%;border-collapse:collapse}
                                     <div style="width:36px;height:36px;border-radius:8px;background:#fff4eb;display:flex;align-items:center;justify-content:center;font-size:16px">📦</div>
                                 @endif
                             </td>
-                            <td style="font-weight:700">{{ $cat->name }}</td>
+                            <td style="font-weight:700">{{ $cat->name }}
+                                @if(!$isOwn)<span style="font-size:11px;color:#b09080;font-weight:400;margin-left:6px">admin</span>@endif
+                            </td>
                             <td style="color:#9a8070">{{ $cat->products_count }}</td>
                             <td><span class="status-{{ $cat->status }}">{{ ucfirst($cat->status) }}</span></td>
                             <td>
+                                @if($isOwn)
                                 <div style="display:flex;gap:6px">
                                     <a href="{{ route('my.store.categories.edit', $cat) }}" class="btn-icon" title="Edit">✎</a>
                                     <form method="POST" action="{{ route('my.store.categories.destroy', $cat) }}" onsubmit="return confirm('Delete {{ $cat->name }}?')">
@@ -83,6 +87,7 @@ table.ms-table{width:100%;border-collapse:collapse}
                                         <button type="submit" class="btn-icon danger" title="Delete">🗑</button>
                                     </form>
                                 </div>
+                                @endif
                             </td>
                         </tr>
                         @endforeach
