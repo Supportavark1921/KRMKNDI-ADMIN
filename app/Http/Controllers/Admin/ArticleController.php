@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Article;
+use App\Models\User;
 use App\Services\FcmService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -79,7 +80,15 @@ class ArticleController extends Controller
 
         $article = Article::create($data);
 
-        if ($article->status === 'published') {
+        if ($article->approval_status === 'pending') {
+            $adminIds = User::whereIn('role', ['admin', 'manager'])->pluck('id')->all();
+            $this->fcm->sendToUsers(
+                $adminIds,
+                '📝 Article Awaiting Approval',
+                '"'.$article->title.'" submitted by '.auth()->user()->name.' needs review.',
+                ['type' => 'approval', 'entity' => 'article', 'id' => (string) $article->id],
+            );
+        } elseif ($article->status === 'published') {
             $this->fcm->sendToAll(
                 '📰 New Article',
                 $article->title,

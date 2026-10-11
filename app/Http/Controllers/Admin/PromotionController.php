@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Promotion;
+use App\Models\User;
 use App\Services\FcmService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -79,7 +80,15 @@ class PromotionController extends Controller
 
         $promotion = Promotion::create($data);
 
-        if ($promotion->status === 'active') {
+        if ($promotion->approval_status === 'pending') {
+            $adminIds = User::whereIn('role', ['admin', 'manager'])->pluck('id')->all();
+            $this->fcm->sendToUsers(
+                $adminIds,
+                '📣 Promotion Awaiting Approval',
+                '"'.$promotion->title.'" submitted by '.auth()->user()->name.' needs review.',
+                ['type' => 'approval', 'entity' => 'promotion', 'id' => (string) $promotion->id],
+            );
+        } elseif ($promotion->status === 'active') {
             $this->notifyPromotion($promotion);
         }
 
