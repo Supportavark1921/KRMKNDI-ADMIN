@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Promotion;
 use App\Models\User;
+use App\Notifications\ContentDecisionNotification;
+use App\Notifications\PendingApprovalNotification;
 use App\Services\FcmService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -81,13 +83,16 @@ class PromotionController extends Controller
         $promotion = Promotion::create($data);
 
         if ($promotion->approval_status === 'pending') {
-            $adminIds = User::whereIn('role', ['admin', 'manager'])->pluck('id')->all();
+            $admins = User::whereIn('role', ['admin', 'manager'])->get();
+            $adminIds = $admins->pluck('id')->all();
             $this->fcm->sendToUsers(
                 $adminIds,
                 '📣 Promotion Awaiting Approval',
                 '"'.$promotion->title.'" submitted by '.auth()->user()->name.' needs review.',
                 ['type' => 'approval', 'entity' => 'promotion', 'id' => (string) $promotion->id],
             );
+            $notification = new PendingApprovalNotification('promotion', $promotion->title, $promotion->id, auth()->user()->name);
+            $admins->each->notify($notification);
         } elseif ($promotion->status === 'active') {
             $this->notifyPromotion($promotion);
         }
@@ -153,6 +158,10 @@ class PromotionController extends Controller
         Gate::authorize('promotions.approve');
         $promotion->update(['approval_status' => 'approved', 'updated_by' => auth()->id()]);
 
+        if ($promotion->created_by && ($submitter = User::find($promotion->created_by))) {
+            $submitter->notify(new ContentDecisionNotification('promotion', $promotion->title, $promotion->id, 'approved', auth()->user()->name));
+        }
+
         return back()->with('success', 'Promotion approved.');
     }
 
@@ -160,6 +169,10 @@ class PromotionController extends Controller
     {
         Gate::authorize('promotions.approve');
         $promotion->update(['approval_status' => 'rejected', 'updated_by' => auth()->id()]);
+
+        if ($promotion->created_by && ($submitter = User::find($promotion->created_by))) {
+            $submitter->notify(new ContentDecisionNotification('promotion', $promotion->title, $promotion->id, 'rejected', auth()->user()->name));
+        }
 
         return back()->with('success', 'Promotion rejected.');
     }

@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Article;
 use App\Models\User;
+use App\Notifications\ContentDecisionNotification;
+use App\Notifications\PendingApprovalNotification;
 use App\Services\FcmService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -81,13 +83,16 @@ class ArticleController extends Controller
         $article = Article::create($data);
 
         if ($article->approval_status === 'pending') {
-            $adminIds = User::whereIn('role', ['admin', 'manager'])->pluck('id')->all();
+            $admins = User::whereIn('role', ['admin', 'manager'])->get();
+            $adminIds = $admins->pluck('id')->all();
             $this->fcm->sendToUsers(
                 $adminIds,
                 '📝 Article Awaiting Approval',
                 '"'.$article->title.'" submitted by '.auth()->user()->name.' needs review.',
                 ['type' => 'approval', 'entity' => 'article', 'id' => (string) $article->id],
             );
+            $notification = new PendingApprovalNotification('article', $article->title, $article->id, auth()->user()->name);
+            $admins->each->notify($notification);
         } elseif ($article->status === 'published') {
             $this->fcm->sendToAll(
                 '📰 New Article',
@@ -173,6 +178,10 @@ class ArticleController extends Controller
         Gate::authorize('articles.approve');
         $article->update(['approval_status' => 'approved', 'updated_by' => auth()->id()]);
 
+        if ($article->created_by && ($submitter = User::find($article->created_by))) {
+            $submitter->notify(new ContentDecisionNotification('article', $article->title, $article->id, 'approved', auth()->user()->name));
+        }
+
         return back()->with('success', 'Article approved.');
     }
 
@@ -180,6 +189,10 @@ class ArticleController extends Controller
     {
         Gate::authorize('articles.approve');
         $article->update(['approval_status' => 'rejected', 'updated_by' => auth()->id()]);
+
+        if ($article->created_by && ($submitter = User::find($article->created_by))) {
+            $submitter->notify(new ContentDecisionNotification('article', $article->title, $article->id, 'rejected', auth()->user()->name));
+        }
 
         return back()->with('success', 'Article rejected.');
     }

@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Donation;
 use App\Models\DonationCategory;
 use App\Models\DonationFeeConfig;
+use App\Models\User;
+use App\Notifications\NewDonationNotification;
 use App\Services\FcmService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -114,6 +116,12 @@ class DonationController extends Controller
         ]);
 
         $donation->load(['guru', 'category']);
+
+        // In-panel notification for admin/manager on successful donation
+        if ($donation->payment_status === 'success') {
+            $admins = User::whereIn('role', ['admin', 'manager'])->get();
+            $admins->each->notify(new NewDonationNotification($donation));
+        }
 
         if ($donation->user_id) {
             $guruName = $donation->guru->name ?? 'Guruji';
